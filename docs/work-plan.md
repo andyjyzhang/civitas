@@ -18,7 +18,7 @@ publication is authorized as a side effect.
 
 | Section | Implemented and exercised | Remaining |
 | --- | --- | --- |
-| Relay + protocol | Memory/PostgreSQL; immutable version appends, expected-version conflicts, idempotent retries, frozen/scoped pagination, final ack/dismiss; HTTP + real MCP flows | Hosted Tiger Cloud verification; wildcard subscriptions intentionally absent |
+| Relay + protocol | Memory/PostgreSQL; immutable versions, idempotency, pagination, ack/dismiss; real hosted Tiger Cloud persistence/Timescale analytics and MCP flow verified | Independent model-generated packet integration; wildcard subscriptions intentionally absent |
 | Client + MCP | Publish/append, subscribe, paginated updates, acknowledgements, additive Claude/Codex/JSON setup helper | Actual coding-model session blocked by expired Claude OAuth |
 | Website/onboarding | Local password registration/sign-in, private spaces, invitations, separate agent keys, owner-managed grants/revocation; dashboard version/inbox controls | Browser visual interaction unavailable; no verified email, recovery, or public deployment |
 | Deep Agents | Existing bounded planning/specialists/evidence/checkpoint/review runner builds; fails closed without provider key | Actual model analysis/delegation/evidence, explicit human review and model-generated publication |
@@ -123,15 +123,30 @@ and cross-owner customer repositories have not been demonstrated.
 
 ### 3. Verify actual Tiger Cloud
 
-- [ ] Privately supply an existing Tiger Cloud service URI and trusted CA if needed.
-  Cloud provisioning is not implicitly authorized by local implementation.
-- [ ] Apply migrations with analytics enabled, validate hosted TLS, execute actual
-  `time_bucket` analytics, verify scoped access, and restart against hosted storage.
-- [ ] Report real publication-to-delivery/first-retrieval timings including polling
+- [x] User supplied a free Tiger Cloud service; configured ignored `.env` with
+  PostgreSQL storage/analytics enabled. No service was provisioned by the agent.
+- [x] Applied 001/003/002 and reran migrations. Hosted TimescaleDB 2.32.0, actual
+  `time_bucket` results, scoped access, and persistence after local relay restart passed.
+- [x] Report real publication-to-delivery/first-retrieval timings including polling
   delay, never as proof of comprehension or useful work.
 
-**Blocker:** no hosted database credential/service. Local PostgreSQL and local
-Timescale runs must be identified separately from Tiger Cloud.
+**Hosted walkthrough:** two synthetic accounts, invitation/membership/grants, four
+MCP processes (one publisher, three receivers), one hand-authored synthetic event,
+same-key retry, explicit acknowledgement. Exactly 1 published/3 delivered/3 retrieved
+transitions persisted across local relay restart with stable first-retrieval/ack
+timestamps. Unauthorized, foreign-space, revoked-access, and invalid-query requests
+were denied. Mean delivery 79 ms; mean first retrieval about 754 ms including a
+250 ms wait and sequential polls. These are observations, not a benchmark or model
+activity. The managed database was not restarted. Private credentials/receipts are
+ignored under `.local/`; no secrets were committed.
+
+**TLS boundary:** this free service uses a private Timescale CA. Saved the CA
+observed from the user-supplied endpoint to ignored `.local/tiger-ca.crt`; no password
+was sent during that inspection. Subsequent pg connections verify signatures and
+hostname via `DATABASE_CA_FILE` (absolute path). Initial CA trust is first-contact,
+not independently verified through Tiger console/public PKI. Independent CA
+confirmation is still advisable; certificate verification was not disabled for
+authenticated connections. Model-generated packet integration remains pending.
 
 ### 4. Submission and genuine feedback
 
@@ -160,5 +175,5 @@ Timescale runs must be identified separately from Tiger Cloud.
   public-auth defense. Core uniqueness/idempotency stays in normal SQL tables.
 - No mid-analysis crash resume was added; durable review checkpoints support stable
   publication retries. No automatic execution/wake-up of receiving coding models.
-- No customer feedback, successful live model analysis, hosted Tiger integration,
-  prize eligibility, or successful submission is fabricated.
+- No customer feedback, successful live model analysis, independent coding-model
+  adaptation, prize eligibility, or successful submission is fabricated.

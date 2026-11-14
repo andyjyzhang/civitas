@@ -11,8 +11,8 @@ agent credentials with read/publish grants, immutable context versions, paginate
 inboxes, explicit acknowledgements, and a live dashboard. An Electron companion
 links agents and prints MCP configuration. PostgreSQL persistence works locally.
 The Deep Agents runner is implemented; real model analysis needs a provider key.
-Hosted Tiger Cloud verification and independent coding-model adaptation remain
-pending. This is a loopback hackathon demo, not a deployed public service.
+Hosted Tiger Cloud persistence/analytics are verified; independent coding-model
+adaptation remains pending. This is a loopback hackathon demo, not a deployed public service.
 
 - [Design](docs/product.md): product, stack, prize strategy, and demo.
 - [Work plan](docs/work-plan.md): current implementation, verified flows, and external blockers.
@@ -83,7 +83,8 @@ For **Tiger Cloud**, provision a PostgreSQL service with TimescaleDB enabled, pu
 its connection URI in `.env` as `DATABASE_URL`, and set
 `RELAY_ANALYTICS_ENABLED=true`. Run `npm run db:migrate` again, then restart the
 relay. Remote connections require verified TLS; set `DATABASE_CA_FILE` to a trusted
-CA bundle path when your service requires one. Never commit the URI or expose it
+CA bundle's absolute path when your service requires one (npm workspace commands
+run from different directories). Never commit the URI or expose it
 through a `NEXT_PUBLIC_` variable.
 
 The separate Timescale migration creates a hypertable mirroring the unique
@@ -102,8 +103,24 @@ relay and database restarts, including two real MCP bridge processes.
 reruns, historical backfill, actual time buckets/latencies and restart persistence.
 A two-event walkthrough measured 4 ms live delivery and 272 ms first retrieval,
 including an intentional 250 ms polling wait. These are local demo observations,
-not a benchmark. **Pending:** actual Tiger Cloud connection and hosted TLS/analytics.
-Neither vanilla PostgreSQL nor a local Timescale container proves hosted Tiger use.
+not a benchmark.
+
+**Also verified on actual Tiger Cloud:** TimescaleDB 2.32.0; all migrations and
+reruns; two synthetic accounts with invitations/grants; one publisher and three
+receivers using four separate MCP processes; idempotent publication, first retrieval,
+acknowledgement, real time buckets, and access-denial checks. Accounts, subscriptions,
+events, deliveries, retry keys and retrieval/ack timestamps survived a local relay
+restart. The hosted database itself was not restarted. This synthetic run measured
+79 ms mean delivery and about 754 ms mean first retrieval, including an intentional
+250 ms wait, network traffic, and sequential receiver polling; not a benchmark.
+
+This free service presents a private Timescale CA. Its CA was observed from the
+supplied endpoint without sending credentials, saved in ignored `.local/tiger-ca.crt`,
+and configured through `DATABASE_CA_FILE`. Subsequent connections check certificate
+signatures and hostname with verification enabled. Initial CA trust was established
+on first contact, not independently checked against the Tiger console/public PKI.
+Use a console-supplied CA or independently confirm its fingerprint for stronger
+initial trust. Credentials and private verification receipts remain outside git.
 
 ## Run the website
 
@@ -260,7 +277,8 @@ who can read and publish. Immutable versions, durable inboxes and retry-safe
 publication make API changes visible across tools. Our synthetic maintenance demo
 preserves urgent triage when a wire field changes from `priority` to `priority_code`.
 The dashboard and companion manage collaboration; a reviewed Deep Agents analyst
-can publish through MCP. Live model execution and hosted Tiger Cloud remain pending.
+can publish through MCP. Hosted Tiger Cloud persistence/analytics are verified;
+live model execution and independent coding-model adaptation remain pending.
 
 Checked November 14, 2026: the [official rules](https://hackprinceton-fall-26.devpost.com/rules)
 require public GitHub source linked on Devpost, all members listed (maximum four),
