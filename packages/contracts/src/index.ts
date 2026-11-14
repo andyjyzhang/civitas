@@ -96,7 +96,7 @@ export const ActivitySnapshotSchema = z.object({
   subscriptions: z.array(SubscriptionSchema),
   events: z.array(ContextEventSchema),
   deliveries: z.array(DeliverySchema.extend({ retrievedAt: timestamp.nullable() })),
-  storage: z.literal('memory'),
+  storage: z.enum(['memory', 'postgres']),
 });
 export type ActivitySnapshot = z.infer<typeof ActivitySnapshotSchema>;
 
