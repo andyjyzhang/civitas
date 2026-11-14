@@ -26,7 +26,8 @@
     "demo:consumers": "tsx examples/api-change/demo.ts",
     "receive:consumers": "tsx examples/api-change/receive.ts",
     "seed:agents": "node apps/relay/scripts/seed-agents.mjs",
-    "link": "npm run build:bridge && node packages/cli/dist/index.js link"
+    "link": "npm run build:bridge && node packages/cli/dist/index.js link",
+    "demo:agents": "bash scripts/demo-agents.sh"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

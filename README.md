@@ -219,19 +219,17 @@ consumers. These transport runs do not prove independent coding-model adaptation
 ## Run the agent workflow
 
 Real models, approval-gated. See [analyst](apps/change-analyst/README.md) and
-[adapter](apps/adapter-agent/README.md) for details. With the relay running:
+[adapter](apps/adapter-agent/README.md) for details. One command builds everything,
+starts a relay if none is running, seeds four agents, runs the analyst and the three
+adapters (you type each approval), and opens the triage preview:
 
 ```sh
-npm run build:bridge
-npm run build -w @civitas/change-analyst && npm run build -w @civitas/adapter-agent
-npm run seed:agents        # analyst + sdk/triage/dispatch credentials in .local/agents/
-node --env-file=.local/agents/analyst.env apps/change-analyst/dist/index.js analyze demo-01
-npm run adapt -w @civitas/adapter-agent -- triage demo-01   # repeat for sdk, dispatch
-npm run preview -w @civitas/adapter-agent -- demo-01         # .local/adapter/demo-01/triage-preview.html
+OPENAI_API_KEY=sk-... npm run demo:agents
 ```
 
-Set `OPENAI_API_KEY` (and optionally `LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY`) in
-your shell. `CIVITAS_MODEL` defaults to `gpt-4.1-mini`. Each run pauses and asks you to
+Keys can also live in `.local/model.env` (`OPENAI_API_KEY=...`, optional
+`LANGSMITH_API_KEY=...` turns on tracing). Pass a run ID with `npm run demo:agents -- my-run`;
+each ID is used once. `CIVITAS_MODEL` defaults to `gpt-4.1-mini`. Each run pauses and asks you to
 type an approval before publishing or applying a patch. A local spend guard records every
 model call in `.local/model-spend.jsonl` and stops at $15 total or $1 per run
 (`CIVITAS_SPEND_LIMIT_USD`, `CIVITAS_RUN_LIMIT_USD`); also set a limit in the provider
