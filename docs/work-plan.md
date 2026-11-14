@@ -8,11 +8,11 @@ and what is still missing. Keep one current plan rather than adding documents.
 
 | Section | Status | Remaining |
 | --- | --- | --- |
-| **1A: relay + contracts** | Working local in-memory relay, shared schemas, private credential setup | PostgreSQL/Tiger persistence, version appends, acknowledgements, pagination |
+| **1A: relay + contracts** | Working memory/PostgreSQL relay, shared schemas, private credential setup | Hosted Tiger verification, version appends, acknowledgements, pagination |
 | **1B: client + MCP** | Integrated with 1A through two real MCP SDK processes | Verify in actual Claude Code/Codex model sessions; guided config |
 | **2: website/onboarding** | Working local demo dashboard | Public account sign-in, invites, agent linking/grants UI |
-| **3: Deep Agents analyst** | Not started; primary sponsor feature | Plan, evidence files, contract/impact specialists, publication review, real MCP publish |
-| **4: domain demo + Tiger Data** | Synthetic maintenance example only | Independent code/UI adaptation, real Tiger Cloud storage/telemetry, measured timings |
+| **3: Deep Agents analyst** | Runner, specialists, evidence, review, and MCP publication implemented | Real provider key and model-generated packet; independent consumer adaptation |
+| **4: domain demo + Tiger Data** | Synthetic fixtures and restart-safe local PostgreSQL flow verified | Independent code/UI adaptation, real Tiger Cloud storage/telemetry, measured timings |
 | **5: desktop companion** | Not started | Minimal sign-in/link/status/open-web over the bridge |
 | **6: submission** | Ranked track strategy recorded in product doc | Focus Business and Enterprise + LangChain; reuse demo for Amazon/Tiger; Peri conditional, CoStar stretch; confirm sponsor rules/award compatibility and rehearse |
 | **Later: GitHub downloads** | Low priority | Installer/CLI/self-host release assets; public source repo is separate |
@@ -30,6 +30,11 @@ and what is still missing. Keep one current plan rather than adding documents.
   published, retrieved the matching delivery, and disconnected through the real UI.
   Live counters updated. Desktop/mobile layouts were inspected; mobile had no
   horizontal overflow. Public account/invitation flows were not exercised or built.
+- After A/B merged, reconciled the analyst dependencies into the root lockfile.
+  A clean `npm ci --ignore-scripts` and relay/bridge/analyst/website builds passed.
+  The merged code published and retrieved a synthetic event through two separate
+  MCP processes; retries returned one event and one delivery. Model analysis and
+  hosted Tiger verification remain pending their credentials/services.
 
 ## Working website slice
 
@@ -40,8 +45,8 @@ publishing context, subscribing, retrieving the current inbox, and disconnecting
 
 This is local demo-key access, not completed public accounts/onboarding. API
 activity does not prove a coding model is active; retrieval does not prove useful
-work. Both website sessions and relay state are temporary. Restarting the relay
-clears events and subscriptions. No Tiger Data/durability claim yet.
+work. Website sessions are temporary. Relay restart clears state in memory mode;
+PostgreSQL mode preserves it. Hosted Tiger Data verification remains pending.
 
 ## Active assignments — two people
 

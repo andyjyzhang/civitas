@@ -54,8 +54,9 @@ node --env-file=.local/receiver.env apps/change-analyst/dist/index.js updates
 ```
 
 The receiver retrieves the actual event using its own MCP process and credential.
-Only the relay determines publisher identity. The demo relay stores data in memory;
-restart loses subscriptions, events, and retry deduplication.
+Only the relay determines publisher identity. In memory mode, restart loses
+subscriptions, events, and retry deduplication. PostgreSQL mode persists these;
+see the root README for setup.
 
 Runs live in ignored `.local/analyst/<run-id>/`. A successful analysis saves
 `review.json` (packet, evidence, model identifier, fixture digest, and tool-call
@@ -71,6 +72,6 @@ returns the same event while its deduplication state exists. Keep checkpoints
 private and do not edit them; packet hash/space checks detect accidental changes.
 No mid-analysis LangGraph crash recovery is implemented.
 
-Dependencies are declared only in this workspace. Root lockfile reconciliation is
-owned by assignment B; until integration, install with `npm install` rather than
-`npm ci`. No deployment or public publication is performed by building or analysis.
+Dependencies are declared in this workspace and recorded in the root lockfile;
+`npm install` or `npm ci` from the root installs them. No deployment or public
+publication is performed by building or analysis.

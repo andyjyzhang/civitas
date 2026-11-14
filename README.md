@@ -10,11 +10,13 @@ Tasks 1A and 1B are integrated: the in-memory relay, shared schemas, HTTP client
 and MCP bridge exchange real events. A live web dashboard supports demo-key access,
 publishing, subscriptions, inbox retrieval, and activity. PostgreSQL persistence
 works locally; optional Timescale analytics awaits a real Tiger Cloud connection.
-Desktop, Deep Agents, public sign-in, and invitations are not implemented yet.
+The Deep Agents analyst is implemented; a real model run awaits a provider key.
+Desktop, public sign-in, and invitations are not implemented yet.
 
 - [Design](docs/product.md): product, stack, prize strategy, and demo.
 - [Work plan](docs/work-plan.md): milestones and two parallel first-section assignments.
 - [Agent instructions](AGENTS.md): short development rules.
+- [Deep Agents runner](apps/change-analyst/README.md): analysis, review, and MCP publication.
 
 ## Layout
 
