@@ -16,7 +16,10 @@
     "build:relay": "npm run build --workspace @civitas/contracts && npm run build --workspace @civitas/relay",
     "start:relay": "npm run start --workspace @civitas/relay",
     "setup:demo": "node apps/relay/scripts/setup-demo.mjs",
-    "build:bridge": "npm run build --workspace @civitas/contracts && npm run build --workspace @civitas/client && npm run build --workspace @civitas/cli"
+    "build:bridge": "npm run build --workspace @civitas/contracts && npm run build --workspace @civitas/client && npm run build --workspace @civitas/cli",
+    "dev:web": "npm run build --workspace @civitas/contracts && npm run build --workspace @civitas/client && npm run dev --workspace @civitas/web",
+    "build:web": "npm run build --workspace @civitas/contracts && npm run build --workspace @civitas/client && npm run build --workspace @civitas/web",
+    "start:web": "npm run start --workspace @civitas/web"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

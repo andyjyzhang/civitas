@@ -19,6 +19,8 @@ Civitas is a hackathon project. Build a working demo; keep code and process simp
   coordinate shared dependencies and interfaces instead of editing across lanes.
 - Report what actually works and what remains unfinished. Do not fabricate agent
   activity, customer feedback, sponsor eligibility, or successful integrations.
+- Update `docs/work-plan.md` as you work: record completed features, what actually
+  ran, and remaining work/blockers. Keep it current instead of adding more documents.
 - Website and desktop are intended surfaces. GitHub downloadable releases are low
   priority. Do not deploy or publish as a side effect of local implementation.
 - Commit incrementally using `<type>(optional scope): <brief description>`. Branch

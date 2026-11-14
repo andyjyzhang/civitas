@@ -25,6 +25,8 @@ export function createRelay(config: Config) {
   const subscriptions = new Map<string, Subscription>();
   const inboxes = new Map<string, Delivery[]>();
   const published = new Map<string, { body: string; event: ContextEvent }>();
+  const lastActivity = new Map<string, string>();
+  const retrieved = new Map<string, string>();
 
   app.setErrorHandler<FastifyError>((error, request, reply) => {
     const status = error instanceof HttpError ? error.statusCode : (error.statusCode || 500);
@@ -49,10 +51,25 @@ export function createRelay(config: Config) {
       if (!agentId) throw new HttpError(401, 'UNAUTHORIZED', 'A valid agent credential is required.');
       const { spaceId } = request.params as { spaceId: string };
       if (spaceId !== config.spaceId) throw new HttpError(404, 'NOT_FOUND', 'Space not found.');
+      lastActivity.set(agentId, new Date().toISOString());
     });
     function actor(authorization: string | undefined): string {
       return config.agents.get(authorization!.slice(7))!;
     }
+
+    routes.get('/v1/spaces/:spaceId/activity', async request => ({
+      space: { spaceId: config.spaceId, name: 'Maintenance API' },
+      currentAgentId: actor(request.headers.authorization),
+      agents: [...new Set(config.agents.values())].map(agentId => ({
+        agentId, lastActivityAt: lastActivity.get(agentId) || null,
+      })),
+      subscriptions: [...subscriptions.values()],
+      events: [...published.values()].map(value => value.event).reverse(),
+      deliveries: [...inboxes.values()].flat().map(delivery => ({
+        ...delivery, retrievedAt: retrieved.get(delivery.deliveryId) || null,
+      })),
+      storage: 'memory',
+    }));
 
     routes.post('/v1/spaces/:spaceId/contexts', async request => {
       const parsed = PublishContextInputSchema.safeParse(request.body);
@@ -107,7 +124,11 @@ export function createRelay(config: Config) {
       if (parsed.data.cursor !== undefined || parsed.data.limit !== undefined) {
         throw new HttpError(400, 'NOT_IMPLEMENTED', 'Pagination is deferred; omit cursor and limit.');
       }
-      return { items: inboxes.get(actor(request.headers.authorization)) || [], nextCursor: null };
+      const items = inboxes.get(actor(request.headers.authorization)) || [];
+      for (const item of items) {
+        if (!retrieved.has(item.deliveryId)) retrieved.set(item.deliveryId, new Date().toISOString());
+      }
+      return { items, nextCursor: null };
     });
   });
   return app;

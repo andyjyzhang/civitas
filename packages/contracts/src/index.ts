@@ -89,6 +89,17 @@ export const ApiErrorSchema = z.object({
 });
 export type ApiError = z.infer<typeof ApiErrorSchema>;
 
+export const ActivitySnapshotSchema = z.object({
+  space: z.object({ spaceId: id, name: z.string() }),
+  currentAgentId: id,
+  agents: z.array(z.object({ agentId: id, lastActivityAt: timestamp.nullable() })),
+  subscriptions: z.array(SubscriptionSchema),
+  events: z.array(ContextEventSchema),
+  deliveries: z.array(DeliverySchema.extend({ retrievedAt: timestamp.nullable() })),
+  storage: z.literal('memory'),
+});
+export type ActivitySnapshot = z.infer<typeof ActivitySnapshotSchema>;
+
 export function topicMatches(pattern: string, topic: string): boolean {
   return pattern === topic;
 }
