@@ -1,0 +1,9 @@
+{
+  "name": "civitas-synthetic-maintenance-consumers",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "demo": "tsx demo.ts",
+    "receive": "tsx receive.ts"
+  }
+}
