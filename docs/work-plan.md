@@ -75,8 +75,31 @@ Give your agent this task:
 → existing relay via MCP. Add specialist/evidence depth next if the first pass is
 slow. A single-prompt first pass is progress, not the completed Deep Agents target.
 
-**A status:** Assigned, not started. Needs a model-provider key supplied privately;
-no model key has been confirmed in this session. Dependencies belong in A's package.
+**A status:** Runner implemented on `feat/deep-agents`; real model execution is
+pending a privately supplied `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` (neither was
+present in the shell or local env files). Added bounded synthetic before/after and
+consumer fixtures with the explicit P1 → urgent mapping. The TypeScript Deep Agents
+runner configures todo planning, contract/impact specialists, read-only virtual
+fixtures, evidence files, and shared-schema structured output. It checks required
+plan/delegation tool calls and evidence before saving a private review checkpoint.
+A separate interactive review command displays the packet/evidence and publishes
+only after the exact terminal approval, using the existing MCP bridge. Checkpoints
+retain the exact packet, target space, and stable run retry key across restarts;
+mid-analysis crash recovery is not implemented. Commands and credential setup are
+in `apps/change-analyst/README.md`; dependencies/scripts are confined to A's package.
+Actual execution: `npm run build:bridge`, `npm run build:relay`, and
+`npm run build -w @civitas/change-analyst` passed. The real Deep Agents graph
+constructed offline with planning, specialists, permissions, and structured output;
+this does not prove model planning or delegation ran. `analyze` explicitly failed
+closed without a model key. A **hand-authored, labeled transport-only packet** ran
+through an isolated real in-memory relay: receiver MCP subscription, terminal
+rejection (empty inbox), approval → MCP publication, and separate receiver MCP
+retrieval all worked. A second approved review returned the identical event with
+one inbox delivery. Noninteractive review was rejected. No model-generated packet,
+live specialist analysis, consumer adaptation, or Tiger durability is claimed.
+Remaining: run analysis with a real provider credential, review its evidence, and
+publish/retrieve that model-generated packet. B must reconcile the root lockfile
+at integration; A left it unchanged and used installs with `--package-lock=false`.
 
 ### Person B — Tiger Data storage
 
