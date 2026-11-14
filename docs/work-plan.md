@@ -6,14 +6,21 @@ model calls, customer feedback or sponsor eligibility into completion claims.
 
 ## Product correction: group chats and servers
 
-User clarified two distinct experiences: **group chats** are private project
-collaboration for friends/coworkers; **servers** are broader public/restricted
-communities for spreading and discovering knowledge. Current private spaces/grants
-provide group foundations, not finished group conversations or community servers.
-Next UI/model work must separate navigation and workflows: group members, project
-conversation/context versus server topic feeds, subscriptions and publisher roles.
-Never automatically expose private group history in a server. See the product doc;
-this records intended scope, not completed implementation.
+Implemented on `feat/groups-server-navigation`: separate group/server kinds, private
+group messages, public/private server feeds with required topics/sources, subscriber
+membership, owner-approved publishers and revocation. Existing spaces remain private
+groups. Shared navigation, room list, stream/composer and member panel power both
+`/groups` and `/servers`; login opens groups. Settings and agent activity reuse the
+same navigation. Explicit agent context appears only in its destination room.
+Human posts do not auto-publish to MCP inboxes or invoke models.
+
+Relay/web builds passed. Real HTTP walkthrough with isolated account cookie sessions
+verified group invites/messages, public discovery/private exclusion, subscription,
+publisher approval/revocation, source validation, agent context, and denied outsider
+access. Group/server kinds and human posts also saved/retrieved on actual Tiger Cloud
+under a labeled synthetic private account. No public demo content was seeded.
+Local app: web3030 → relay4030 → Tiger Cloud. Browser/native access host unavailable,
+so visual browser interactions remain unverified. No new test suite or deployment.
 
 ## Signup arrow spacing (November 14)
 

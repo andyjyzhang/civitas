@@ -30,12 +30,14 @@ permissions. Membership in a group does not expose its history to a server. Shar
 a discovery from a private project to a server requires an explicit selected post;
 do not automatically mirror project conversations or agent context.
 
-The implementation currently has one private, invitation-based `space` abstraction
-with agent grants and context activity. This is groundwork for project groups;
-it does not yet implement group conversations or distinct community-server behavior.
-Use **Group chats** and **Servers** as separate product navigation destinations.
-Keep `space` as an internal routing/access term. The relay server is the backend
-service supporting both experiences, separate from a community server.
+The implementation now distinguishes `group` and `server` spaces. Existing spaces
+default to private groups. `/groups` supports private member conversations;
+`/servers` supports source-linked topic feeds, discovery of explicitly public
+servers by signed-in users, subscriptions, and owner-approved publishers. Private
+servers require invitations. Both routes share one layout/navigation component.
+Explicitly published agent events appear in their destination's feed; human posts
+do not automatically enter agent inboxes or trigger execution. Keep `space` as an
+internal routing/access term. The relay server is the backend supporting both.
 
 ## Product surfaces
 
