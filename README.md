@@ -8,8 +8,9 @@ agents. Built for HackPrinceton 2026.
 
 Tasks 1A and 1B are integrated: the in-memory relay, shared schemas, HTTP client,
 and MCP bridge exchange real events. A live web dashboard supports demo-key access,
-publishing, subscriptions, inbox retrieval, and activity. Desktop, Deep Agents,
-public sign-in, invitations, and persistent storage are not implemented yet.
+publishing, subscriptions, inbox retrieval, and activity. PostgreSQL persistence
+works locally; optional Timescale analytics awaits a real Tiger Cloud connection.
+Desktop, Deep Agents, public sign-in, and invitations are not implemented yet.
 
 - [Design](docs/product.md): product, stack, prize strategy, and demo.
 - [Work plan](docs/work-plan.md): milestones and two parallel first-section assignments.
@@ -29,7 +30,7 @@ packages/cli         Local CLI/MCP bridge
 
 ## Run the relay
 
-Use Node.js 22+ and npm 10+. No database is needed for this sprint.
+Use Node.js 22+ and npm 10+. The default setup uses memory; no database is needed.
 
 ```sh
 npm install
@@ -41,12 +42,59 @@ npm run start:relay
 Or use `npm run dev:relay` to rebuild contracts and watch relay source changes.
 The relay reads the root `.env`, binds to `http://127.0.0.1:4000`, and admits two
 agents (`ag_publisher`, `ag_receiver`) to `sp_demo`. Override the port/space in `.env`.
-**All events, subscriptions, retry keys, and inboxes disappear on restart.**
+With `RELAY_STORAGE=memory`, **all events, subscriptions, retry keys, and inboxes
+disappear on restart.** Existing `.env` files should set this explicitly if no
+database is running. Without an explicit mode, a `DATABASE_URL` selects PostgreSQL.
 
 Setup creates/preserves private credentials in `.env` and writes ignored,
 user-only `.local/publisher.env` and `.local/receiver.env`. Each agent file contains
 `CIVITAS_RELAY_URL`, `CIVITAS_AGENT_TOKEN`, and `CIVITAS_DEMO_SPACE_ID` for the bridge.
 Never commit or paste these tokens into chat. Re-running setup preserves credentials.
+
+## Persistent storage and Tiger Data
+
+For local PostgreSQL, use the included Docker Compose service:
+
+```sh
+docker compose up -d db
+```
+
+In your ignored `.env`, set `RELAY_STORAGE=postgres`, keep `DATABASE_URL` matched
+to Compose's credentials/port, and leave `RELAY_ANALYTICS_ENABLED=false`. Then:
+
+```sh
+npm run db:migrate
+npm run start:relay
+```
+
+Migrations are explicit and safe to rerun; do not edit applied SQL files. Events,
+subscriptions, retry keys, deliveries, and first retrieval timestamps survive relay
+and database restarts. Publish and fanout commit together. Concurrent retries across
+relay processes create one event; changed content under the same key returns 409.
+`/readyz` checks the database and reports `storage: "postgres", durable: true`.
+Database failures return errors and never silently switch to memory.
+
+For **Tiger Cloud**, provision a PostgreSQL service with TimescaleDB enabled, put
+its connection URI in `.env` as `DATABASE_URL`, and set
+`RELAY_ANALYTICS_ENABLED=true`. Run `npm run db:migrate` again, then restart the
+relay. Remote connections require verified TLS; set `DATABASE_CA_FILE` to a trusted
+CA bundle path when your service requires one. Never commit the URI or expose it
+through a `NEXT_PUBLIC_` variable.
+
+The separate Timescale migration creates a hypertable mirroring the unique
+published/delivered/first-retrieved transition ledger, including existing history.
+The authenticated `GET /v1/spaces/sp_demo/analytics` route uses `time_bucket` to
+return per-minute counts and mean/p50/p95 latency by transition kind. Optional
+`from`/`to` timestamps select a range up to seven days; default is the last hour.
+Latency runs from server publication to delivery or first inbox retrieval, includes
+polling delay, and does not prove model comprehension or useful action. Telemetry
+contains IDs/timing, not context bodies. Disabled analytics returns 503.
+
+**Verified:** real PostgreSQL publish/retrieve, concurrent retries across two relay
+processes, rollback on fanout failure, space isolation, and persistence after
+relay and database restarts, including two real MCP bridge processes.
+**Pending:** Tiger Cloud connection, Timescale migration execution,
+and live analytics results. Vanilla PostgreSQL alone is not a Tiger integration.
 
 ## Run the website
 
@@ -66,7 +114,7 @@ Subscribe the receiver to `project/maintenance-api`, publish from the other sess
 and retrieve the receiver's inbox. The feed polls real activity every three seconds.
 The web server keeps credentials in temporary HttpOnly sessions, not browser storage.
 These are demo identities, not public account sign-in or invitations. Relay restart
-clears shared activity; web restart disconnects browser sessions.
+clears shared activity only in memory mode; web restart disconnects browser sessions.
 
 ## Run the MCP bridge
 
@@ -99,14 +147,14 @@ Use a different agent env file per MCP process. Send bearer auth on these routes
 | `POST /v1/spaces/sp_demo/contexts` | `PublishContextInput` → `ContextEvent` |
 | `GET /v1/spaces/sp_demo/updates` | `UpdatesPage` |
 | `GET /v1/spaces/sp_demo/activity` | Authenticated `ActivitySnapshot` for the dashboard |
+| `GET /v1/spaces/sp_demo/analytics` | Per-minute Timescale transition counts and latency; opt-in |
 
 Subscribe before publishing. Topics match exactly. Publish requires `topic`,
 `title`, `content`, `source: { uri, revision, excerpt? }`, and `idempotencyKey`.
 Identical retries return the same event; changed bodies under that key return 409.
 Inbox reads replay all deliveries and do not acknowledge them. Omit cursor/limit:
 version appends, pagination, wildcards, and acknowledgement are not implemented.
-`/readyz` reports `storage: "memory", durable: false` rather than database readiness.
+`/readyz` reports actual storage, durability, and whether analytics is enabled.
 
-PostgreSQL/Tiger Cloud persistence is follow-up work. The existing Docker Compose
-file remains available for local PostgreSQL when that slice begins. License and
-public package naming are undecided.
+Version appends and acknowledgements remain follow-up work. License and public
+package naming are undecided.
