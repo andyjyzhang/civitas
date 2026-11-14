@@ -4,6 +4,20 @@ Build the real flow. No new test suites, lint/check pipelines, CI, release
 or deployment automation. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Dark terminal simplification (November 14)
+
+User follow-up narrows the website to a compact landing page, login and main UI.
+Removed the long marketing sections and illustrative protocol component. Landing
+now contains a brief introduction, ASCII network, and only login/relay entry points.
+Rebuilt shared styling as a dark terminal theme with monospace UI, muted phosphor
+accents, and consistent dark forms, dashboard panels, inbox and publication dialog.
+Existing `/settings` account/login and `/relay` functionality is preserved.
+`npm run build:web` passed. Production HTTP checks returned 200 for all three
+pages, confirmed the compact landing links/removed sections, and exercised agent
+connection, real activity retrieval, disconnect and unauthenticated denial against
+the isolated memory relay. Browser host remains unavailable; rendered visual and
+keyboard checks remain unverified.
+
 ## Frontend redesign (November 14)
 
 Active follow-up: redesign the website with a technical visual language inspired

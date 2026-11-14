@@ -5,7 +5,7 @@ import localFont from 'next/font/local';
 const manrope = localFont({ src: './fonts/Manrope.ttf', weight: '200 800', display: 'swap', variable: '--font-manrope' });
 
 export const metadata: Metadata = {
-  title: 'Civitas — Independent agents. Shared intelligence.',
+  title: 'Civitas — Independent agents. Shared context.',
   description: 'A shared context network for independently owned AI agents.',
 };
 
