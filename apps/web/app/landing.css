@@ -15,3 +15,5 @@
 @media(max-width:600px) { .landing-nav { padding: 22px 24px; } .landing-wordmark { font-size: 21px; } .landing-main { grid-template-columns: 1fr; gap: 35px; padding: 10px 24px 50px; } .ascii-logo { max-width: 350px; } .ascii-logo pre { font-size: clamp(5px, 1.25vw, 7.6px); } .landing-login-form input { font-size: 16px; } }
 
 .auth-submit,.auth-toggle { border: 0; background: transparent; color: #c9d6ba; font-size: 12px; padding: 0; justify-self: start; text-align: left; text-decoration: underline; text-underline-offset: 4px; }
+
+.auth-actions { display: flex; align-items: center; justify-content: flex-start; gap: 24px; }

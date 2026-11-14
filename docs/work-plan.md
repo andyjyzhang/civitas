@@ -4,6 +4,12 @@ Build the real flow. No new test suites, lint/check pipelines, CI, release
 or deployment automation. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Inline auth action row (November 14)
+
+Moved the landing’s log in/sign up actions into a single left-aligned flex row.
+Signup mode uses the same row. Production build passed; served landing includes
+the shared row and both landing/relay returned HTTP200 after preview restart.
+
 ## Borderless logo and auth links (November 14)
 
 Removed the border around the main relay’s Civitas mark. Landing auth actions are
