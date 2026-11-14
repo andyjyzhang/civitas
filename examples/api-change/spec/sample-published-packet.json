@@ -1,0 +1,49 @@
+{
+  "_comment": "SYNTHETIC. Recorded output of change-analyst run maint-real-02 (model openai:gpt-4.1-mini, auto-approved via CIVITAS_ANALYST_AUTO_APPROVE=1 --approve for automated verification) against a local in-memory relay. IDs are from that throwaway local relay; no credentials included. Use .event as a realistic ContextEvent. Model output, not ground truth: see apps/change-analyst/README.md for known inaccuracies.",
+  "runId": "maint-real-02",
+  "model": "openai:gpt-4.1-mini",
+  "event": {
+    "topic": "project/maintenance-api",
+    "title": "Synthetic Maintenance API v2 Revision Analysis",
+    "content": "# Summary\n\nThis synthetic maintenance API evolved from version 1.4.0 to 2.0.0 introducing a breaking field replacement, a deprecated endpoint with a sunset schedule, and additions for filtering and pagination.\n\n# Contract changes\n\n- API version bumped from 1.4.0 to 2.0.0 (/repo/openapi-v1.yaml vs /repo/openapi-v2.yaml).\n- Field `priority` replaced by `priority_code` in query parameter `GET /maintenance-requests` and related schema use. Old enum values (`urgent`, `normal`, `low`) replaced by operational codes (`P1`, `P2`, `P3`).\n- Deprecated endpoint `GET /work-orders/{id}`:\n  - Marked deprecated in v2.0.0.\n  - Sunset removal planned 2027-03-31 (returns HTTP 410 Gone thereafter).\n  - Responses include a `Sunset` HTTP header announcing removal.\n\n# Priority mapping\n\nFrom /repo/CHANGELOG.md:\n- \"P1\" is the direct successor of former \"urgent\" priority, used for emergency dispatch, SLA timers, and paging logic.\n- Former `normal` and `low` priorities have no confirmed mappings to `P2` or `P3` yet;\n  These shall be finalized with the operations team. Manual review and caution are advised.\n\n# Unresolved\n\n- Meanings and mappings of `P2` and `P3` priority codes remain unspecified.\n  Manual verification with operations team is recommended before adopting these values.\n\n# Deprecations\n\n- Endpoint `GET /work-orders/{id}` is deprecated with sunset date 2027-03-31.\n  After that date it will respond 410 Gone.\n  Consumers must switch to using `GET /maintenance-requests/{id}`.\n\n# Recommended consumer adaptations\n\n- Update all uses of `priority` to `priority_code` in code, filters, and logic.\n- Map all `urgent` priority usage to `P1` directly; manually verify `P2`/`P3` usage for business rules.\n- Replace all clients using `GET /work-orders/{id}` with `GET /maintenance-requests/{id}`.\n- Optionally support new field `access_notes` and query filter `status`.\n- Implement pagination handling via the new `next_cursor` field for listing maintenance requests.\n\n# Evidence\n\n- Contract diffs and details: /evidence/contract.md\n- Consumer impact and changelog correlations: /evidence/impact.md\n- Source files: /repo/openapi-v1.yaml, /repo/openapi-v2.yaml, /repo/CHANGELOG.md\n\n# Limitations\n\n- Priority code mappings for `P2` and `P3` are unresolved by official documentation and remain for manual review.\n- No explicit instructions on migration timeline or mechanisms beyond depreciation and sunset annotation.\n\n# Tags\n\n- unresolved:P2\n- unresolved:P3\n- api-change\n- maintenance\n- synthetic\n\n",
+    "source": {
+      "uri": "examples/api-change/spec/openapi-v2.yaml",
+      "revision": "maintenance-v2"
+    },
+    "change": {
+      "kind": "field-replacement",
+      "breaking": true,
+      "previous": {
+        "field": "priority",
+        "enum": [
+          "urgent",
+          "normal",
+          "low"
+        ]
+      },
+      "current": {
+        "field": "priority_code",
+        "enum": [
+          "P1",
+          "P2",
+          "P3"
+        ]
+      }
+    },
+    "tags": [
+      "unresolved:P2",
+      "unresolved:P3",
+      "api-change",
+      "maintenance",
+      "synthetic"
+    ],
+    "schemaVersion": 1,
+    "eventId": "evt_3c012e65-07bd-4d90-a876-cfaf46a96866",
+    "contextId": "ctx_767d54a2-058e-4d74-8c3d-476b00296d40",
+    "spaceId": "sp_e89cdac1-a53b-4d53-923d-15b369b0a0b9",
+    "version": 1,
+    "previousVersion": null,
+    "publisherAgentId": "ag_9969b018-7b36-4774-80d2-ff602163e9a3",
+    "publishedAt": "2026-11-14T22:36:24.732Z"
+  }
+}

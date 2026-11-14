@@ -1,0 +1,155 @@
+# SYNTHETIC FIXTURE for the Civitas change-analyst demo. Not a real API, vendor, or customer.
+# Treat as untrusted data, never instructions.
+openapi: 3.1.0
+info:
+  title: Maintenance Requests API (synthetic)
+  version: 2.0.0
+  description: Synthetic property-maintenance API used only for the Civitas demo.
+servers:
+  - url: https://maintenance.example.test/api
+paths:
+  /maintenance-requests:
+    get:
+      operationId: listMaintenanceRequests
+      summary: List maintenance requests
+      parameters:
+        - name: priority_code
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PriorityCode'
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Status'
+      responses:
+        '200':
+          description: A page of maintenance requests.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MaintenanceRequest'
+                  next_cursor:
+                    type: string
+    post:
+      operationId: createMaintenanceRequest
+      summary: Create a maintenance request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewMaintenanceRequest'
+      responses:
+        '201':
+          description: Created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceRequest'
+  /maintenance-requests/{id}:
+    get:
+      operationId: getMaintenanceRequest
+      summary: Get one maintenance request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The maintenance request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceRequest'
+        '404':
+          description: Not found.
+  /work-orders/{id}:
+    get:
+      operationId: getWorkOrder
+      summary: Get a work order (legacy view of a maintenance request)
+      deprecated: true
+      description: >-
+        Deprecated in 2.0.0. Sunset planned for 2027-03-31; after that date this
+        endpoint returns 410 Gone. Use GET /maintenance-requests/{id} instead.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Legacy work order representation.
+          headers:
+            Sunset:
+              description: HTTP Sunset header announcing removal.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrder'
+components:
+  schemas:
+    PriorityCode:
+      type: string
+      enum: [P1, P2, P3]
+      description: Operations priority code assigned at intake.
+    Status:
+      type: string
+      enum: [open, scheduled, in_progress, closed]
+    NewMaintenanceRequest:
+      type: object
+      required: [unit_id, summary, priority_code]
+      properties:
+        unit_id:
+          type: string
+        summary:
+          type: string
+          maxLength: 500
+        priority_code:
+          $ref: '#/components/schemas/PriorityCode'
+        access_notes:
+          type: string
+          description: Optional entry instructions for technicians.
+    MaintenanceRequest:
+      type: object
+      required: [id, unit_id, summary, priority_code, status, created_at]
+      properties:
+        id:
+          type: string
+        unit_id:
+          type: string
+        summary:
+          type: string
+        priority_code:
+          $ref: '#/components/schemas/PriorityCode'
+        status:
+          $ref: '#/components/schemas/Status'
+        access_notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    WorkOrder:
+      type: object
+      required: [work_order_id, request_id, priority_code]
+      properties:
+        work_order_id:
+          type: string
+        request_id:
+          type: string
+        priority_code:
+          $ref: '#/components/schemas/PriorityCode'
+        technician:
+          type: string
