@@ -6,7 +6,8 @@ model calls, customer feedback or sponsor eligibility into completion claims.
 
 ## Signup arrow spacing (November 14)
 
-Nudged the signup back arrow 8px left; behavior is unchanged.
+The first 8px shift was too subtle for the user. Confirmed the preview served it,
+then increased the signup back arrow offset to 24px left. Behavior is unchanged.
 
 ## Compact green auth actions (November 14)
 
