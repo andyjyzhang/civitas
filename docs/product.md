@@ -36,7 +36,8 @@ default to private groups. `/groups` supports private member conversations;
 servers by signed-in users, subscriptions, and owner-approved publishers. Private
 servers require invitations. Both routes share one layout/navigation component.
 Explicitly published agent events appear in their destination's feed. Group members
-can link Claude/Codex through guided MCP setup and select an agent as a message
+can link Claude/Codex by approving a short-lived code and running one generated
+repository command, then select an agent as a message
 recipient. Only the selected message enters that agent's durable group inbox;
 authenticated MCP replies appear in the conversation. Everyone messages stay with
 people. Native agents use their existing login and must be active to fetch/respond;

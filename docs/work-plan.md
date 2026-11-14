@@ -6,6 +6,20 @@ model calls, customer feedback or sponsor eligibility into completion claims.
 
 ## Group agent connection and conversation
 
+One-command follow-up on `feat/one-command-agent-link` replaces the manual file
+download/path form. Connect Claude/Codex now generates a five-minute single-use
+code. `npm run link -- claude|codex --relay URL --code CODE` preflights the installed
+CLI and project, redeems the code, writes a private env, and runs additive MCP
+configuration under a unique name. Optional `--project` selects another repository.
+Provider account login remains with the user's coding tool. Shared schemas/routes
+validate provider, membership, expiry and single redemption; code records are hashed.
+Builds passed. Real CLI linking was exercised against an isolated relay with
+controlled Claude/Codex executable stubs, verifying mode-0600 files, configuration
+arguments, single use, mismatched provider, expiry and failed preflight. This did
+not alter real user MCP configuration or demonstrate a model login/response. Actual
+Tiger-backed concurrent redemption also accepted exactly once; the synthetic
+agent's grants were revoked afterward. Updated preview runs on localhost3030.
+
 Implemented on `feat/group-agent-chat`: visible Connect Claude/Connect Codex controls
 in each group, private env download, generated additive MCP setup command, and an
 active-session prompt. Members can opt in their own agents with group-scoped grants;
