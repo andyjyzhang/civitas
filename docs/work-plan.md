@@ -4,6 +4,18 @@ Build the real flow. No new test suites, lint/check pipelines, CI, release
 or deployment automation. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Minimal animated landing (November 14)
+
+Latest user request supersedes the prior landing content: only the Civitas name
+at the top left, an animated ASCII logo, and login. Removed the headline, body,
+relay entry, captions, borders and footer from `/`. Added a deterministic 12-frame
+character-shaded c/outward-arrow logo, animated with CSS and static under reduced
+motion. Login still opens `/settings`; the working main UI remains at `/relay`.
+Website production build passed. HTTP200 checks confirmed `/`, login and main UI;
+landing HTML contains exactly two links and twelve distinct ASCII frames, with no
+headline, paragraph, relay entry or footer. Visual animation/browser review remains
+unavailable.
+
 ## Dark terminal simplification (November 14)
 
 User follow-up narrows the website to a compact landing page, login and main UI.

@@ -1,29 +1,11 @@
-.landing { min-height: 100svh; display: flex; flex-direction: column; background: #0c1013; color: #e5eae5; }
-.wrap { width: min(1240px, calc(100% - 96px)); margin-inline: auto; }
-.skip-link { position: fixed; top: -80px; left: 20px; z-index: 100; background: #d5e5af; color: #101510; padding: 15px; }
-.skip-link:focus { top: 10px; }
-.landing-nav { min-height: 96px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid #293136; }
-.wordmark { display: inline-flex; align-items: center; gap: 14px; font-size: 23px; font-weight: 500; letter-spacing: -1px; }
-.wordmark > span { color: #c2d7a0; font-size: 20px; }
-.landing-nav nav { display: flex; gap: 32px; font-size: 12px; color: #a8b2af; }
-.landing nav a:hover,.quiet-link:hover { color: #d5e5af; }
-.landing-main { margin: 0 auto; flex: 1; display: grid; align-items: center; }
-.hero { display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: 45px; padding-block: 90px; }
-.terminal-path { color: #c2d7a0; font-size: 12px; margin-bottom: 36px; display: flex; gap: 12px; }
-.terminal-path > span:first-child { color: #728178; }
-.landing h1 { font: 500 clamp(39px, 4.4vw, 62px)/1.13 var(--font-manrope), sans-serif; letter-spacing: -2.8px; margin: 0 0 28px; }
-.hero-copy > p { max-width: 410px; font-size: 14px; line-height: 1.9; color: #9ca9a5; margin: 0; }
-.hero-actions { display: flex; align-items: center; gap: 30px; margin-top: 36px; }
-.landing-button { display: inline-flex; align-items: center; justify-content: center; gap: 40px; background: #d5e5af; color: #192015; border: 1px solid #d5e5af; border-radius: 3px; padding: 14px 20px; font-size: 13px; }
-.landing-button:hover { background: #e5f0cd; }
-.quiet-link { display: inline-flex; gap: 22px; font-size: 12px; color: #c5ceca; }
-.hero-footnote { color: #8c9a92; font-size: 10px; line-height: 1.8; margin-top: 28px; max-width: 420px; }
-.ascii-figure { margin: 0; position: relative; min-width: 0; padding-block: 45px; color: #a5ba88; }
-.ascii-figure pre { font: clamp(6px, .65vw, 9px)/1.18 'Courier New', monospace; letter-spacing: -.2px; width: fit-content; margin: auto; user-select: none; white-space: pre; }
-.art-coordinate { position: absolute; left: 0; right: 0; display: flex; justify-content: space-between; font-size: 10px; color: #8b9990; }
-.art-coordinate.top { top: 0; padding-block: 12px; border-top: 1px solid #293136; }
-.art-coordinate.bottom { bottom: 0; border-bottom: 1px solid #293136; padding-block: 12px; }
-.landing-footer { display: flex; justify-content: space-between; gap: 20px; color: #8b9990; border-top: 1px solid #293136; font-size: 10px; padding-block: 24px; margin-top: 0; }
-@media(min-width:1500px) { .hero { padding-block: 120px; } }
-@media(max-width:1000px) { .wrap { width: calc(100% - 56px); } .hero { gap: 25px; } .landing h1 { font-size: 43px; letter-spacing: -2px; } }
-@media(max-width:800px) { .wrap { width: calc(100% - 40px); } .landing-nav { min-height: 78px; } .landing-nav nav { gap: 20px; font-size: 11px; } .wordmark { font-size: 20px; gap: 8px; } .hero { grid-template-columns: 1fr; padding-block: 55px 40px; gap: 50px; } .landing h1 { font-size: clamp(35px, 7.5vw, 54px); letter-spacing: -1.8px; } .hero-copy > p { font-size: 13px; } .ascii-figure { max-width: 480px; width: 100%; margin: auto; } .ascii-figure pre { font-size: clamp(5px, 1.1vw, 8px); } .hero-footnote { max-width: 330px; } .landing-footer { font-size: 9px; } }
+.landing { min-height: 100svh; background: #0c1013; color: #e5eae5; display: flex; flex-direction: column; }
+.landing-nav { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 30px 40px; }
+.landing-wordmark { font-size: 23px; font-weight: 500; letter-spacing: -1px; }
+.landing-login { font-size: 12px; color: #c9d6ba; padding: 8px 0; }
+.landing-login:hover { color: #e5f0cd; }
+.landing-main { margin: 0; flex: 1; display: grid; place-items: center; padding: 24px 20px 100px; }
+.ascii-logo { display: grid; color: #b5c99a; user-select: none; max-width: 100%; }
+.ascii-logo pre { grid-area: 1 / 1; margin: 0; white-space: pre; font: clamp(5px, 1.25vw, 13px)/1.15 'Courier New', monospace; opacity: 0; animation: logo-frame 2.4s step-end infinite; }
+@keyframes logo-frame { 0%, 8.32% { opacity: 1; } 8.34%, 100% { opacity: 0; } }
+@media(max-width:600px) { .landing-nav { padding: 22px 24px; } .landing-wordmark { font-size: 21px; } .landing-main { padding-bottom: 80px; } }
+@media(prefers-reduced-motion:reduce) { .ascii-logo pre { animation: none; } .ascii-logo pre:first-child { opacity: 1; } }
