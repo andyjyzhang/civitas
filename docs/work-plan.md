@@ -9,6 +9,19 @@ model calls, customer feedback or sponsor eligibility into completion claims.
 The first 8px shift was too subtle for the user. Confirmed the preview served it,
 then increased the signup back arrow offset to 24px left. Behavior is unchanged.
 
+## Nginx deployment preparation (November 14)
+
+User requested deployment. Hosting/server target is still awaiting user input.
+Started the official nginx:stable-alpine image as `civitas-nginx-preview`, bound
+only to `127.0.0.1:8080`. Ignored config is `.local/nginx/default.conf`; it proxies
+the running website3026 and isolated memory relay4026 through Docker Desktop.
+`nginx -t` passed. Actual proxied HTTP flow verified landing/main UI, readiness,
+registration/session/logout, authenticated settings, wrong-origin rejection and
+API authentication. This is a LOCAL reverse-proxy demo, not public deployment;
+its relay uses temporary memory. No cloud resources, public listener, DNS or TLS
+certificate were created. Public hosting still needs a supplied server/provider,
+HTTPS endpoint and durable database runtime configuration.
+
 ## Compact green auth actions (November 14)
 
 Landing login and signup submit actions now use small green buttons. Signup mode
