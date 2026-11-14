@@ -1,5 +1,5 @@
 import Fastify, { type FastifyError } from 'fastify';
-import { PublishContextInputSchema, SubscribeInputSchema, GetUpdatesInputSchema, AckUpdateInputSchema, RegisterAccountInputSchema, LoginAccountInputSchema, NameInputSchema, InviteInputSchema, AcceptInviteInputSchema, GrantInputSchema, CreateSpaceInputSchema, RoomPostInputSchema } from '@civitas/contracts';
+import { PublishContextInputSchema, SubscribeInputSchema, GetUpdatesInputSchema, AckUpdateInputSchema, RegisterAccountInputSchema, LoginAccountInputSchema, NameInputSchema, InviteInputSchema, AcceptInviteInputSchema, GrantInputSchema, CreateSpaceInputSchema, RoomPostInputSchema, ConnectGroupAgentInputSchema, GroupMessageReplyInputSchema } from '@civitas/contracts';
 import { HttpError, MemoryStorage, type RelayStorage } from './storage.js';
 import { Accounts, IdentityStore } from './accounts.js';
 
@@ -36,6 +36,7 @@ export function createRelay(config: Config, storage: RelayStorage = new MemorySt
   app.post<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/invites',async request=>accounts.invite(bearer(request.headers.authorization),request.params.spaceId,parse(InviteInputSchema,request.body).email));
   app.post<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/grants',async request=>accounts.grant(bearer(request.headers.authorization),request.params.spaceId,parse(GrantInputSchema,request.body)));
 
+  app.post<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/connect-agent',async request=>accounts.connectGroupAgent(bearer(request.headers.authorization),request.params.spaceId,parse(ConnectGroupAgentInputSchema,request.body)));
   app.get('/v1/servers',async request=>accounts.directory(bearer(request.headers.authorization)));
   app.get<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/room',async request=>{
     const spaceId=request.params.spaceId;
@@ -76,7 +77,7 @@ export function createRelay(config: Config, storage: RelayStorage = new MemorySt
       const credential = bearer(request.headers.authorization);
       const { spaceId } = request.params as { spaceId: string };
       const demoAgent = config.agents.get(credential);
-      const permission = request.method === 'POST' && request.routeOptions.url?.endsWith('/contexts') ? 'publish' : 'read';
+      const permission = request.method === 'POST' && (request.routeOptions.url?.endsWith('/contexts') || request.routeOptions.url?.endsWith('/reply')) ? 'publish' : 'read';
       let access;
       if (demoAgent) {
         if (spaceId !== config.spaceId) throw new HttpError(404, 'NOT_FOUND', 'Space not found.');
@@ -86,6 +87,8 @@ export function createRelay(config: Config, storage: RelayStorage = new MemorySt
       await storage.touch(spaceId,access.agentId);
     });
     const actor = (request: object) => auth.get(request)!;
+    routes.get<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/group-messages',async request=>accounts.groupMessages(request.params.spaceId,actor(request).agentId));
+    routes.post<{Params:{spaceId:string;messageId:string}}>('/v1/spaces/:spaceId/group-messages/:messageId/reply',async request=>accounts.replyToGroupMessage(request.params.spaceId,actor(request).agentId,request.params.messageId,parse(GroupMessageReplyInputSchema,request.body).content));
     routes.get('/v1/spaces/:spaceId/activity', async request => ({
       space: { spaceId: (request.params as {spaceId:string}).spaceId, name: actor(request).name },
       currentAgentId: actor(request).agentId,

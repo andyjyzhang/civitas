@@ -4,7 +4,7 @@ import {
   SubscribeInputSchema as subscriptionInput, SubscriptionSchema as subscription,
   GetUpdatesInputSchema as updatesInput, UpdatesPageSchema as page,
   AckUpdateInputSchema, AckRecordSchema, ActivitySnapshotSchema, ApiErrorSchema as apiError,
-  AccountSessionSchema, AccountOverviewSchema, SpaceSchema, AgentCredentialSchema, InviteSchema, GrantSchema, RoomSchema, RoomPostSchema, ServerDirectorySchema,
+  AccountSessionSchema, AccountOverviewSchema, SpaceSchema, AgentCredentialSchema, InviteSchema, GrantSchema, RoomSchema, RoomPostSchema, ServerDirectorySchema, GroupMessagesSchema,
   type PublishContextInput, type SubscribeInput, type GetUpdatesInput, type AckUpdateInput,
 } from '@civitas/contracts';
 export type {
@@ -65,6 +65,8 @@ export function createCivitasClient({ baseUrl, token }: { baseUrl: string; token
     acknowledgeUpdate(spaceId: string, deliveryId: string, input: AckUpdateInput) {
       return request(spacePath(spaceId) + `/updates/${encodeURIComponent(id.parse(deliveryId))}/ack`, AckRecordSchema, AckUpdateInputSchema.parse(input));
     },
+    getGroupMessages(spaceId:string) { return request(spacePath(spaceId)+'/group-messages',GroupMessagesSchema); },
+    replyToGroupMessage(spaceId:string,messageId:string,content:string) { return request(spacePath(spaceId)+'/group-messages/'+encodeURIComponent(id.parse(messageId))+'/reply',RoomPostSchema,{content}); },
     activity(spaceId: string) { return request(spacePath(spaceId) + '/activity', ActivitySnapshotSchema); },
   };
 }
@@ -76,10 +78,11 @@ export function createAccountClient({ baseUrl, token }: { baseUrl: string; token
     logout() { return request('/v1/accounts/logout', z.object({ ok: z.literal(true) }), {}); },
     overview() { return request('/v1/account', AccountOverviewSchema); },
     createSpace(name: string, options: {kind?:'group'|'server';visibility?:'private'|'public'} = {}) { return request('/v1/spaces', SpaceSchema, { name, ...options }); },
+    connectGroupAgent(spaceId:string,input:{provider:'claude'|'codex';name:string}) { return request(spacePath(spaceId)+'/connect-agent',AgentCredentialSchema,input); },
     room(spaceId:string) { return request(spacePath(spaceId)+'/room',RoomSchema); },
     directory() { return request('/v1/servers',ServerDirectorySchema); },
     joinServer(spaceId:string) { return request(spacePath(spaceId)+'/join',z.object({ok:z.literal(true)}),{}); },
-    post(spaceId:string,input:{content:string;title?:string;topic?:string;source?:{uri:string;revision:string}}) { return request(spacePath(spaceId)+'/posts',RoomPostSchema,input); },
+    post(spaceId:string,input:{content:string;title?:string;topic?:string;source?:{uri:string;revision:string};targetAgentId?:string;idempotencyKey?:string}) { return request(spacePath(spaceId)+'/posts',RoomPostSchema,input); },
     setPublisher(spaceId:string,accountId:string,canPublish:boolean) { return request(spacePath(spaceId)+'/publishers',z.object({ok:z.literal(true)}),{accountId,canPublish}); },
     invite(spaceId: string, email: string) { return request(spacePath(spaceId) + '/invites', InviteSchema, { email }); },
     acceptInvite(token: string) { return request('/v1/invites/accept', SpaceSchema, { token }); },

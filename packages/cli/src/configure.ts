@@ -17,5 +17,5 @@ export async function configure(args: string[]) {
   console.log('This helper prints configuration without editing existing servers. If civitas is already configured, choose a different entry name before running the command. The private env file remains on this computer.');
   if (tool === 'json') console.log(JSON.stringify({ mcpServers: { civitas: { command, args: commandArgs } } }, null, 2));
   else console.log(`${tool} mcp add ${tool === 'claude' ? '--scope local --transport stdio ' : ''}civitas -- ${[command, ...commandArgs].map(quote).join(' ')}`);
-  console.log('Restart your coding session, inspect the Civitas tools, then subscribe before publishing. Sharing context never authorizes execution.');
+  console.log('Restart your coding session and inspect the Civitas tools. For group chat, ask the active agent to get_group_messages and reply_to_group_message. For topic context, subscribe before publishing. Sharing context never authorizes execution.');
 }
