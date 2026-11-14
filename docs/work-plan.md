@@ -8,14 +8,100 @@ and what is still missing. Keep one current plan rather than adding documents.
 
 | Section | Status | Remaining |
 | --- | --- | --- |
-| **1A: relay + contracts** | Working memory/PostgreSQL relay, shared schemas, private credential setup | Hosted Tiger verification, version appends, acknowledgements, pagination |
+| **1A: relay + contracts** | Working memory/PostgreSQL relay, transactional fanout, persistent inboxes, shared schemas and private credentials | Real Tiger Cloud verification; version appends, acknowledgements and pagination deferred |
 | **1B: client + MCP** | Integrated with 1A through two real MCP SDK processes | Verify in actual Claude Code/Codex model sessions; guided config |
 | **2: website/onboarding** | Working local demo dashboard | Public account sign-in, invites, agent linking/grants UI |
-| **3: Deep Agents analyst** | Runner, specialists, evidence, review, and MCP publication implemented | Real provider key and model-generated packet; independent consumer adaptation |
-| **4: domain demo + Tiger Data** | Synthetic fixtures and restart-safe local PostgreSQL flow verified | Independent code/UI adaptation, real Tiger Cloud storage/telemetry, measured timings |
+| **3: Deep Agents analyst** | Runner, specialists, evidence validation and reviewed MCP publication implemented; transport exercised with a labeled hand-written packet | Real provider credential, model planning/delegation run, evidence review and model-generated publication |
+| **4: domain demo + Tiger Data** | Synthetic maintenance fixtures and local PostgreSQL persistence verified; Timescale migration/route implemented | Independent code/UI adaptation, combined model-to-durable-inbox demo, real Tiger Cloud telemetry and measured timings |
 | **5: desktop companion** | Not started | Minimal sign-in/link/status/open-web over the bridge |
 | **6: submission** | Ranked track strategy recorded in product doc | Focus Business and Enterprise + LangChain; reuse demo for Amazon/Tiger; Peri conditional, CoStar stretch; confirm sponsor rules/award compatibility and rehearse |
 | **Later: GitHub downloads** | Low priority | Installer/CLI/self-host release assets; public source repo is separate |
+
+## Remaining tasks — completion order
+
+These are unfinished tasks, not evidence of completed integrations. Preserve the
+A/B ownership below; coordinate client, CLI, website and contract changes before
+editing outside those lanes.
+
+### 1. Complete the real Deep Agents run — Person A
+
+- [ ] Supply a provider credential privately (`OPENAI_API_KEY` or
+  `ANTHROPIC_API_KEY`); never put it in git, evidence files or shared context.
+- [ ] Run the analyst on the supplied maintenance fixtures. Verify actual planning,
+  contract/impact delegation, evidence files and schema-valid output. Fix runtime
+  blockers in A's package; graph construction alone does not complete this task.
+- [ ] Review the model-generated packet/evidence in the terminal, approve it, publish
+  through MCP, and retrieve the same event from a separate receiver process.
+- [ ] Retry the approved checkpoint and confirm the same event and one delivery.
+  Record what actually ran in A's status.
+
+**Current blocker:** no provider credential was available during the recorded run.
+
+### 2. Integrate the durable demo — A + B
+
+- [x] Reconciled the root lockfile with A's declared dependencies; a clean
+  `npm ci --ignore-scripts` and bridge, relay, website and analyst builds passed.
+- [ ] Run the relay in PostgreSQL mode; subscribe the receiver before A publishes
+  its real model-generated packet to `project/maintenance-api` in `sp_demo`.
+- [ ] Retrieve through a separate MCP process and show the same event in the web
+  dashboard. Restart the relay and confirm the saved event and retry identity.
+- [ ] Record this combined walkthrough here. Existing PostgreSQL and transport
+  walkthroughs were separate; neither proves this combined model flow yet.
+
+### 3. Demonstrate useful receiving-agent work — coordinated ownership
+
+- [ ] Connect the bridge to actual Claude Code/Codex model sessions using separate
+  admitted identities. Record which tools and sessions really ran.
+- [ ] Have independent receiving agents consume the selected packet and produce
+  reviewable consumer changes for `priority_code: "P1"` → urgent priority.
+  Aim for three recipients and at least two useful changes, as in the design.
+- [ ] Run the adapted consumer/UI flow and show that urgent maintenance remains
+  urgent. Show source revisions and resulting changes; retrieval alone is not
+  evidence of useful adaptation.
+
+A owns fixture/consumer work under `examples/api-change/**`. Coordinate any new
+receiver identities or relay configuration with B and any website work with its
+owner; do not redesign the dashboard as a prerequisite.
+
+### 4. Complete Tiger Cloud verification — Person B
+
+- [ ] Obtain an actual Tiger Cloud PostgreSQL service with TimescaleDB and privately
+  configure its connection URI/required CA. Provisioning remains outstanding;
+  this checklist does not authorize deployment or cloud resource creation.
+- [ ] Run core and Timescale migrations with analytics enabled against that service;
+  verify the hosted TLS connection and truthful readiness/storage metadata.
+- [ ] Publish, deliver and retrieve real events, then query the authenticated,
+  space-scoped analytics route for time buckets and measured latency. Confirm
+  restart persistence on the hosted service and record actual results.
+
+**Current blocker:** no Tiger Cloud database is available. Local PostgreSQL works;
+Timescale execution, hosted TLS and hosted analytics remain unverified. Report
+latency as publication-to-delivery/retrieval, including polling delay.
+
+### 5. Finish the submission story — team
+
+- [ ] Rehearse a two-minute source change → analysis → approval → MCP publication
+  → independent adaptation → durable dashboard history demonstration.
+- [ ] Confirm current submission requirements, sponsor criteria and award
+  compatibility with organizers. Focus Business and Enterprise + LangChain;
+  reuse verified evidence for Amazon/Tiger where eligible.
+- [ ] Prepare required submission materials with accurate setup steps and explicit
+  labels for synthetic fixtures, recordings and unfinished features.
+- [ ] If pursuing Peri, obtain real developer feedback, change a feature in response,
+  and have that developer try it. If pursuing CoStar, demonstrate a meaningful
+  property workflow benefit. Neither evidence is currently documented.
+
+### Queued after the core demo
+
+- [ ] Public accounts, space invitations and agent linking/grants UI.
+- [ ] Desktop companion: minimal sign-in/link/status/open-web over the bridge.
+- [ ] Guided MCP configuration; immutable version appends, acknowledgements and
+  pagination (current inbox reads replay deliveries).
+- [ ] Installer/CLI/self-host download packaging, only after higher priorities.
+
+These queued features are outside the current A/B implementation assignments.
+No deployment, publication, new test suite or release automation is part of this
+local completion plan.
 
 ## What actually ran
 
@@ -35,6 +121,15 @@ and what is still missing. Keep one current plan rather than adding documents.
   The merged code published and retrieved a synthetic event through two separate
   MCP processes; retries returned one event and one delivery. Model analysis and
   hosted Tiger verification remain pending their credentials/services.
+- Local PostgreSQL 16 walkthroughs verified transactional fanout, concurrent
+  retries across two relay processes, rollback on fanout failure, space isolation,
+  migration reruns and persistence after relay/database restarts through real MCP.
+- Analyst/bridge/relay builds passed. The Deep Agents graph constructed offline;
+  analysis failed closed without a provider key. A labeled hand-written packet
+  exercised terminal rejection, approval, real MCP publication/retrieval and retry
+  deduplication. No live model analysis or consumer adaptation ran.
+- This plan refresh reconciles those recorded results; it does not represent a
+  new execution of the feature flows.
 
 ## Working website slice
 
@@ -45,14 +140,19 @@ publishing context, subscribing, retrieving the current inbox, and disconnecting
 
 This is local demo-key access, not completed public accounts/onboarding. API
 activity does not prove a coding model is active; retrieval does not prove useful
-work. Website sessions are temporary. Relay restart clears state in memory mode;
-PostgreSQL mode preserves it. Hosted Tiger Data verification remains pending.
+work. Website sessions are temporary and disconnect on web restart. Relay events
+and subscriptions disappear on restart in explicit memory mode; PostgreSQL mode
+persists them and has been exercised locally. Real Tiger Cloud/Timescale results
+remain unverified.
 
 ## Active assignments — two people
 
-Start both agents from current `origin/main` (`c4b4ced` or newer), on separate
-branches/clones. The 1A/1B integration fix and dashboard have now merged. Share
-these assignments with both agents; do not start from an older local main.
+Continue from the latest integrated code on separate branches/clones, preserving
+the ownership below. The dashboard and portable PostgreSQL storage have merged;
+the current `feat/deep-agents` branch also contains A's runner. The root lockfile
+has been reconciled and clean installation/builds verified. The original
+assignment briefs below describe scope;
+the status entries and completion checklist above describe what remains.
 
 ### Person A — Deep Agents publisher
 
@@ -103,8 +203,9 @@ retrieval all worked. A second approved review returned the identical event with
 one inbox delivery. Noninteractive review was rejected. No model-generated packet,
 live specialist analysis, consumer adaptation, or Tiger durability is claimed.
 Remaining: run analysis with a real provider credential, review its evidence, and
-publish/retrieve that model-generated packet. B must reconcile the root lockfile
-at integration; A left it unchanged and used installs with `--package-lock=false`.
+publish/retrieve that model-generated packet. A originally left the root lockfile
+unchanged and used installs with `--package-lock=false`; subsequent integration
+reconciled it and verified a clean install/build, as recorded above.
 
 ### Person B — Tiger Data storage
 
@@ -153,8 +254,8 @@ commands. A's model-generated publication still needs the combined demo.
 - A uses `sp_demo`, topic `project/maintenance-api`, and the generated publisher
   credential. Subscribe the receiver before publishing. Use real MCP processes.
 - B owns root dependency/build/env changes. A declares dependencies and scripts in
-  its own package manifest. Reconcile the root lockfile after merging; do not run
-  concurrent installs in a shared checkout.
+  its own package manifest. The integrated root lockfile is reconciled; keep it
+  current for dependency changes and do not run concurrent installs in a shared checkout.
 - One planned cross-file change: B may update `ActivitySnapshotSchema` storage
   metadata in `packages/contracts` and the corresponding memory labels in
   `apps/web/app/page.tsx`. Coordinate this narrowly; no dashboard redesign.
