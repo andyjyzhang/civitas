@@ -31,7 +31,7 @@ export default function LandingLogin() {
     <label htmlFor="login-email">email<input id="login-email" name="email" type="email" autoComplete="username" maxLength={254} required disabled={busy}/></label>
     <label htmlFor="login-password">password<input id="login-password" name="password" type="password" autoComplete={signup ? 'new-password' : 'current-password'} minLength={signup ? 12 : undefined} placeholder={signup ? '12+ characters' : undefined} maxLength={128} required disabled={busy}/></label>
     {error && <p className="login-error" role="alert">{error}</p>}
-    <button className="primary" disabled={busy}>{busy ? (signup ? 'Creating account…' : 'Logging in…') : (signup ? 'Create account' : 'Log in')}</button>
-    <button className="auth-toggle" type="button" disabled={busy} onClick={() => { setSignup(value => !value); setError(''); }}>{signup ? 'Log in' : 'Sign up'}</button>
+    <button className="auth-submit" disabled={busy}>{busy ? (signup ? 'creating account…' : 'logging in…') : (signup ? 'sign up' : 'log in')}</button>
+    <button className="auth-toggle" type="button" disabled={busy} onClick={() => { setSignup(value => !value); setError(''); }}>{signup ? 'log in' : 'sign up'}</button>
   </form>;
 }

@@ -4,6 +4,14 @@ Build the real flow. No new test suites, lint/check pipelines, CI, release
 or deployment automation. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Borderless logo and auth links (November 14)
+
+Removed the border around the main relay’s Civitas mark. Landing auth actions are
+now lowercase, unboxed, underlined buttons aligned with the fields’ left edge,
+including signup mode. Submission and mode-switch behavior are unchanged.
+Production build passed; served landing HTML confirms lowercase auth actions.
+Visual browser review remains unavailable.
+
 ## Landing signup and compact relay (November 14)
 
 Added an inline Sign up toggle using the real existing registration API. Signup
