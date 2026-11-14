@@ -6,8 +6,8 @@ export const runtime = 'nodejs';
 export async function GET() {
   const current = await session();
   if (!current) return json({ error: 'Connect with your local agent key.' }, 401);
-  try { return json(await activity(current.token)); }
-  catch (error) { return json({ error: error instanceof Error ? error.message : 'Relay unavailable.' }, 502); }
+  try { return json(await activity(current.token, current.spaceId || spaceId())); }
+  catch (error) { return json({ error: error instanceof Error ? error.message : 'Relay unavailable.' }, error instanceof CivitasApiError ? error.status : 502); }
 }
 
 export async function POST(request: Request) {
@@ -17,9 +17,11 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const client = clientFor(current.token);
-    if (body.operation === 'subscribe') return json(await client.subscribe(spaceId(), body.input));
-    if (body.operation === 'publish') return json(await client.publishContext(spaceId(), body.input));
-    if (body.operation === 'retrieve') return json(await client.getUpdates(spaceId()));
+    const selectedSpace = current.spaceId || spaceId();
+    if (body.operation === 'subscribe') return json(await client.subscribe(selectedSpace, body.input));
+    if (body.operation === 'publish') return json(await client.publishContext(selectedSpace, body.input));
+    if (body.operation === 'retrieve') return json(await client.getUpdates(selectedSpace, body.input || {}));
+    if (body.operation === 'acknowledge') return json(await client.acknowledgeUpdate(selectedSpace, body.input.deliveryId, { status: body.input.status }));
     return json({ error: 'Unknown operation.' }, 400);
   } catch (error) {
     if (error instanceof CivitasApiError) return json({ error: error.message }, error.status);

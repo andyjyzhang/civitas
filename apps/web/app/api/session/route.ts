@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { activity, cookieName, createSession, deleteSession, json, sameOrigin } from '../../../lib/relay';
+import { activity, cookieName, createSession, deleteSession, json, sameOrigin, spaceId } from '../../../lib/relay';
 
 export const runtime = 'nodejs';
 
@@ -10,10 +10,11 @@ export async function POST(request: Request) {
     if (typeof body.token !== 'string' || body.token.length < 24 || body.token.length > 512) {
       return json({ error: 'Enter a valid local agent key.' }, 400);
     }
-    await activity(body.token);
+    const selectedSpace = typeof body.spaceId === 'string' && body.spaceId.length <= 256 ? body.spaceId : spaceId();
+    await activity(body.token, selectedSpace);
     const jar = await cookies();
     deleteSession(jar.get(cookieName)?.value);
-    jar.set(cookieName, createSession(body.token), {
+    jar.set(cookieName, createSession(body.token, selectedSpace), {
       httpOnly: true, sameSite: 'strict', secure: new URL(request.url).protocol === 'https:',
       path: '/', maxAge: 8 * 60 * 60,
     });
