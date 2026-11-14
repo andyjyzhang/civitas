@@ -73,3 +73,6 @@ send messages, or execute commands. Keep notifications and execution separate.
 
 Do not deploy, publish npm packages, or change remote access settings as a side
 effect of local development. Use the authorization provided by the current task.
+
+Incrementally commit your work in the following format <type>(optional scope): <brief description>. Branch where appropriate 
+and let me know when I should open a PR.
