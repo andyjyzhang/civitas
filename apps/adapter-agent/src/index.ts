@@ -109,6 +109,19 @@ const fileData = (content: string) => {
   return { content, mimeType: 'text/plain', created_at: now, modified_at: now };
 };
 
+// Type-check a consumer folder with the workspace TypeScript (informational, never executes the code).
+function typecheck(dir: string) {
+  const files = listFiles(dir).filter(file => file.endsWith('.ts')).map(file => resolve(dir, file));
+  try {
+    execFileSync(process.execPath, [resolve(root, 'node_modules/typescript/bin/tsc'), '--noEmit', '--strict', '--module', 'nodenext',
+      '--moduleResolution', 'nodenext', '--target', 'es2022', '--typeRoots', resolve(root, 'node_modules/@types'), '--types', 'node', ...files],
+      { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    return 'OK';
+  } catch (error) {
+    return String((error as { stdout?: string }).stdout || (error as Error).message).split(dir + '/').join('').trim().slice(0, 2000);
+  }
+}
+
 // Unified diff of the agent's /work/ files against the pristine consumer, paths relative to it.
 function makeDiff(role: Role, runDir: string, work: Record<string, string>) {
   const scratch = resolve(runDir, `.scratch-${role}`);
@@ -124,7 +137,8 @@ function makeDiff(role: Role, runDir: string, work: Record<string, string>) {
       writeFileSync(resolve(scratch, rel), content);
     }
     git(scratch, ['add', '-A']);
-    return git(scratch, ['diff', '--cached', '--no-color', '--no-ext-diff', '--src-prefix=a/', '--dst-prefix=b/']);
+    const diff = git(scratch, ['diff', '--cached', '--no-color', '--no-ext-diff', '--src-prefix=a/', '--dst-prefix=b/']);
+    return { diff, typecheck: diff.trim() ? typecheck(scratch) : 'not run' };
   } finally { rmSync(scratch, { recursive: true, force: true }); }
 }
 
@@ -171,6 +185,7 @@ async function adapt(role: Role, runId: string) {
       return JSON.parse(text);
     };
     const fetched = new Map<string, Delivery>();
+    let lastTypecheck = 'make_patch not run';
 
     const getUpdates = tool(async ({ limit }) => {
       const page = await callCivitas('get_updates', limit ? { limit } : {}) as { items: Delivery[] };
@@ -205,9 +220,10 @@ async function adapt(role: Role, runId: string) {
         const text = fileText(data);
         if (path.startsWith('/work/') && text !== undefined) work[path.slice('/work/'.length)] = text;
       }
-      const diff = makeDiff(role, runDir, work);
+      const { diff, typecheck: checked } = makeDiff(role, runDir, work);
+      lastTypecheck = checked;
       const patchPath = `/patches/${role}.diff`;
-      const message = diff.trim() ? `Wrote ${patchPath}:\n${diff}` : 'No differences between /work/ and /repo/; nothing written. Edit /work/ first.';
+      const message = diff.trim() ? `Wrote ${patchPath}:\n${diff}\nTypeScript check of the patched consumer: ${checked}${checked === 'OK' ? '' : '\nFix these errors in /work/ and run make_patch again before submitting.'}` : 'No differences between /work/ and /repo/; nothing written. Edit /work/ first.';
       return new Command({ update: {
         ...(diff.trim() ? { files: { [patchPath]: fileData(diff) } } : {}),
         messages: [new ToolMessage({ content: message, tool_call_id: runtime.toolCallId, name: 'make_patch' })],
@@ -247,6 +263,7 @@ async function adapt(role: Role, runId: string) {
       console.log(`\n===== submit_patch from ${role} agent =====`);
       console.log(`delivery: ${safe(delivery_id)}  event: ${safe(String(delivery?.event.eventId))}  topic: ${safe(String(delivery?.event.topic))}`);
       console.log(`summary: ${safe(summary)}`);
+      console.log(`TypeScript check at last make_patch: ${safe(lastTypecheck)}`);
       console.log(`----- ${safe(patch_path)} -----\n${diff === undefined ? '(patch file not found in agent scratch space)' : safe(diff)}`);
       console.log(`----- /notes/${role}.md -----\n${safe(notes)}\n=====`);
       writeFileSync(resolve(runDir, `${role}.notes.md`), notes + '\n');
@@ -273,8 +290,9 @@ async function adapt(role: Role, runId: string) {
       }
       try {
         const applied = applyToCopy(role, runDir, diff!);
-        Object.assign(record, { applied: true, copyDir: applied.copy, patchFile: applied.patchFile, diffStat: applied.stat });
-        console.log(`[adapter:${role}] git apply succeeded in ${applied.copy}\n${applied.stat}`);
+        const checked = typecheck(applied.copy);
+        Object.assign(record, { applied: true, copyDir: applied.copy, patchFile: applied.patchFile, diffStat: applied.stat, typecheck: checked });
+        console.log(`[adapter:${role}] git apply succeeded in ${applied.copy}\n${applied.stat}\nTypeScript check: ${safe(checked)}`);
       } catch (error) {
         const message = (error as Error).message;
         console.log(`[adapter:${role}] ${safe(message)}`);

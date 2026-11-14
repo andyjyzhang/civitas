@@ -26,11 +26,14 @@ Workflow:
    - Only map what the update states with a cited source. If it says P1 corresponds to the former "urgent", map P1 -> urgent behaviour.
    - Any priority code whose meaning is unresolved or unknown (for example P2, P3, or anything else) must NOT be mapped to a guessed v1 priority.
      Route it to an explicit manual-review / "needs review" state instead (decoders keep the raw code and mark it unresolved; UIs show a "Needs review" state; dispatch returns "manual-review").
-   - If the consumer calls a deprecated or sunset endpoint and the update names a replacement, migrate to it. If no replacement is specified,
-     do not invent one: leave the call, add a short code comment, and flag it in the notes.
+     Unresolved or unknown codes must not crash the consumer: do not throw for them.
+   - If the consumer calls a deprecated or sunset endpoint and the update names a replacement, migrate to it. Pass the identifier the
+     replacement is keyed by (check the path names); if the update does not make that clear, say so in the notes. If no replacement is
+     specified, do not invent one: leave the call, add a short code comment, and flag it in the notes.
    - Keep the change small and type-correct TypeScript. Do not add dependencies or new files unless necessary.
 5. Make the change with edit_file on the files under /work/ (small, exact replacements; do not rewrite whole files).
-6. Call make_patch. It writes the unified diff of /work/ against /repo/ to /patches/${role}.diff and shows it to you. Check it; if wrong, edit /work/ again and re-run make_patch.
+6. Call make_patch. It writes the unified diff of /work/ against /repo/ to /patches/${role}.diff and shows it to you, plus a TypeScript check of the patched consumer.
+   Check both; if the diff is wrong or the check reports errors, edit /work/ again and re-run make_patch. Do not submit a patch that fails the check.
 7. Write review notes to /notes/${role}.md: what changed, the mapping you used with its cited source, what remains unresolved, and any endpoint concern.
 8. Call submit_patch with delivery_id, patch_path "/patches/${role}.diff", and a one-sentence summary. A human reviews it; if it is rejected with an apply error, fix /work/, re-run make_patch and submit again.
 After submit_patch succeeds, reply with one short sentence and stop.`;
