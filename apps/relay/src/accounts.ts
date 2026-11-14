@@ -99,17 +99,18 @@ export class Accounts {
   async overview(credential:string):Promise<AccountOverview> {
     return this.store.run(state=>{
       const account=this.account(state,credential);
-      const spaces=records(state,'member').filter(m=>m.accountId===account.accountId).map(m=>({spaceId:m.spaceId,name:state.get(key('space',m.spaceId))!.name,role:m.role}));
+      const spaces=records(state,'member').filter(m=>m.accountId===account.accountId).map(m=>({spaceId:m.spaceId,name:state.get(key('space',m.spaceId))!.name,role:m.role,kind:state.get(key('space',m.spaceId))!.kind || 'group',visibility:state.get(key('space',m.spaceId))!.visibility || 'private'}));
       const agents=records(state,'agent').filter(a=>a.accountId===account.accountId).map(a=>({agentId:a.agentId,name:a.name}));
       const ids=new Set(spaces.map(s=>s.spaceId));
       const grants=records(state,'grant').filter(g=>ids.has(g.spaceId)).map(g=>({spaceId:g.spaceId,agentId:g.agentId,read:g.read,publish:g.publish}));
       return {account:this.safe(account),spaces,agents,grants};
     });
   }
-  async createSpace(credential:string,name:string):Promise<Space> {
+  async createSpace(credential:string,name:string,kind:'group'|'server'='group',visibility:'private'|'public'='private'):Promise<Space> {
     return this.store.run(state=>{
       const account=this.account(state,credential);
-      const space={spaceId:`sp_${randomUUID()}`,name};
+      if(kind==='group'&&visibility!=='private')throw new HttpError(400,'INVALID_INPUT','Group chats are private.');
+      const space={spaceId:`sp_${randomUUID()}`,name,kind,visibility};
       state.set(key('space',space.spaceId),space);
       state.set(key('member',`${space.spaceId}:${account.accountId}`),{spaceId:space.spaceId,accountId:account.accountId,role:'owner'});
       return {...space,role:'owner'};
@@ -154,7 +155,8 @@ export class Accounts {
       invite.acceptedBy=account.accountId;
       const existing=state.get(key('member',`${invite.spaceId}:${account.accountId}`));
       if (!existing) state.set(key('member',`${invite.spaceId}:${account.accountId}`),{spaceId:invite.spaceId,accountId:account.accountId,role:'member'});
-      return {spaceId:invite.spaceId,name:state.get(key('space',invite.spaceId))!.name,role:existing?.role || 'member'};
+      const space=state.get(key('space',invite.spaceId))!;
+      return {spaceId:invite.spaceId,name:space.name,role:existing?.role || 'member',kind:space.kind||'group',visibility:space.visibility||'private'};
     });
   }
   async authorize(raw:string,spaceId:string,permission:'read'|'publish') {
@@ -165,6 +167,47 @@ export class Accounts {
       if (!grant?.[permission]) throw new HttpError(404,'NOT_FOUND','Space not found or access denied.');
       const space=state.get(key('space',spaceId));
       return {agentId:agent.agentId,name:space!.name,allowedAgents:records(state,'grant').filter(g=>g.spaceId===spaceId && g.read).map(g=>g.agentId)};
+    });
+  }
+
+  async directory(credential:string) {
+    return this.store.run(state=>{
+      const account=this.account(state,credential);
+      return records(state,'space').filter(s=>s.kind==='server'&&s.visibility==='public').map(s=>({spaceId:s.spaceId,name:s.name,joined:state.has(key('member',`${s.spaceId}:${account.accountId}`))}));
+    });
+  }
+  async joinServer(credential:string,spaceId:string) {
+    return this.store.run(state=>{
+      const account=this.account(state,credential),space=state.get(key('space',spaceId));
+      if(!space||space.kind!=='server'||space.visibility!=='public')throw new HttpError(404,'NOT_FOUND','Public server not found.');
+      const id=key('member',`${spaceId}:${account.accountId}`);
+      if(!state.has(id))state.set(id,{spaceId,accountId:account.accountId,role:'member'});
+      return {ok:true};
+    });
+  }
+  async room(credential:string,spaceId:string) {
+    return this.store.run(state=>{
+      const account=this.account(state,credential),membership=this.member(state,account.accountId,spaceId),space=state.get(key('space',spaceId))!;
+      const group=(space.kind||'group')==='group';
+      const members=records(state,'member').filter(m=>m.spaceId===spaceId).map(m=>({accountId:m.accountId,name:state.get(key('account',m.accountId))!.name,role:m.role,canPublish:group||m.role==='owner'||m.canPublish===true}));
+      return {space:{spaceId,name:space.name,kind:space.kind||'group',visibility:space.visibility||'private',role:membership.role},currentAccountId:account.accountId,canPublish:group||membership.role==='owner'||membership.canPublish===true,members,posts:records(state,'roompost').filter(p=>p.spaceId===spaceId).slice(-100)};
+    });
+  }
+  async post(credential:string,spaceId:string,input:{content:string;title?:string;topic?:string;source?:unknown}) {
+    return this.store.run(state=>{
+      const account=this.account(state,credential),membership=this.member(state,account.accountId,spaceId),space=state.get(key('space',spaceId))!;
+      const server=space.kind==='server';
+      if(server&&membership.role!=='owner'&&!membership.canPublish)throw new HttpError(403,'PUBLISH_DENIED','Only approved publishers can post to this server.');
+      if(server&&(!input.title||!input.topic||!input.source))throw new HttpError(400,'INVALID_INPUT','Knowledge posts require a title, topic and source.');
+      const post={postId:`post_${randomUUID()}`,spaceId,authorId:account.accountId,authorName:account.name,content:input.content,createdAt:new Date().toISOString(),...(server?{title:input.title,topic:input.topic,source:input.source}:{})};
+      state.set(key('roompost',post.postId),post);return post;
+    });
+  }
+  async setPublisher(credential:string,spaceId:string,accountId:string,canPublish:boolean) {
+    return this.store.run(state=>{
+      const account=this.account(state,credential);this.member(state,account.accountId,spaceId,true);
+      if(state.get(key('space',spaceId))?.kind!=='server')throw new HttpError(400,'INVALID_INPUT','Publisher roles belong to servers.');
+      const target=this.member(state,accountId,spaceId);target.canPublish=canPublish;return {ok:true};
     });
   }
 }

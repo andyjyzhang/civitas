@@ -107,7 +107,7 @@ export function topicMatches(pattern: string, topic: string): boolean {
 // Local password accounts: no email delivery or email verification is implied.
 export const AccountSchema = z.object({ accountId: id, email: z.email(), name: z.string() }).strict();
 export const AccountSessionSchema = z.object({ token: z.string(), account: AccountSchema }).strict();
-export const SpaceSchema = z.object({ spaceId: id, name: z.string(), role: z.enum(['owner','member']) }).strict();
+export const SpaceSchema = z.object({ spaceId: id, name: z.string(), role: z.enum(['owner','member']), kind: z.enum(['group','server']).default('group'), visibility: z.enum(['private','public']).default('private') }).strict();
 export const AgentSchema = z.object({ agentId: id, name: z.string() }).strict();
 export const AgentCredentialSchema = AgentSchema.extend({ token: z.string() });
 export const GrantSchema = z.object({ spaceId: id, agentId: id, read: z.boolean(), publish: z.boolean() }).strict();
@@ -127,3 +127,9 @@ export const NameInputSchema = z.object({name:z.string().trim().min(1).max(100)}
 export const InviteInputSchema = z.object({email:z.email().max(254)}).strict();
 export const AcceptInviteInputSchema = z.object({token:z.string().min(24).max(256)}).strict();
 export const GrantInputSchema = z.object({agentId:id,read:z.boolean(),publish:z.boolean()}).strict();
+export const CreateSpaceInputSchema = NameInputSchema.extend({kind:z.enum(['group','server']).default('group'),visibility:z.enum(['private','public']).default('private')}).refine(v=>v.kind==='server'||v.visibility==='private','Groups are always private');
+export const RoomPostInputSchema = z.object({content:z.string().trim().min(1).max(8000),title:z.string().trim().min(1).max(200).optional(),topic:TopicSchema.optional(),source:SourceSchema.optional()}).strict();
+export const RoomPostSchema = z.object({postId:id,spaceId:id,authorId:id,authorName:z.string(),content:z.string(),createdAt:timestamp,origin:z.enum(['human','agent']).default('human'),title:z.string().optional(),topic:TopicSchema.optional(),source:SourceSchema.optional()});
+export const RoomSchema = z.object({space:SpaceSchema,currentAccountId:id,canPublish:z.boolean(),members:z.array(z.object({accountId:id,name:z.string(),role:z.enum(['owner','member']),canPublish:z.boolean()})),posts:z.array(RoomPostSchema)});
+export const ServerDirectorySchema = z.array(z.object({spaceId:id,name:z.string(),joined:z.boolean()}));
+export type Room = z.infer<typeof RoomSchema>;

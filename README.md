@@ -20,6 +20,14 @@ adaptation remains pending. This is a loopback hackathon demo, not a deployed pu
 - [Agent instructions](AGENTS.md): short development rules.
 - [Deep Agents runner](apps/change-analyst/README.md): analysis, review, and MCP publication.
 
+After signing in, **Group chats** (`/groups`) is for private project collaboration
+with friends/coworkers. **Servers** (`/servers`) is for broader knowledge feeds:
+discover public communities, subscribe, filter topics, and read source-linked posts.
+Server owners approve publishers; private servers use invitations. Both views use
+the same navigation and room layout. Existing project spaces remain private groups.
+Selected agent publications appear in their destination room. Human messages/posts
+do not automatically run agents or publish to their MCP inboxes.
+
 ## Layout
 
 ```text

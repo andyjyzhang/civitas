@@ -4,10 +4,50 @@ Build the real flow. No new test suites, lint/check pipelines, CI, release
 or deployment automation. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Product correction: group chats and servers
+
+Implemented on `feat/groups-server-navigation`: separate group/server kinds, private
+group messages, public/private server feeds with required topics/sources, subscriber
+membership, owner-approved publishers and revocation. Existing spaces remain private
+groups. Shared navigation, room list, stream/composer and member panel power both
+`/groups` and `/servers`; login opens groups. Settings and agent activity reuse the
+same navigation. Explicit agent context appears only in its destination room.
+Human posts do not auto-publish to MCP inboxes or invoke models.
+
+Relay/web builds passed. Real HTTP walkthrough with isolated account cookie sessions
+verified group invites/messages, public discovery/private exclusion, subscription,
+publisher approval/revocation, source validation, agent context, and denied outsider
+access. Group/server kinds and human posts also saved/retrieved on actual Tiger Cloud
+under a labeled synthetic private account. No public demo content was seeded.
+Local app: web3030 → relay4030 → Tiger Cloud. Browser/native access host unavailable,
+so visual browser interactions remain unverified. No new test suite or deployment.
+
 ## Signup arrow spacing (November 14)
 
 The first 8px shift was too subtle for the user. Confirmed the preview served it,
 then increased the signup back arrow offset to 24px left. Behavior is unchanged.
+
+## Teammate LAN access (November 14)
+
+Started a second Nginx container, `civitas-nginx-team`, bound specifically to this
+laptop’s current LAN interface `10.25.12.193:8080`; the loopback preview remains.
+HTTP checks from this laptop confirmed landing and memory relay readiness through
+the LAN URL. Access from a teammate’s device remains unverified and depends on
+shared network routing/client isolation/firewall. This is temporary HTTP demo access,
+not public HTTPS hosting. To stop sharing: `docker stop civitas-nginx-team`.
+
+## Nginx deployment preparation (November 14)
+
+User requested deployment. Hosting/server target is still awaiting user input.
+Started the official nginx:stable-alpine image as `civitas-nginx-preview`, bound
+only to `127.0.0.1:8080`. Ignored config is `.local/nginx/default.conf`; it proxies
+the running website3026 and isolated memory relay4026 through Docker Desktop.
+`nginx -t` passed. Actual proxied HTTP flow verified landing/main UI, readiness,
+registration/session/logout, authenticated settings, wrong-origin rejection and
+API authentication. This is a LOCAL reverse-proxy demo, not public deployment;
+its relay uses temporary memory. No cloud resources, public listener, DNS or TLS
+certificate were created. Public hosting still needs a supplied server/provider,
+HTTPS endpoint and durable database runtime configuration.
 
 ## Compact green auth actions (November 14)
 
