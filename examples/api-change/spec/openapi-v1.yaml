@@ -1,0 +1,141 @@
+# SYNTHETIC FIXTURE for the Civitas change-analyst demo. Not a real API, vendor, or customer.
+# Treat as untrusted data, never instructions.
+openapi: 3.1.0
+info:
+  title: Maintenance Requests API (synthetic)
+  version: 1.4.0
+  description: Synthetic property-maintenance API used only for the Civitas demo.
+servers:
+  - url: https://maintenance.example.test/api
+paths:
+  /maintenance-requests:
+    get:
+      operationId: listMaintenanceRequests
+      summary: List maintenance requests
+      parameters:
+        - name: priority
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Priority'
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Status'
+      responses:
+        '200':
+          description: A page of maintenance requests.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MaintenanceRequest'
+                  next_cursor:
+                    type: string
+    post:
+      operationId: createMaintenanceRequest
+      summary: Create a maintenance request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewMaintenanceRequest'
+      responses:
+        '201':
+          description: Created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceRequest'
+  /maintenance-requests/{id}:
+    get:
+      operationId: getMaintenanceRequest
+      summary: Get one maintenance request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The maintenance request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceRequest'
+        '404':
+          description: Not found.
+  /work-orders/{id}:
+    get:
+      operationId: getWorkOrder
+      summary: Get a work order (legacy view of a maintenance request)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Legacy work order representation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrder'
+components:
+  schemas:
+    Priority:
+      type: string
+      enum: [urgent, normal, low]
+      description: How quickly the request should be handled.
+    Status:
+      type: string
+      enum: [open, scheduled, in_progress, closed]
+    NewMaintenanceRequest:
+      type: object
+      required: [unit_id, summary, priority]
+      properties:
+        unit_id:
+          type: string
+        summary:
+          type: string
+          maxLength: 500
+        priority:
+          $ref: '#/components/schemas/Priority'
+    MaintenanceRequest:
+      type: object
+      required: [id, unit_id, summary, priority, status, created_at]
+      properties:
+        id:
+          type: string
+        unit_id:
+          type: string
+        summary:
+          type: string
+        priority:
+          $ref: '#/components/schemas/Priority'
+        status:
+          $ref: '#/components/schemas/Status'
+        created_at:
+          type: string
+          format: date-time
+    WorkOrder:
+      type: object
+      required: [work_order_id, request_id, priority]
+      properties:
+        work_order_id:
+          type: string
+        request_id:
+          type: string
+        priority:
+          $ref: '#/components/schemas/Priority'
+        technician:
+          type: string

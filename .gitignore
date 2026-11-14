@@ -18,3 +18,4 @@ coverage/
 .civitas/
 *.pem
 *.key
+.claude/worktrees/

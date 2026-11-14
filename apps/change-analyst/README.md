@@ -1,77 +1,108 @@
 # Deep Agents change analyst
 
-A TypeScript Deep Agents publisher for **synthetic** maintenance API revisions.
-One coordinator plans with `write_todos`, delegates to contract and impact
-specialists, and writes virtual evidence files. These specialists are internal to
+A TypeScript Deep Agents publisher for a **synthetic** property-maintenance API
+revision. One coordinator plans with `write_todos`, delegates to `contract` and
+`impact` specialists with `task`, writes evidence files, and proposes a context
+packet through `publish_context`. The run pauses on that call; nothing reaches
+Civitas until a human approves the exact packet. The specialists are internal to
 one admitted publisher; they are not independent Civitas agents.
 
-The default StateBackend sees only the three supplied JSON fixtures, not the host
-filesystem. There is no shell, browser, network-fetch, or publishing tool in the
-model's tool set. Fixtures are read-only and untrusted data. Only the reviewed
-packet is sent to Civitas. Source files are sent to your selected model provider.
+## Inputs and filesystem
 
-From the repository root (Node 22+, npm 10+):
+The model reads real files from `examples/api-change/spec/`, mounted at `/repo/`
+with a Deep Agents `FilesystemBackend` (`virtualMode`, no path escape) inside a
+`CompositeBackend`. Only `openapi-v1.yaml`, `openapi-v2.yaml` and `CHANGELOG.md`
+are readable; writes anywhere under `/repo/` are denied by `permissions`. Other
+paths, including `/evidence/`, live in per-run LangGraph state. Fixtures are
+synthetic, untrusted data. The specs never state how `P1/P2/P3` relate to the old
+`urgent/normal/low`; only the changelog says P1 succeeds `urgent`, and it leaves
+P2/P3 open. The analyst must infer P1 from the changelog and flag P2/P3 as
+unresolved (`unresolved:P2`, `unresolved:P3` tags and an "Unresolved" section).
+
+There is no shell, browser, or network-fetch tool. File contents are sent to the
+model provider (OpenAI).
+
+## Publish tool and approval
+
+The Civitas MCP bridge (`packages/cli`) is loaded with `@langchain/mcp-adapters`
+over stdio; only `CIVITAS_RELAY_URL` and `CIVITAS_AGENT_TOKEN` are passed to it.
+The model sees only a wrapped `publish_context` that accepts `title`, `content`,
+`tags` and `change`. The runner injects the space (`CIVITAS_DEMO_SPACE_ID`), topic
+`project/maintenance-api`, source `examples/api-change/spec/openapi-v2.yaml` @
+`maintenance-v2`, and idempotency key `analyst:<run-id>`.
+
+`interruptOn: { publish_context: approve|reject }` with an in-process `MemorySaver`
+pauses the run. Before showing the candidate, the runner checks: plan executed,
+both delegations succeeded, both evidence files exist, schema-valid packet,
+topic/source scope, `unresolved:P2`/`unresolved:P3` tags, an "Unresolved"
+section, a CHANGELOG citation, and `change.kind = field-replacement`,
+`breaking = true`. A failing candidate is rejected automatically once with the
+fixed list of problems; a second failure ends the run with nothing published.
+
+A passing candidate is saved to `.local/analyst/<run-id>/review.json`, and the
+exact relay arguments plus both evidence files are printed (control characters
+escaped). Type `publish <run-id>` to approve; anything else rejects. On approval
+the graph resumes and the wrapped tool publishes only if its arguments hash to
+the approved packet. The returned event is saved to `published.json`.
+
+Approval needs an interactive terminal. For automated verification only,
+`--approve` is honoured when `CIVITAS_ANALYST_AUTO_APPROVE=1` is set; the runner
+prints a loud notice that no human approved.
+
+## Model and spend guard
+
+OpenAI only for now. `CIVITAS_MODEL` defaults to `gpt-4.1-mini`; `OPENAI_API_KEY`
+must be set privately. Every run passes `BudgetGuard` (`src/budget.ts`) in the
+run callbacks, so nested subagent calls are priced and appended to the spend
+ledger (`CIVITAS_SPEND_LEDGER`, default `.local/model-spend.jsonl`). The guard
+refuses to start past `CIVITAS_SPEND_LIMIT_USD` and aborts past
+`CIVITAS_RUN_LIMIT_USD`. Note: deepagents 1.16.5 only adds todo-list middleware
+for Codex harness profiles, so the runner supplies `todoListMiddleware()` itself;
+the default general-purpose subagent is disabled so the publish tool is reachable
+only from the coordinator.
+
+## Run it
+
+From the repository root (Node 22+, npm 10+), relay in memory mode:
 
 ```sh
 npm install
 npm run setup:demo
-npm run build:relay
-npm run build:bridge
+npm run build:relay && npm run build:bridge
 npm run build -w @civitas/change-analyst
-npm run start:relay
+npm run start:relay                      # another terminal
+npm run seed:agents                      # writes .local/agents/{analyst,sdk,triage,dispatch}.env
 ```
 
-In another terminal, subscribe the recipient **before** publishing:
+With `OPENAI_API_KEY` exported privately (never in arguments or commits):
 
 ```sh
-node --env-file=.local/receiver.env apps/change-analyst/dist/index.js subscribe
+node --env-file=.local/agents/analyst.env apps/change-analyst/dist/index.js analyze maint-001
+# receiver view, with its own credential:
+node --env-file=.local/agents/triage.env apps/change-analyst/dist/index.js updates
 ```
 
-Set `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` privately in your environment, or in an
-ignored `.local/model.env` file. Never put keys in command arguments or commit them.
-The runner defaults to OpenAI `gpt-4.1`, or Anthropic `claude-sonnet-4-6` when an
-Anthropic key is present. Optional `CIVITAS_MODEL_PROVIDER=openai|anthropic` and
-`CIVITAS_MODEL` select a model available to your account.
+`subscribe` subscribes the loaded agent to `project/maintenance-api` (the seed
+script already does this for receivers).
 
-```sh
-# With the model key already exported in the shell:
-npm run analyze -w @civitas/change-analyst -- maintenance-001
-# Alternatively load a private model env file from the root:
-node --env-file=.local/model.env apps/change-analyst/dist/index.js analyze maintenance-001
+## Retries and run IDs
 
-# Review does not require a model credential:
-node --env-file=.local/publisher.env apps/change-analyst/dist/index.js review maintenance-001
-```
+Each `analyze` reserves `.local/analyst/<run-id>/`; reuse of an ID is refused, so
+a failed model run needs a new ID. If the publish response is lost or fails after
+review, `review <run-id>` re-shows the saved packet, asks for approval again, and
+republishes it through MCP with the same `analyst:<run-id>` key, without calling
+the model; the relay returns the same event while its deduplication state exists
+(memory mode loses it on restart). Keep checkpoints private and unedited; hash and
+space checks detect changes. The LangGraph checkpoint is in memory only, so a
+crash mid-analysis is not resumable.
 
-Review prints the full schema-validated packet, target space, and evidence. Type
-`publish maintenance-001` at the interactive terminal to publish that exact packet
-through the existing MCP `publish_context`. Any other answer leaves it unpublished.
-Piped/noninteractive approval is rejected. Read the complete packet before approval;
-model output can be wrong. JSON display escapes terminal control characters.
+## Recorded run
 
-```sh
-node --env-file=.local/receiver.env apps/change-analyst/dist/index.js updates
-```
-
-The receiver retrieves the actual event using its own MCP process and credential.
-Only the relay determines publisher identity. In memory mode, restart loses
-subscriptions, events, and retry deduplication. PostgreSQL mode persists these;
-see the root README for setup.
-
-Runs live in ignored `.local/analyst/<run-id>/`. A successful analysis saves
-`review.json` (packet, evidence, model identifier, fixture digest, and tool-call
-record). Required plan/delegation calls and both evidence files are checked before
-a review checkpoint is saved. `published.json` records the relay response.
-
-Use a fresh ID for new analysis or after model failure. The directory reservation
-prevents rerunning the model under an existing ID. The saved review checkpoint is
-the durable approval boundary: restarting review does not invoke the model.
-For a lost response or publication failure, repeat **review with the same ID** and
-approve again. The saved body and `analyst:<run-id>` key stay identical, so the relay
-returns the same event while its deduplication state exists. Keep checkpoints
-private and do not edit them; packet hash/space checks detect accidental changes.
-No mid-analysis LangGraph crash recovery is implemented.
-
-Dependencies are declared in this workspace and recorded in the root lockfile;
-`npm install` or `npm ci` from the root installs them. No deployment or public
-publication is performed by building or analysis.
+`examples/api-change/spec/sample-published-packet.json` is the published event
+from run `maint-real-02` (`openai:gpt-4.1-mini`, auto-approved with the gated flag,
+local in-memory relay). It inferred P1 → urgent from CHANGELOG.md, tagged P2/P3
+unresolved, and noted the `/work-orders/{id}` sunset. It is model output, not
+ground truth: it also presents the v1.4.0 `status` filter and `next_cursor` as new
+in v2, and its contract evidence lists only the query parameter rename, missing the
+schema-level `priority` → `priority_code` changes and the new `access_notes` field.
+Always read the packet before approving.

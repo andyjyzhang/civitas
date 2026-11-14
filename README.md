@@ -10,10 +10,11 @@ The local demo supports password accounts, private spaces/invitations, separate
 agent credentials with read/publish grants, immutable context versions, paginated
 inboxes, explicit acknowledgements, and a live dashboard. An Electron companion
 links agents and prints MCP configuration. PostgreSQL persistence works locally.
-The Deep Agents runner is implemented; the configured OpenAI key is valid, but
-real model analysis is blocked by exhausted API credits.
-Hosted Tiger Cloud persistence/analytics are verified; independent coding-model
-adaptation remains pending. This is a loopback hackathon demo, not a deployed public service.
+A real Deep Agents analyst reads OpenAPI/changelog fixtures, infers what changed,
+and publishes an approved packet; three adapter agents (one definition, three
+credentials) retrieve it and propose approved patches to their consumers.
+Hosted Tiger Cloud persistence/analytics are verified; independent coding-agent
+sessions (e.g. Claude Code) as receivers remain pending. This is a loopback hackathon demo, not a deployed public service.
 
 - [Design](docs/product.md): product, stack, prize strategy, and demo.
 - [Work plan](docs/work-plan.md): current implementation, verified flows, and external blockers.
@@ -55,6 +56,7 @@ server grants retain their existing behavior.
 apps/relay           Fastify API + database
 apps/web             Next.js dashboard
 apps/change-analyst   LangChain Deep Agents publisher
+apps/adapter-agent    Deep Agents receiver that patches a consumer
 apps/desktop         Electron agent companion
 packages/contracts   Shared schemas/types
 packages/client      HTTP client
@@ -161,8 +163,8 @@ npm run build:web
 npm run start:web
 ```
 
-Open `http://127.0.0.1:3000` for the landing page, then **Open relay**
-(`/relay`) for the live dashboard. Connect using the private `CIVITAS_AGENT_TOKEN` value
+Open `http://127.0.0.1:3000` for the landing page and log in or sign up; the live
+dashboard is at `/relay`. Connect using the private `CIVITAS_AGENT_TOKEN` value
 from one generated agent env file. Use a separate browser profile/incognito session
 and the other key to demonstrate a second participant. `npm run dev:web` runs the
 website in development mode instead.
@@ -213,6 +215,29 @@ receiver attempt failed before tool calls because its OAuth session expired; run
 `claude auth login` privately before retrying. Three distinct admitted identities
 have retrieved the same event through real MCP processes and run the local
 consumers. These transport runs do not prove independent coding-model adaptation.
+
+## Run the agent workflow
+
+Real models, approval-gated. See [analyst](apps/change-analyst/README.md) and
+[adapter](apps/adapter-agent/README.md) for details. With the relay running:
+
+```sh
+npm run build:bridge
+npm run build -w @civitas/change-analyst && npm run build -w @civitas/adapter-agent
+npm run seed:agents        # analyst + sdk/triage/dispatch credentials in .local/agents/
+node --env-file=.local/agents/analyst.env apps/change-analyst/dist/index.js analyze demo-01
+npm run adapt -w @civitas/adapter-agent -- triage demo-01   # repeat for sdk, dispatch
+npm run preview -w @civitas/adapter-agent -- demo-01         # .local/adapter/demo-01/triage-preview.html
+```
+
+Set `OPENAI_API_KEY` (and optionally `LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY`) in
+your shell. `CIVITAS_MODEL` defaults to `gpt-4.1-mini`. Each run pauses and asks you to
+type an approval before publishing or applying a patch. A local spend guard records every
+model call in `.local/model-spend.jsonl` and stops at $15 total or $1 per run
+(`CIVITAS_SPEND_LIMIT_USD`, `CIVITAS_RUN_LIMIT_USD`); also set a limit in the provider
+console. Patches apply to copies under `.local/adapter/`; `examples/consumers` stays v1.
+Model output can be wrong: review every packet and diff. Verified run and limits are
+recorded in the [work plan](docs/work-plan.md).
 
 ## Relay interface
 
@@ -312,7 +337,9 @@ publication make API changes visible across tools. Our synthetic maintenance dem
 preserves urgent triage when a wire field changes from `priority` to `priority_code`.
 The dashboard and companion manage collaboration; a reviewed Deep Agents analyst
 can publish through MCP. Hosted Tiger Cloud persistence/analytics are verified;
-live model execution and independent coding-model adaptation remain pending.
+a real Deep Agents analyst infers the change from specs and a changelog, and three
+adapter agents propose approved patches. Independent coding-agent sessions as
+receivers remain pending.
 
 Checked November 14, 2026: the [official rules](https://hackprinceton-fall-26.devpost.com/rules)
 require public GitHub source linked on Devpost, all members listed (maximum four),
