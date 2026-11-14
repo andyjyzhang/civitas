@@ -14,7 +14,7 @@ and what is still missing. Keep one current plan rather than adding documents.
 | **3: Deep Agents analyst** | Not started; primary sponsor feature | Plan, evidence files, contract/impact specialists, publication review, real MCP publish |
 | **4: domain demo + Tiger Data** | Synthetic maintenance example only | Independent code/UI adaptation, real Tiger Cloud storage/telemetry, measured timings |
 | **5: desktop companion** | Not started | Minimal sign-in/link/status/open-web over the bridge |
-| **6: submission** | Not started | Actual customer feedback, sponsor-rule confirmation, two-minute rehearsal |
+| **6: submission** | Main-track strategy recorded in product doc | Business and Enterprise entry; actual customer feedback, sponsor rules and award-stacking clarification, two-minute rehearsal |
 | **Later: GitHub downloads** | Low priority | Installer/CLI/self-host release assets; public source repo is separate |
 
 ## What actually ran

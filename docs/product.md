@@ -65,7 +65,7 @@ automated testing infrastructure is required for the hackathon.
 | Target | Demonstrate |
 | --- | --- |
 | **LangChain — primary sponsor target** | Real planning, specialist delegation, evidence files, review, and MCP publication |
-| **Business & Enterprise — primary category** | Less manual SWE coordination across repositories/tools, scoped access, working outcome |
+| **Business and Enterprise — primary main-track category** | Less manual SWE coordination across repositories/tools, scoped access, working outcome |
 | Amazon / Practical AI | A concrete failure fixed through grounded AI and visible results |
 | Tiger Data / selected database prize | Actual Tiger Cloud persistence and useful Timescale analytics |
 | Peri / Forward Deploy | Real person, specific problem, feedback-driven change, and user tries it |
@@ -74,14 +74,38 @@ automated testing infrastructure is required for the hackathon.
 Tiger Data fits the existing SQL model and event analytics better than introducing
 MongoDB for this MVP. This is our design choice, not a limitation of Atlas.
 
+### Main-track strategy
+
+The team supplied the main/optional prize descriptions. **Business and Enterprise**
+is our strongest main-track fit: infrastructure that improves real software teams'
+efficiency, with a dashboard and privacy controls. Keep LangChain as the primary
+sponsor target; the new main-track descriptions do not change the build priorities.
+
+The supplied **Best Overall Hack** rule judges creativity, utility, charity, and
+avidity, and says track winners cannot win Best Overall. Enter the appropriate
+category and prepare a strong overall demo; confirm with organizers how that
+exclusion applies to sponsor and optional awards. Do not assume awards can stack.
+
+Make the demo easy to judge: show the distinctive cross-owner context relay
+(creativity), an API change actually helping another developer finish work
+(utility), and the source-to-result story. Ask organizers what charity and avidity
+mean in their rubric before claiming evidence for those dimensions. Open-source
+access, privacy, and real user feedback can support the story where relevant.
+
+Healthcare, Sustainability, Entertainment, Education, and Science + Discovery are
+not current targets. Do not add unrelated features to enter them. Best Rookie Hack
+requires the team's first-hackathon eligibility to be confirmed; Best Hardware Hack
+requires actual hardware integration. A desktop application alone is not that demo.
+
 The team supplied “a person at an NYC startup” as an anonymized contact description.
 Role, incident, quotes, feedback, consent, and validation are not documented. Do not
 invent them or attribute the synthetic maintenance scenario to that contact. Have a
 short conversation, capture the actual workaround, change one feature, and show it
 back. Keep personal details private unless disclosure is authorized.
 
-The [event listing](https://hackprinceton-fall-26.devpost.com/) lists Business &
-Enterprise, Tiger Data, and Atlas. Detailed LangChain/CoStar/Amazon/Peri requirements
+The [event listing](https://hackprinceton-fall-26.devpost.com/) is the submission
+reference; the main-track rules above come from the team's supplied descriptions.
+Detailed LangChain/CoStar/Amazon/Peri requirements
 remain to be confirmed with mentors; do not assume AWS services are required.
 Prepare a two-minute demonstration and confirm submission rules before entering.
 Technical references: [Deep Agents](https://docs.langchain.com/oss/javascript/deepagents/overview),
