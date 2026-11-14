@@ -4,6 +4,17 @@ Build the real flow. No new test suites, lint/check pipelines, CI, release
 or deployment automation. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Product correction: group chats and servers
+
+User clarified two distinct experiences: **group chats** are private project
+collaboration for friends/coworkers; **servers** are broader public/restricted
+communities for spreading and discovering knowledge. Current private spaces/grants
+provide group foundations, not finished group conversations or community servers.
+Next UI/model work must separate navigation and workflows: group members, project
+conversation/context versus server topic feeds, subscriptions and publisher roles.
+Never automatically expose private group history in a server. See the product doc;
+this records intended scope, not completed implementation.
+
 ## Signup arrow spacing (November 14)
 
 The first 8px shift was too subtle for the user. Confirmed the preview served it,
