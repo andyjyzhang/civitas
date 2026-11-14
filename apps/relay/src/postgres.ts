@@ -1,8 +1,8 @@
 import { randomUUID, createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import pg, { type PoolClient } from 'pg';
-import type { ContextEvent, Delivery, PublishContextInput, Subscription } from '@civitas/contracts';
-import { canonical, HttpError, makeEvent, type RelayStorage, type Snapshot } from './storage.js';
+import type { ContextEvent, Delivery, PublishContextInput, Subscription, GetUpdatesInput, AckUpdateInput, AckRecord } from '@civitas/contracts';
+import { canonical, HttpError, makeEvent, type RelayStorage, type Snapshot, validateAppend, paginate } from './storage.js';
 
 export type DatabaseConfig = { databaseUrl: string; analyticsEnabled: boolean; databaseCaFile?: string };
 export function databasePool(config: DatabaseConfig) {
@@ -33,7 +33,7 @@ export async function migrate(pool: pg.Pool, analytics: boolean) {
     // while adding the telemetry trigger and backfilling historical transitions.
     await client.query("SELECT pg_advisory_xact_lock(hashtextextended('civitas:migrations', 0))");
     await client.query('CREATE TABLE IF NOT EXISTS civitas_migrations (name text PRIMARY KEY, checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())');
-    const files = ['001_core.sql', ...(analytics ? ['002_timescale.sql'] : [])];
+    const files = ['001_core.sql', '003_protocol_accounts.sql', ...(analytics ? ['002_timescale.sql'] : [])];
     for (const name of files) {
       const sql = await readFile(new URL(`../migrations/${name}`, import.meta.url), 'utf8');
       const checksum = createHash('sha256').update(sql).digest('hex');
@@ -57,14 +57,16 @@ function subscription(row: any): Subscription {
   return { subscriptionId: row.subscription_id, spaceId: row.space_id, agentId: row.agent_id, topic: row.topic, createdAt: iso(row.created_at) };
 }
 function delivery(row: any): Delivery {
-  return { deliveryId: row.delivery_id, event: row.event, deliveredAt: iso(row.delivered_at), acknowledgedAt: null, status: 'pending' };
+  return { deliveryId: row.delivery_id, event: row.event, deliveredAt: iso(row.delivered_at), acknowledgedAt: row.acknowledged_at ? iso(row.acknowledged_at) : null, status: row.status || 'pending' };
 }
 
 export class PostgresStorage implements RelayStorage {
   mode = 'postgres' as const;
-  constructor(private pool: pg.Pool, public analyticsEnabled: boolean) {}
+  constructor(public readonly pool: pg.Pool, public analyticsEnabled: boolean) {}
   async ready() {
     await this.pool.query('SELECT 1 FROM civitas_events LIMIT 0');
+    await this.pool.query('SELECT sequence,status,acknowledged_at FROM civitas_deliveries LIMIT 0');
+    await this.pool.query('SELECT kind,record_id,data FROM civitas_identity_records LIMIT 0');
     if (this.analyticsEnabled) {
       const result = await this.pool.query("SELECT 1 FROM timescaledb_information.hypertables WHERE hypertable_schema='public' AND hypertable_name='civitas_activity'");
       if (!result.rowCount) throw new Error('Timescale migration is required.');
@@ -105,10 +107,14 @@ export class PostgresStorage implements RelayStorage {
         if (canonical(existing.rows[0].request_body) !== canonical(input)) throw new HttpError(409, 'IDEMPOTENCY_CONFLICT', 'Retry key already used for different content.');
         return existing.rows[0].event;
       }
+      if (input.contextId) {
+        const previous = await client.query('SELECT event FROM civitas_events WHERE space_id=$1 AND context_id=$2 ORDER BY version DESC LIMIT 1', [space,input.contextId]);
+        validateAppend(previous.rows.map(row => row.event), space, agent, input);
+      }
       const clock = await client.query('SELECT clock_timestamp() AS time');
       const event = makeEvent(space, agent, input, iso(clock.rows[0].time));
       await client.query(`INSERT INTO civitas_events (event_id,space_id,publisher_agent_id,idempotency_key,request_body,context_id,version,published_at,event)
-        VALUES ($1,$2,$3,$4,$5,$6,1,$7,$8)`, [event.eventId, space, agent, input.idempotencyKey, input, event.contextId, event.publishedAt, event]);
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`, [event.eventId, space, agent, input.idempotencyKey, input, event.contextId, event.version, event.publishedAt, event]);
       await client.query(`INSERT INTO civitas_transitions (transition_id,space_id,event_id,agent_id,kind,occurred_at)
         VALUES ($1,$2,$3,$4,'published',$5)`, [randomUUID(), space, event.eventId, agent, event.publishedAt]);
       const matches = await client.query('SELECT agent_id FROM civitas_subscriptions WHERE space_id=$1 AND topic=$2 AND agent_id=ANY($3::text[])', [space, input.topic, allowedAgents]);
@@ -123,20 +129,32 @@ export class PostgresStorage implements RelayStorage {
       return event;
     });
   }
-  async updates(space: string, agent: string) {
+  async updates(space: string, agent: string, input: GetUpdatesInput = {}) {
     return this.transaction(space, async client => {
-      // UPDATE RETURNING emits transitions only for the first retrieval, including
-      // concurrent polls and retries on another relay instance.
-      const first = await client.query(`UPDATE civitas_deliveries SET retrieved_at=clock_timestamp()
-        WHERE space_id=$1 AND agent_id=$2 AND retrieved_at IS NULL RETURNING *`, [space, agent]);
-      for (const row of first.rows) {
-        await client.query(`INSERT INTO civitas_transitions (transition_id,space_id,event_id,agent_id,delivery_id,kind,occurred_at,latency_ms)
-          SELECT $1,$2,event_id,$3,$4,'retrieved',$5,GREATEST(0,EXTRACT(EPOCH FROM ($5::timestamptz-published_at))*1000)
-          FROM civitas_events WHERE space_id=$2 AND event_id=$6`, [randomUUID(), space, agent, row.delivery_id, row.retrieved_at, row.event_id]);
-      }
       const rows = await client.query(`SELECT d.*,e.event FROM civitas_deliveries d JOIN civitas_events e USING (space_id,event_id)
-        WHERE d.space_id=$1 AND d.agent_id=$2 ORDER BY d.delivered_at,d.delivery_id`, [space, agent]);
-      return rows.rows.map(delivery);
+        WHERE d.space_id=$1 AND d.agent_id=$2 ORDER BY d.sequence`, [space, agent]);
+      const page = paginate(rows.rows.map(delivery), space, agent, input);
+      for (const item of page.items) {
+        const first = await client.query(`UPDATE civitas_deliveries SET retrieved_at=clock_timestamp()
+          WHERE space_id=$1 AND agent_id=$2 AND delivery_id=$3 AND retrieved_at IS NULL RETURNING *`, [space,agent,item.deliveryId]);
+        for (const row of first.rows) {
+          await client.query(`INSERT INTO civitas_transitions (transition_id,space_id,event_id,agent_id,delivery_id,kind,occurred_at,latency_ms)
+            SELECT $1,$2,event_id,$3,$4,'retrieved',$5,GREATEST(0,EXTRACT(EPOCH FROM ($5::timestamptz-published_at))*1000)
+            FROM civitas_events WHERE space_id=$2 AND event_id=$6`, [randomUUID(), space, agent, row.delivery_id, row.retrieved_at, row.event_id]);
+        }
+      }
+      return page;
+    });
+  }
+  async acknowledge(space: string, agent: string, deliveryId: string, status: AckUpdateInput['status']): Promise<AckRecord> {
+    return this.transaction(space, async client => {
+      const result = await client.query('SELECT * FROM civitas_deliveries WHERE space_id=$1 AND agent_id=$2 AND delivery_id=$3', [space,agent,deliveryId]);
+      const row = result.rows[0];
+      if (!row) throw new HttpError(404, 'NOT_FOUND', 'Delivery not found.');
+      if (row.status !== 'pending' && row.status !== status) throw new HttpError(409, 'DISPOSITION_CONFLICT', 'Delivery already has another final disposition.');
+      const updated = await client.query(`UPDATE civitas_deliveries SET status=$4,acknowledged_at=COALESCE(acknowledged_at,clock_timestamp())
+        WHERE space_id=$1 AND agent_id=$2 AND delivery_id=$3 RETURNING acknowledged_at`, [space,agent,deliveryId,status]);
+      return {deliveryId, status, acknowledgedAt: iso(updated.rows[0].acknowledged_at)};
     });
   }
   async snapshot(space: string, allowed: string[]): Promise<Snapshot> {

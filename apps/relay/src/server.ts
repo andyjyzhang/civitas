@@ -1,11 +1,41 @@
 import Fastify, { type FastifyError } from 'fastify';
-import { PublishContextInputSchema, SubscribeInputSchema, GetUpdatesInputSchema } from '@civitas/contracts';
+import { PublishContextInputSchema, SubscribeInputSchema, GetUpdatesInputSchema, AckUpdateInputSchema, RegisterAccountInputSchema, LoginAccountInputSchema, NameInputSchema, InviteInputSchema, AcceptInviteInputSchema, GrantInputSchema } from '@civitas/contracts';
 import { HttpError, MemoryStorage, type RelayStorage } from './storage.js';
+import { Accounts, IdentityStore } from './accounts.js';
 
 type Config = { spaceId: string; agents: Map<string, string> };
-export function createRelay(config: Config, storage: RelayStorage = new MemoryStorage()) {
+export function createRelay(config: Config, storage: RelayStorage = new MemoryStorage(), accounts = new Accounts(new IdentityStore())) {
   const app = Fastify({ logger: false, bodyLimit: 64 * 1024, requestTimeout: 10000 });
-  const allowedAgents = [...new Set(config.agents.values())];
+  const demoAgents = [...new Set(config.agents.values())];
+  const bearer = (authorization: string | undefined) => {
+    const match = /^Bearer ([^\s]+)$/i.exec(authorization || '');
+    if (!match) throw new HttpError(401,'UNAUTHORIZED','A valid bearer credential is required.');
+    return match[1];
+  };
+  const auth = new WeakMap<object,{agentId:string;name:string;allowedAgents:string[]}>();
+  const parse = <T>(schema: {safeParse(value:unknown):{success:true;data:T}|{success:false}}, value:unknown):T => {
+    const result=schema.safeParse(value);
+    if (!result.success) throw new HttpError(400,'INVALID_INPUT','Invalid request fields.');
+    return result.data;
+  };
+  const loginAttempts=new Map<string,{count:number;until:number}>();
+  const limitAccount = (ip:string) => {
+    const now=Date.now();
+    for (const [key,value] of loginAttempts) if(value.until<=now) loginAttempts.delete(key);
+    const current=loginAttempts.get(ip) || {count:0,until:now+60000};
+    if (current.count>=30 || loginAttempts.size>1000) throw new HttpError(429,'RATE_LIMITED','Please wait before trying account sign-in again.');
+    current.count++;loginAttempts.set(ip,current);
+  };
+  app.post('/v1/accounts/register',async request=>{limitAccount(request.ip);return accounts.register(parse(RegisterAccountInputSchema,request.body));});
+  app.post('/v1/accounts/login',async request=>{limitAccount(request.ip);return accounts.login(parse(LoginAccountInputSchema,request.body));});
+  app.post('/v1/accounts/logout',async request=>accounts.logout(bearer(request.headers.authorization)));
+  app.get('/v1/account',async request=>accounts.overview(bearer(request.headers.authorization)));
+  app.post('/v1/spaces',async request=>accounts.createSpace(bearer(request.headers.authorization),parse(NameInputSchema,request.body).name));
+  app.post('/v1/agents',async request=>accounts.createAgent(bearer(request.headers.authorization),parse(NameInputSchema,request.body).name));
+  app.post('/v1/invites/accept',async request=>accounts.accept(bearer(request.headers.authorization),parse(AcceptInviteInputSchema,request.body).token));
+  app.post<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/invites',async request=>accounts.invite(bearer(request.headers.authorization),request.params.spaceId,parse(InviteInputSchema,request.body).email));
+  app.post<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/grants',async request=>accounts.grant(bearer(request.headers.authorization),request.params.spaceId,parse(GrantInputSchema,request.body)));
+
   app.addHook('onClose', async () => { await storage.close(); });
   app.setErrorHandler<FastifyError>((error, request, reply) => {
     const status = error instanceof HttpError ? error.statusCode : (error.statusCode || 503);
@@ -25,36 +55,43 @@ export function createRelay(config: Config, storage: RelayStorage = new MemorySt
   });
   app.register(async routes => {
     routes.addHook('onRequest', async request => {
-      const match = /^Bearer ([^\s]+)$/i.exec(request.headers.authorization || '');
-      const agentId = match && config.agents.get(match[1]);
-      if (!agentId) throw new HttpError(401, 'UNAUTHORIZED', 'A valid agent credential is required.');
+      const credential = bearer(request.headers.authorization);
       const { spaceId } = request.params as { spaceId: string };
-      if (spaceId !== config.spaceId) throw new HttpError(404, 'NOT_FOUND', 'Space not found.');
-      await storage.touch(config.spaceId, agentId);
+      const demoAgent = config.agents.get(credential);
+      const permission = request.method === 'POST' && request.routeOptions.url?.endsWith('/contexts') ? 'publish' : 'read';
+      let access;
+      if (demoAgent) {
+        if (spaceId !== config.spaceId) throw new HttpError(404, 'NOT_FOUND', 'Space not found.');
+        access={agentId:demoAgent,name:'Maintenance API',allowedAgents:demoAgents};
+      } else access=await accounts.authorize(credential,spaceId,permission);
+      auth.set(request,access);
+      await storage.touch(spaceId,access.agentId);
     });
-    const actor = (authorization: string | undefined) => config.agents.get(authorization!.slice(7))!;
+    const actor = (request: object) => auth.get(request)!;
     routes.get('/v1/spaces/:spaceId/activity', async request => ({
-      space: { spaceId: config.spaceId, name: 'Maintenance API' },
-      currentAgentId: actor(request.headers.authorization),
-      ...await storage.snapshot(config.spaceId, allowedAgents),
+      space: { spaceId: (request.params as {spaceId:string}).spaceId, name: actor(request).name },
+      currentAgentId: actor(request).agentId,
+      ...await storage.snapshot((request.params as {spaceId:string}).spaceId, actor(request).allowedAgents),
       storage: storage.mode,
     }));
     routes.post('/v1/spaces/:spaceId/contexts', async request => {
       const parsed = PublishContextInputSchema.safeParse(request.body);
       if (!parsed.success) throw new HttpError(400, 'INVALID_INPUT', 'Invalid publish payload. Check the shared contract fields.');
-      if (parsed.data.contextId !== undefined) throw new HttpError(400, 'NOT_IMPLEMENTED', 'Appending versions is deferred; this relay creates version 1 only.');
-      return storage.publish(config.spaceId, actor(request.headers.authorization), parsed.data, allowedAgents);
+      return storage.publish((request.params as {spaceId:string}).spaceId, actor(request).agentId, parsed.data, actor(request).allowedAgents);
     });
     routes.post('/v1/spaces/:spaceId/subscriptions', async request => {
       const parsed = SubscribeInputSchema.safeParse(request.body);
       if (!parsed.success) throw new HttpError(400, 'INVALID_INPUT', 'Provide one exact topic, for example project/maintenance-api.');
-      return storage.subscribe(config.spaceId, actor(request.headers.authorization), parsed.data.topic);
+      return storage.subscribe((request.params as {spaceId:string}).spaceId, actor(request).agentId, parsed.data.topic);
     });
     routes.get('/v1/spaces/:spaceId/updates', async request => {
       const parsed = GetUpdatesInputSchema.safeParse(request.query);
       if (!parsed.success) throw new HttpError(400, 'INVALID_INPUT', 'Invalid inbox query.');
-      if (parsed.data.cursor !== undefined || parsed.data.limit !== undefined) throw new HttpError(400, 'NOT_IMPLEMENTED', 'Pagination is deferred; omit cursor and limit.');
-      return { items: await storage.updates(config.spaceId, actor(request.headers.authorization)), nextCursor: null };
+      return storage.updates((request.params as {spaceId:string}).spaceId, actor(request).agentId, parsed.data);
+    });
+    routes.post('/v1/spaces/:spaceId/updates/:deliveryId/ack', async request => {
+      const {spaceId,deliveryId}=request.params as {spaceId:string;deliveryId:string};
+      return storage.acknowledge(spaceId,actor(request).agentId,deliveryId,parse(AckUpdateInputSchema,request.body).status);
     });
     routes.get('/v1/spaces/:spaceId/analytics', async request => {
       const query = request.query as Record<string, unknown>;
@@ -64,7 +101,7 @@ export function createRelay(config: Config, storage: RelayStorage = new MemorySt
       if (!Number.isFinite(from.getTime()) || !Number.isFinite(to.getTime()) || from >= to || to.getTime() - from.getTime() > 7 * 86400000) {
         throw new HttpError(400, 'INVALID_INPUT', 'Supply a valid range of at most seven days.');
       }
-      return storage.analytics(config.spaceId, from.toISOString(), to.toISOString());
+      return storage.analytics((request.params as {spaceId:string}).spaceId, from.toISOString(), to.toISOString());
     });
   });
   return app;
