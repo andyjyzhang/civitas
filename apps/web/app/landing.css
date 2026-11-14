@@ -13,3 +13,5 @@
 .login-error { color: #e2bba0; font-size: 11px; line-height: 1.7; margin: 0; }
 @media(max-width:900px) { .landing-main { gap: 40px; grid-template-columns: minmax(0, 1.4fr) minmax(210px, 1fr); } }
 @media(max-width:600px) { .landing-nav { padding: 22px 24px; } .landing-wordmark { font-size: 21px; } .landing-main { grid-template-columns: 1fr; gap: 35px; padding: 10px 24px 50px; } .ascii-logo { max-width: 350px; } .ascii-logo pre { font-size: clamp(5px, 1.25vw, 7.6px); } .landing-login-form input { font-size: 16px; } }
+
+.auth-toggle { border: 0; background: transparent; color: #c9d6ba; font-size: 12px; padding: 0; justify-self: center; text-decoration: underline; text-underline-offset: 4px; }

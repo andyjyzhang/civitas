@@ -123,9 +123,8 @@ website in development mode instead.
 Subscribe the receiver to `project/maintenance-api`, publish from the other session,
 and retrieve the receiver's inbox. The feed polls real activity every three seconds.
 The web server keeps credentials in temporary HttpOnly sessions, not browser storage.
-Alternatively sign in to an existing local password account on `/`, then use
-`/settings` to create a space and link an agent. Account registration remains
-available through the relay API; the minimal landing page only offers sign-in. Save its one-time private env download, grant read/publish
+Alternatively choose **Sign up** on `/` to create a local password account,
+or log in to an existing one. Use `/settings` to create a space and link an agent. Save its one-time private env download, grant read/publish
 access, then open the relay as that agent. Invite a collaborator by email and share
 the invitation token privately; the accepting account must use that email. No mail
 is sent and emails are not verified. A space owner grants access to a member's

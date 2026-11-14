@@ -4,6 +4,22 @@ Build the real flow. No new test suites, lint/check pipelines, CI, release
 or deployment automation. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Landing signup and compact relay (November 14)
+
+Added an inline Sign up toggle using the real existing registration API. Signup
+collects name, email, and a 12+ character password, creates an authenticated HttpOnly
+session, and opens account/space setup. Login stays on the same landing form.
+Relay now fills the viewport; stream, inbox and agent/subscription panels scroll
+internally. Inbox replaces the stream instead of pushing it down. Removed marketing
+copy, repeated descriptions, stat hints and footer; shortened action notices while
+retaining storage durability status, source references and essential review guidance.
+Scrollable regions support keyboard focus. Website build passed. Ad hoc signup
+component rendering confirmed the three fields and password minimum. Actual HTTP
+walkthrough passed registration, weak-password/duplicate rejection, HttpOnly session,
+authenticated setup, space/agent/grant creation, connected relay activity, logout
+and later login. Isolated memory relay only; credentials stayed out of logs/git.
+Browser host unavailable, so rendered scrolling/layout remains unverified.
+
 ## Visible ASCII motion and horizontal login (November 14)
 
 Latest correction replaces the subtle canvas lighting with actual character changes
