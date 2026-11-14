@@ -1,0 +1,8 @@
+{
+  "node_version": "22",
+  "graphs": {
+    "analyst": "./apps/change-analyst/src/graph.ts:graph",
+    "adapter": "./apps/adapter-agent/src/graph.ts:graph"
+  },
+  "env": ".local/model.env"
+}
