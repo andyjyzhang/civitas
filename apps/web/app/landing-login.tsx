@@ -18,8 +18,7 @@ export default function LandingLogin() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Could not log in. Try again.');
-      const relay = await fetch('/api/relay', { cache: 'no-store' });
-      window.location.assign(relay.ok ? '/relay' : '/settings');
+      window.location.assign('/groups');
     } catch (problem) {
       setError(problem instanceof Error ? problem.message : 'Could not reach the relay. Try again.');
       setBusy(false);

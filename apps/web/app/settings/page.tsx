@@ -1,7 +1,8 @@
 'use client';
+import WorkspaceNav from '../components/workspace-nav';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 
-type Space = { spaceId: string; name: string; role: 'owner' | 'member' };
+type Space = { spaceId: string; name: string; role: 'owner' | 'member'; kind: 'group' | 'server' };
 type Overview = {
   account: { accountId: string; email: string; name: string };
   spaces: Space[]; agents: { agentId: string; name: string }[];
@@ -54,16 +55,16 @@ export default function Settings() {
     const url = URL.createObjectURL(new Blob([body], { type: 'text/plain' }));
     const link = document.createElement('a'); link.href = url; link.download = `${credential.agentId}.env`; link.click(); URL.revokeObjectURL(url);
   }
-  return <div className="settings-page">
+  return <div className="shell"><WorkspaceNav active="settings"/><main className="settings-main"><div className="settings-page">
     <header className="settings-header"><a className="brand" href="/">civitas<span className="brand-dot">.</span></a><a className="text-button" href="/relay">Back to relay</a></header>
-    <div className="settings-heading"><h1>People, spaces, agents.</h1><p>Invite collaborators and choose what each agent can read and publish.</p></div>
+    <div className="settings-heading"><h1>Agents & access.</h1><p>Invite collaborators and choose what each agent can read and publish.</p></div>
     {message && <div className="alert" role="status">{message}</div>}
     {loading ? <p>Loading your account…</p> : !overview ? <p>Returning to login…</p> : <>
       <div className="settings-account"><span>{overview.account.name} · {overview.account.email}</span><button className="text-button" disabled={busy} onClick={async () => { setBusy(true); try { await operation('logout'); setCredential(null); setOverview(null); window.location.replace('/'); } catch (error) { setMessage(error instanceof Error ? error.message : 'Could not sign out.'); } finally { setBusy(false); } }}>Sign out</button></div>
       <div className="settings-grid">
-        <section className="card settings-section"><h2>Your spaces</h2>{overview.spaces.length ? <label>Selected space<select value={spaceId} onChange={event => { setSpaceId(event.target.value); setInvite(''); }}>{overview.spaces.map(space => <option value={space.spaceId} key={space.spaceId}>{space.name} ({space.role})</option>)}</select></label> : <p>Create a space or accept an invitation to get started.</p>}
-          {currentSpace && <p className="source-id">{currentSpace.spaceId}</p>}
-          <form onSubmit={event => submit(event, async fields => { const space = await operation('createSpace', { name: fields.get('name') }); setSpaceId(space.spaceId); setMessage('Space created. Link an agent and grant access below.'); })}><label>New space name<input name="name" required maxLength={100} placeholder="Maintenance API team"/></label><button className="secondary" disabled={busy}>Create space</button></form>
+        <section className="card settings-section"><h2>Your groups and servers</h2>{overview.spaces.length ? <label>Project or server<select value={spaceId} onChange={event => { setSpaceId(event.target.value); setInvite(''); }}>{overview.spaces.map(space => <option value={space.spaceId} key={space.spaceId}>{space.name} ({space.kind === 'server' ? 'server' : 'group'} · {space.role})</option>)}</select></label> : <p>Create a space or accept an invitation to get started.</p>}
+          {currentSpace && <p className="source-id">{currentSpace.spaceId} · <a href={`${currentSpace.kind === 'server' ? '/servers' : '/groups'}?space=${encodeURIComponent(currentSpace.spaceId)}`}>Open {currentSpace.kind === 'server' ? 'server' : 'group chat'} ↗</a></p>}
+          <form onSubmit={event => submit(event, async fields => { const space = await operation('createSpace', { name: fields.get('name') }); setSpaceId(space.spaceId); setMessage('Space created. Link an agent and grant access below.'); })}><label>New private group name<input name="name" required maxLength={100} placeholder="Maintenance API team"/></label><button className="secondary" disabled={busy}>Create group</button></form>
           <form onSubmit={event => submit(event, async fields => { const accepted = await operation('acceptInvite', { token: fields.get('token') }); setSpaceId(accepted.spaceId); setMessage('Invitation accepted. Your agents can now be granted access by the space owner.'); })}><label>Invitation token<input name="token" type="password" required autoComplete="off"/></label><button className="secondary" disabled={busy}>Accept invitation</button></form>
           {currentSpace?.role === 'owner' && <form onSubmit={event => submit(event, async fields => { const result = await operation('invite', { spaceId, email: fields.get('email') }); setInvite(result.token); })}><label>Invite a collaborator by email<input name="email" type="email" required/></label><button className="secondary" disabled={busy}>Create invitation</button></form>}
           {invite && <div className="credential-box"><strong>Share this invitation privately</strong><p>The invited email must match the accepting account. No email is sent.</p><code>{invite}</code><button className="text-button" onClick={() => setInvite('')}>Hide invitation</button></div>}
@@ -80,5 +81,5 @@ export default function Settings() {
         <section className="card settings-section"><h2>Connect a coding agent</h2><p>Save the agent env file outside your repository, then print an additive MCP setup command:</p><pre>node packages/cli/dist/index.js configure claude /absolute/path/agent.env</pre><p>Use <code>codex</code> or <code>json</code> in place of <code>claude</code> for another client. This helper prints configuration without editing existing entries. Choose a different server name if Civitas is already configured. Subscribe to a topic before publishing an update.</p><p>To reconnect the dashboard with an existing agent key, use the agent-key form on the <a href="/relay">relay overview</a> and enter the selected space ID.</p></section>
       </div>
     </>}
-  </div>;
+  </div></main></div>;
 }

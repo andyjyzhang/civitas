@@ -2,10 +2,13 @@ import { cookies } from 'next/headers';
 import { CivitasApiError } from '@civitas/client';
 import { accountClientFor, baseUrl, accountCookieName, cookieName, createSession, deleteSession, json, sameOrigin, session } from '../../../lib/relay';
 export const runtime = 'nodejs';
-export async function GET() {
+export async function GET(request: Request) {
   const current = await session(accountCookieName);
   if (!current) return json({ error: 'Sign in to manage your spaces and agents.' }, 401);
-  try { return json(await accountClientFor(current.token).overview()); }
+  try { const query=new URL(request.url).searchParams; const client=accountClientFor(current.token);
+    if(query.has('room'))return json(await client.room(query.get('room')!));
+    if(query.has('directory'))return json(await client.directory());
+    return json(await client.overview()); }
   catch (error) { return failure(error); }
 }
 export async function POST(request: Request) {
@@ -28,7 +31,10 @@ export async function POST(request: Request) {
       for (const name of [accountCookieName, cookieName]) { deleteSession(jar.get(name)?.value); jar.delete(name); }
       return json({ ok: true });
     }
-    if (operation === 'createSpace') return json(await client.createSpace(input.name));
+    if (operation === 'createSpace') return json(await client.createSpace(input.name,{kind:input.kind,visibility:input.visibility}));
+    if (operation === 'joinServer') return json(await client.joinServer(input.spaceId));
+    if (operation === 'post') return json(await client.post(input.spaceId,input.post));
+    if (operation === 'setPublisher') return json(await client.setPublisher(input.spaceId,input.accountId,input.canPublish));
     if (operation === 'invite') return json(await client.invite(input.spaceId, input.email));
     if (operation === 'acceptInvite') return json(await client.acceptInvite(input.token));
     if (operation === 'createAgent') return json({ ...await client.createAgent(input.name), relayUrl: baseUrl() });

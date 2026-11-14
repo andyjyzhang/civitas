@@ -4,7 +4,7 @@ import {
   SubscribeInputSchema as subscriptionInput, SubscriptionSchema as subscription,
   GetUpdatesInputSchema as updatesInput, UpdatesPageSchema as page,
   AckUpdateInputSchema, AckRecordSchema, ActivitySnapshotSchema, ApiErrorSchema as apiError,
-  AccountSessionSchema, AccountOverviewSchema, SpaceSchema, AgentCredentialSchema, InviteSchema, GrantSchema,
+  AccountSessionSchema, AccountOverviewSchema, SpaceSchema, AgentCredentialSchema, InviteSchema, GrantSchema, RoomSchema, RoomPostSchema, ServerDirectorySchema,
   type PublishContextInput, type SubscribeInput, type GetUpdatesInput, type AckUpdateInput,
 } from '@civitas/contracts';
 export type {
@@ -75,7 +75,12 @@ export function createAccountClient({ baseUrl, token }: { baseUrl: string; token
     login(input: { email: string; password: string }) { return request('/v1/accounts/login', AccountSessionSchema, input); },
     logout() { return request('/v1/accounts/logout', z.object({ ok: z.literal(true) }), {}); },
     overview() { return request('/v1/account', AccountOverviewSchema); },
-    createSpace(name: string) { return request('/v1/spaces', SpaceSchema, { name }); },
+    createSpace(name: string, options: {kind?:'group'|'server';visibility?:'private'|'public'} = {}) { return request('/v1/spaces', SpaceSchema, { name, ...options }); },
+    room(spaceId:string) { return request(spacePath(spaceId)+'/room',RoomSchema); },
+    directory() { return request('/v1/servers',ServerDirectorySchema); },
+    joinServer(spaceId:string) { return request(spacePath(spaceId)+'/join',z.object({ok:z.literal(true)}),{}); },
+    post(spaceId:string,input:{content:string;title?:string;topic?:string;source?:{uri:string;revision:string}}) { return request(spacePath(spaceId)+'/posts',RoomPostSchema,input); },
+    setPublisher(spaceId:string,accountId:string,canPublish:boolean) { return request(spacePath(spaceId)+'/publishers',z.object({ok:z.literal(true)}),{accountId,canPublish}); },
     invite(spaceId: string, email: string) { return request(spacePath(spaceId) + '/invites', InviteSchema, { email }); },
     acceptInvite(token: string) { return request('/v1/invites/accept', SpaceSchema, { token }); },
     createAgent(name: string) { return request('/v1/agents', AgentCredentialSchema, { name }); },

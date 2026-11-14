@@ -1,5 +1,5 @@
 import Fastify, { type FastifyError } from 'fastify';
-import { PublishContextInputSchema, SubscribeInputSchema, GetUpdatesInputSchema, AckUpdateInputSchema, RegisterAccountInputSchema, LoginAccountInputSchema, NameInputSchema, InviteInputSchema, AcceptInviteInputSchema, GrantInputSchema } from '@civitas/contracts';
+import { PublishContextInputSchema, SubscribeInputSchema, GetUpdatesInputSchema, AckUpdateInputSchema, RegisterAccountInputSchema, LoginAccountInputSchema, NameInputSchema, InviteInputSchema, AcceptInviteInputSchema, GrantInputSchema, CreateSpaceInputSchema, RoomPostInputSchema } from '@civitas/contracts';
 import { HttpError, MemoryStorage, type RelayStorage } from './storage.js';
 import { Accounts, IdentityStore } from './accounts.js';
 
@@ -30,11 +30,29 @@ export function createRelay(config: Config, storage: RelayStorage = new MemorySt
   app.post('/v1/accounts/login',async request=>{limitAccount(request.ip);return accounts.login(parse(LoginAccountInputSchema,request.body));});
   app.post('/v1/accounts/logout',async request=>accounts.logout(bearer(request.headers.authorization)));
   app.get('/v1/account',async request=>accounts.overview(bearer(request.headers.authorization)));
-  app.post('/v1/spaces',async request=>accounts.createSpace(bearer(request.headers.authorization),parse(NameInputSchema,request.body).name));
+  app.post('/v1/spaces',async request=>{const input=parse(CreateSpaceInputSchema,request.body);return accounts.createSpace(bearer(request.headers.authorization),input.name,input.kind,input.visibility);});
   app.post('/v1/agents',async request=>accounts.createAgent(bearer(request.headers.authorization),parse(NameInputSchema,request.body).name));
   app.post('/v1/invites/accept',async request=>accounts.accept(bearer(request.headers.authorization),parse(AcceptInviteInputSchema,request.body).token));
   app.post<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/invites',async request=>accounts.invite(bearer(request.headers.authorization),request.params.spaceId,parse(InviteInputSchema,request.body).email));
   app.post<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/grants',async request=>accounts.grant(bearer(request.headers.authorization),request.params.spaceId,parse(GrantInputSchema,request.body)));
+
+  app.get('/v1/servers',async request=>accounts.directory(bearer(request.headers.authorization)));
+  app.get<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/room',async request=>{
+    const spaceId=request.params.spaceId;
+    const room=await accounts.room(bearer(request.headers.authorization),spaceId);
+    // Membership is checked before reading the space's explicitly published agent context.
+    const snapshot=await storage.snapshot(spaceId,[]);
+    const posts=[...room.posts,...snapshot.events.map(event=>({postId:event.eventId,spaceId,authorId:event.publisherAgentId,authorName:event.publisherAgentId,content:event.content,createdAt:event.publishedAt,title:`${event.title} · v${event.version}`,topic:event.topic,source:event.source,origin:'agent'}))]
+      .sort((a,b)=>Date.parse(a.createdAt)-Date.parse(b.createdAt)).slice(-100);
+    return {...room,posts};
+  });
+  app.post<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/join',async request=>accounts.joinServer(bearer(request.headers.authorization),request.params.spaceId));
+  app.post<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/posts',async request=>accounts.post(bearer(request.headers.authorization),request.params.spaceId,parse(RoomPostInputSchema,request.body)));
+  app.post<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/publishers',async request=>{
+    const input=request.body as {accountId?:unknown;canPublish?:unknown};
+    if(!input||typeof input.accountId!=='string'||typeof input.canPublish!=='boolean')throw new HttpError(400,'INVALID_INPUT','Provide accountId and canPublish.');
+    return accounts.setPublisher(bearer(request.headers.authorization),request.params.spaceId,input.accountId,input.canPublish);
+  });
 
   app.addHook('onClose', async () => { await storage.close(); });
   app.setErrorHandler<FastifyError>((error, request, reply) => {
