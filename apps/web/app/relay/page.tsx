@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import WorkspaceNav from '../components/workspace-nav';
 import type { ActivitySnapshot, ContextEvent, Delivery } from '@civitas/contracts';
 
 const label = (id: string) => id.replace(/^ag_/, '').replace(/^./, character => character.toUpperCase());
@@ -92,22 +93,16 @@ export default function Home() {
   const events = snapshot?.events.filter(event => `${event.title} ${event.topic} ${event.content}`.toLowerCase().includes(query.toLowerCase())) || [];
   const inboxView = inbox && snapshot && <section className="card inbox-panel" aria-label="Inbox" tabIndex={0}><div className="section-heading"><h2>Your inbox</h2><button className="text-button" onClick={() => setInbox(null)}>Close inbox</button></div><p>Review sources before acting. Acknowledgement is final.</p><div className="inbox-list">{inbox.map(item => <article className="inbox-item" key={item.deliveryId}><strong>{item.event.title} · v{item.event.version}</strong><p className="event-content">{item.event.content}</p><small>{item.event.source.uri} @ {item.event.source.revision} · {item.status}</small>{item.status === 'pending' && <div className="button-row"><button className="secondary" disabled={busy} onClick={() => acknowledge(item.deliveryId, 'acknowledged')}>Acknowledge</button><button className="text-button" disabled={busy} onClick={() => acknowledge(item.deliveryId, 'dismissed')}>Dismiss delivery</button></div>}</article>)}</div>{inbox.length === 0 && <p>No updates.</p>}{nextCursor && <button className="secondary" disabled={busy} onClick={() => retrieve(true)}>Load more</button>}</section>;
   return <div className="shell">
-    <aside className="sidebar">
-      <a className="brand" href="/" aria-label="Civitas home"><span className="mark">c<span>↗</span></span> civitas<span className="brand-dot">.</span></a>
-      <div className="nav-active"><span>◈</span> Relay</div>
-      <div className="workspace-label">Workspace</div>
-      <div className="workspace"><span className="workspace-icon">M</span><div>{snapshot?.space.name || 'Your project'}</div><span>⌄</span></div>
-
-    </aside>
+    <WorkspaceNav active="relay"/>
     <main>
       <header className="topbar"><span>{snapshot?.space.name || 'Relay'}</span><a className="text-button" href="/settings">People &amp; access</a><span className="demo-pill"><span className="status-dot"/> Local relay</span></header>
       <div className="content">
-        <div className="heading"><h1>Context</h1>{snapshot && <button className="primary" onClick={() => { publishKey.current = null; setEditingContext(null); setShowPublish(true); }}>＋ Publish context</button>}</div>
+        <div className="heading"><h1>Agent context</h1>{snapshot && <button className="primary" onClick={() => { publishKey.current = null; setEditingContext(null); setShowPublish(true); }}>＋ Publish context</button>}</div>
         {snapshot && <div className="storage-status">{snapshot.storage === 'postgres' ? 'PostgreSQL' : 'Memory · clears on restart'}</div>}
         {error && <div className="alert" role="alert">{error}</div>}
         {notice && <div className="notice" role="status">{notice}<button aria-label="Dismiss message" onClick={() => setNotice('')}>×</button></div>}
 
-        {!snapshot ? <section className="connect-panel"><h2>{connecting ? 'Reaching your relay…' : 'Connect agent'}</h2><p>Use your agent key and space ID. <a href="/settings">Manage agents</a></p><form onSubmit={connect}><label htmlFor="space-id">Space ID</label><input id="space-id" name="spaceId" defaultValue="sp_demo" required/><label htmlFor="token">Local agent key</label><div className="connect-input"><input id="token" name="token" type="password" required autoComplete="off" placeholder="Paste your agent key"/><button className="primary" disabled={busy || connecting}>{busy ? 'Connecting…' : 'Connect agent →'}</button></div></form></section> : <>
+        {!snapshot ? <section className="connect-panel"><h2>{connecting ? 'Reaching your relay…' : 'Connect agent'}</h2><p>Advanced MCP connection: use your Civitas credential and project ID. This is not a model API key. <a href="/settings">Manage agents</a></p><form onSubmit={connect}><label htmlFor="space-id">Space ID</label><input id="space-id" name="spaceId" defaultValue="sp_demo" required/><label htmlFor="token">Civitas agent credential</label><div className="connect-input"><input id="token" name="token" type="password" required autoComplete="off" placeholder="Paste your agent key"/><button className="primary" disabled={busy || connecting}>{busy ? 'Connecting…' : 'Connect agent →'}</button></div></form></section> : <>
           <div className="stats"><Stat name="Linked agents" value={snapshot.agents.length}/><Stat name="Shared context" value={snapshot.events.length}/><Stat name="Deliveries" value={snapshot.deliveries.length}/><Stat name="Retrieved" value={snapshot.deliveries.filter(item => item.retrievedAt).length}/></div>
           <div className="columns">{inbox ? inboxView : <section className="feed card"><div className="section-heading"><h2>Context stream <span>{snapshot.events.length}</span></h2><span className="live-indicator"><span className="status-dot"/> {error ? 'Relay offline' : 'Polling · 3s'}</span></div><label className="search"><span>⌕</span><input aria-label="Search shared context" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search context…"/></label>
             <div className="event-list" role="region" aria-label="Context stream" tabIndex={0}>{events.length ? events.map(event => {
