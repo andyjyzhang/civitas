@@ -6,8 +6,10 @@ Share versioned, source-linked context between independently owned coding agents
 through MCP. A website manages collaboration; a desktop companion connects local
 agents. Built for HackPrinceton 2026.
 
-Task 1A is implemented: a local in-memory relay and shared schemas. The website,
-desktop, Deep Agents analyst, HTTP client, and MCP bridge are not implemented yet.
+Tasks 1A and 1B are integrated: the in-memory relay, shared schemas, HTTP client,
+and MCP bridge exchange real events. A live web dashboard supports demo-key access,
+publishing, subscriptions, inbox retrieval, and activity. Desktop, Deep Agents,
+public sign-in, invitations, and persistent storage are not implemented yet.
 
 - [Design](docs/product.md): product, stack, prize strategy, and demo.
 - [Work plan](docs/work-plan.md): milestones and two parallel first-section assignments.
@@ -25,7 +27,7 @@ packages/client      HTTP client
 packages/cli         Local CLI/MCP bridge
 ```
 
-## Run task 1A
+## Run the relay
 
 Use Node.js 22+ and npm 10+. No database is needed for this sprint.
 
@@ -46,7 +48,47 @@ user-only `.local/publisher.env` and `.local/receiver.env`. Each agent file cont
 `CIVITAS_RELAY_URL`, `CIVITAS_AGENT_TOKEN`, and `CIVITAS_DEMO_SPACE_ID` for the bridge.
 Never commit or paste these tokens into chat. Re-running setup preserves credentials.
 
-### Bridge handoff (1B)
+## Run the website
+
+Keep the relay running, then in another terminal:
+
+```sh
+npm run build:web
+npm run start:web
+```
+
+Open `http://127.0.0.1:3000`. Connect using the private `CIVITAS_AGENT_TOKEN` value
+from one generated agent env file. Use a separate browser profile/incognito session
+and the other key to demonstrate a second participant. `npm run dev:web` runs the
+website in development mode instead.
+
+Subscribe the receiver to `project/maintenance-api`, publish from the other session,
+and retrieve the receiver's inbox. The feed polls real activity every three seconds.
+The web server keeps credentials in temporary HttpOnly sessions, not browser storage.
+These are demo identities, not public account sign-in or invitations. Relay restart
+clears shared activity; web restart disconnects browser sessions.
+
+## Run the MCP bridge
+
+```sh
+npm run build:bridge
+node --env-file=.local/receiver.env packages/cli/dist/index.js
+```
+
+Use `.local/publisher.env` for a separate publishing process. The bridge exposes
+`publish_context`, `subscribe`, and `get_updates`; stdout is MCP protocol traffic.
+For manual Claude Code integration, set the corresponding private env variables
+in your shell and add the built bridge without replacing other MCP entries:
+
+```sh
+claude mcp add --scope local --transport stdio civitas -- node /absolute/path/to/civitas/packages/cli/dist/index.js
+```
+
+This command shape was inspected by 1B; a live Claude Code model session has not
+been demonstrated. Two real SDK MCP clients have published/retrieved through the
+actual relay, including change metadata and idempotent retries.
+
+## Relay interface
 
 Shared ESM schemas/types are exported from `@civitas/contracts` after its build.
 Use a different agent env file per MCP process. Send bearer auth on these routes:
@@ -56,6 +98,7 @@ Use a different agent env file per MCP process. Send bearer auth on these routes
 | `POST /v1/spaces/sp_demo/subscriptions` | `{ topic }` → `Subscription` |
 | `POST /v1/spaces/sp_demo/contexts` | `PublishContextInput` → `ContextEvent` |
 | `GET /v1/spaces/sp_demo/updates` | `UpdatesPage` |
+| `GET /v1/spaces/sp_demo/activity` | Authenticated `ActivitySnapshot` for the dashboard |
 
 Subscribe before publishing. Topics match exactly. Publish requires `topic`,
 `title`, `content`, `source: { uri, revision, excerpt? }`, and `idempotencyKey`.

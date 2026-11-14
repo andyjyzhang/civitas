@@ -1,175 +1,69 @@
 # Build plan
 
 Build the real flow. No new tests, lint/check pipelines, CI, or release automation.
+Agents must update this file when features land: what works, what actually ran,
+and what is still missing. Keep one current plan rather than adding documents.
 
-## Current sprint: 20 minutes
+## Current status
 
-The full 1A/1B assignments below are follow-up scope, not twenty-minute tasks.
-For this sprint, these reduced assignments override their persistence, versioning,
-bootstrap, acknowledgement, and schema-tooling requirements. Reuse any working
-code already built; do not rip it out to match the shortcut.
+| Section | Status | Remaining |
+| --- | --- | --- |
+| **1A: relay + contracts** | Working local in-memory relay, shared schemas, private credential setup | PostgreSQL/Tiger persistence, version appends, acknowledgements, pagination |
+| **1B: client + MCP** | Integrated with 1A through two real MCP SDK processes | Verify in actual Claude Code/Codex model sessions; guided config |
+| **2: website/onboarding** | Working local demo dashboard | Public account sign-in, invites, agent linking/grants UI |
+| **3: Deep Agents analyst** | Not started; primary sponsor feature | Plan, evidence files, contract/impact specialists, publication review, real MCP publish |
+| **4: domain demo + Tiger Data** | Synthetic maintenance example only | Independent code/UI adaptation, real Tiger Cloud storage/telemetry, measured timings |
+| **5: desktop companion** | Not started | Minimal sign-in/link/status/open-web over the bridge |
+| **6: submission** | Not started | Actual customer feedback, sponsor-rule confirmation, two-minute rehearsal |
+| **Later: GitHub downloads** | Low priority | Installer/CLI/self-host release assets; public source repo is separate |
 
-**Goal:** one active agent publishes a synthetic update and another retrieves it
-through MCP. No website, desktop, Deep Agents, database setup, or account flow yet.
+## What actually ran
 
-### 1A now — Person A: tiny relay
+- Relay compiled and served the real HTTP publish → subscribe → inbox flow.
+- Two separate MCP SDK clients launched real bridge processes against that relay.
+  One subscribed; the other published; the receiver retrieved the same event.
+- Compatibility fix: client/CLI now use shared contracts and preserve `change` and
+  `tags`. Same-key MCP retries returned the same event. No fixture server was used.
+- HTTP invalid-token and inaccessible-space requests were denied. Changes under
+  an existing publish key conflicted. These were live walkthroughs, not test suites.
+- Website build succeeded. Two isolated browser sessions connected, subscribed,
+  published, retrieved the matching delivery, and disconnected through the real UI.
+  Live counters updated. Desktop/mobile layouts were inspected; mobile had no
+  horizontal overflow. Public account/invitation flows were not exercised or built.
 
-Implemented on `feat/relay-sprint`: shared ESM schemas, private demo credential
-setup, and the three in-memory routes. Real HTTP subscribe → publish → retrieve
-worked, including retry reuse/conflict and denied invalid-credential/space access.
-See [README](../README.md) for commands. MCP end-to-end remains pending 1B.
+## Working website slice
 
-- Own `apps/relay/`, `packages/contracts/`, and root setup as before.
-- Implement only publish, subscribe, and get-updates using the three existing routes
-  below. Keep events/subscriptions/inboxes in memory for this explicitly temporary
-  local prototype. Restart clears them; do not claim durability or Tiger Data use.
-- Use one fixed demo space and two agent credentials supplied through private env
-  config. Derive agent identity from the token and reject other credentials. Bind
-  to localhost; use only synthetic content. No account/membership tables yet.
-- Publish accepts `topic, title, content, source, idempotencyKey` and returns the
-  existing `ContextEvent` shape with `version: 1` and `previousVersion: null`.
-  Repeated same key/body returns the stored event. Defer appending versions.
-- Exact-topic subscriptions only for now. Get-updates returns
-  `{ items: Delivery[], nextCursor: null }`; replay is fine. No ack or pagination.
-- Share the relay URL/config and runnable command with B immediately when ready.
+Next.js at localhost:3000, connecting to the relay at localhost:4000. An existing
+agent key opens a private server-side session. The dashboard shows real events,
+subscriptions, admitted identities, deliveries, and first retrievals. It supports
+publishing context, subscribing, retrieving the current inbox, and disconnecting.
 
-### 1B now — Person B: minimal MCP bridge
+This is local demo-key access, not completed public accounts/onboarding. API
+activity does not prove a coding model is active; retrieval does not prove useful
+work. Both website sessions and relay state are temporary. Restarting the relay
+clears events and subscriptions. No Tiger Data/durability claim yet.
 
-- Own `packages/client/` and `packages/cli/` as before.
-- Implement only `publishContext`, `subscribe`, `getUpdates` and their MCP tools
-  `publish_context`, `subscribe`, `get_updates`. Use the existing wire shapes below;
-  defer ack, generalized retries, polling daemons, and provider auto-configuration.
-- Read `CIVITAS_RELAY_URL` and `CIVITAS_AGENT_TOKEN`. Keep stdout for MCP and logs
-  on stderr. Use the actual MCP SDK, not a simulated tool interface.
-- Start on HTTP/tool wiring while A builds the relay. Provide one manual MCP setup
-  command/config for an installed coding agent; no installer or sign-in work.
+## Next build order
 
-### Timebox
+1. Website slice is complete for local demo-key access; ready for review on
+   `feat/web-demo`. Keep the remaining public onboarding scope explicit.
+2. Build the actual Deep Agents publisher next; prioritize this prize-critical
+   feature over polished public onboarding or decorative graph animation.
+3. Connect independent Claude Code/Codex agents, show useful maintenance UI/SDK
+   changes, and wire Tiger Cloud with space-scoped propagation metrics.
+4. Finish public sign-in/invitations and desktop UX as time allows. Keep their
+   unfinished status visible; do not label demo-key login a real account system.
+5. Record actual user feedback and rehearse the submission. GitHub binaries come last.
 
-- **Minutes 0–2:** agree on the three routes/shapes and file ownership.
-- **Minutes 2–13:** build the two halves independently; exchange start commands.
-- **Minutes 13–20:** connect real MCP processes to the relay, subscribe one agent,
-  publish from the other, and retrieve the same event. Spend remaining time fixing
-  that path, not adding features. If MCP setup blocks, an HTTP walkthrough is only
-  partial progress; don't call it a completed agent integration.
-
-This is a target, not a guaranteed estimate. Installation/configuration may take
-most of the sprint. PostgreSQL/Tiger Cloud, proper onboarding, version history,
-acknowledgements, and the fuller assignments below come after this live connection.
-
-## Later sections
-
-| Order | Deliverable |
-| --- | --- |
-| **1** | Persistent relay + HTTP client + MCP: one agent publishes v1/v2, another retrieves them |
-| **2** | Website/onboarding: accounts, invitations, linked agents, spaces, activity |
-| **3** | Deep Agents analyst: investigate → delegate → evidence → review → publish |
-| **4** | Maintenance demo + Tiger Cloud activity/latency charts; show useful code/UI changes |
-| **5** | Minimal desktop companion over the bridge: sign-in/link/status/open website |
-| **6** | Customer feedback, track submissions, two-minute rehearsal |
-| **Later** | GitHub downloadable releases, installers, polish |
-
-Talk to a real user and confirm sponsor rules alongside the build. Keep Deep Agents
-and the working cross-owner demo ahead of desktop polish.
-
-## Full 1A follow-up — relay + contracts
-
-**Own:** `apps/relay/`, `packages/contracts/`, root manifests/lockfile/build config,
-`.env.example`, Compose. Do not edit Person B's client or CLI packages.
-
-1. Set up minimal TypeScript/ESM builds and shared runtime schemas/types. Share
-   exports early so B can consume them; choose simple SQL migration tooling.
-2. Add PostgreSQL tables for accounts, agents, space membership/grants, hashed
-   credentials, contexts/versions, subscriptions, and deliveries.
-3. Add a local bootstrap command creating two synthetic accounts/agents and a
-   private space. Generate tokens and hand them off privately. No open bootstrap
-   HTTP endpoint; public account sign-in comes in section 2.
-4. Implement bearer identity, space authorization, and the endpoints below.
-5. Persist immutable versions and transactional fanout. Same key/body retries reuse
-   the event; stale versions conflict; overlapping subscriptions don't duplicate
-   delivery. Polling preserves inbox history. Recheck access at retrieval time.
-6. Document commands to build, migrate, bootstrap, and run. Reconcile root
-   dependencies/lockfile after B's package manifests are merged.
-
-**Done:** real PostgreSQL-backed relay works with B's MCP bridge, including v1/v2
-retrieval after restart. No fake or in-memory persistence in the demo path.
-
-## Full 1B follow-up — client + MCP
-
-**Own:** `packages/client/`, `packages/cli/`, their manifests and runnable instructions.
-Do not edit relay, contracts, root config, or lockfile; request shared changes from A.
-
-1. Start transport and tool adapters against the interface below while A builds
-   the relay. Consume A's shared schemas once exported. Temporary fixtures must be
-   labeled and removed from the default runtime before integration.
-2. Export `createCivitasClient({ baseUrl, token })` with `publishContext(spaceId, input)`,
-   `subscribe(spaceId, input)`, `getUpdates(spaceId, input?)`, and
-   `ackUpdate(spaceId, deliveryId, input)`.
-3. Implement MCP stdio tools `publish_context`, `subscribe`, `get_updates`,
-   `ack_update`. Adapt snake_case arguments to camelCase HTTP JSON.
-4. Read `CIVITAS_RELAY_URL` and `CIVITAS_AGENT_TOKEN`; one process is one identity.
-   Missing config fails clearly. Never log tokens; protocol stdout stays clean.
-5. Preserve retry keys and server errors; do not auto-acknowledge polling results.
-   Add bounded HTTP timeouts and honest disconnected/error behavior.
-6. Document real build/start commands and guided setup for one installed coding
-   tool. Preserve existing provider config. No npm publication or installer work.
-
-**Done:** two independently configured agent sessions subscribe, publish, retrieve,
-and acknowledge through the real relay. No mock success fallback.
-
-## Shared interface — agree before diverging
-
-TypeScript/ESM, camelCase JSON, opaque string IDs, server ISO UTC timestamps.
-A owns shared runtime schemas and exports inferred types with these names:
-
-| Type | Shape |
-| --- | --- |
-| `PublishContextInput` | `topic, title, content, source, idempotencyKey`; optional `contextId, expectedVersion, change, tags` |
-| `ContextEvent` | Publish fields except retry/precondition fields, plus `schemaVersion: 1, eventId, contextId, spaceId, version, previousVersion, publisherAgentId, publishedAt` |
-| `SubscribeInput` / `Subscription` | Input `{ topic }`; result adds `subscriptionId, spaceId, agentId, createdAt` |
-| `GetUpdatesInput` / `UpdatesPage` | Input optional `cursor, limit`; result `{ items: Delivery[], nextCursor: string or null }` |
-| `Delivery` | `deliveryId, event: ContextEvent, deliveredAt, acknowledgedAt` (nullable), `status` (`pending`, `acknowledged`, `dismissed`) |
-| `AckUpdateInput` / `AckRecord` | Input `{ status: acknowledged or dismissed }`; result adds `deliveryId, acknowledgedAt` |
-| `ApiError` | `{ error: { code, message, requestId } }` |
-
-`source = { uri, revision, excerpt? }`; optional `change = { kind, breaking,
-previous?, current? }` contains JSON before/after values; `tags` is a string array.
-Export schemas as `<TypeName>Schema`, plus `topicMatches(pattern, topic)`.
-Create omits `contextId/expectedVersion`; append requires both. First version is 1
-with `previousVersion: null`. Preserve topic across versions. Retry keys are scoped
-to agent + space. Event responses omit `idempotencyKey` and `expectedVersion`.
-
-Topics use lowercase letters/digits/`-`/`_` in nonempty slash-separated segments.
-An exact subscription matches itself; terminal `project/*` matches descendants,
-not bare `project`. Cap topics at 128 chars and publish bodies at 64 KiB.
-
-All routes except health/readiness need `Authorization: Bearer <agent token>`.
-Actor identity comes from the token; space access comes from current membership/grant.
-
-| Route | Input → direct response (no wrapper) |
-| --- | --- |
-| `GET /healthz` | `200 { status: "ok" }` |
-| `GET /readyz` | `200 { status: "ready" }` if DB reachable; otherwise 503 |
-| `POST /v1/spaces/:spaceId/contexts` | `PublishContextInput → 200 ContextEvent` |
-| `POST /v1/spaces/:spaceId/subscriptions` | `SubscribeInput → 200 Subscription` |
-| `GET /v1/spaces/:spaceId/updates` | Query `cursor?, limit? → 200 UpdatesPage` |
-| `POST /v1/spaces/:spaceId/updates/:deliveryId/ack` | `AckUpdateInput → 200 AckRecord` |
-
-Publish retries and existing subscriptions also return 200. Changed body with a
-reused key or stale version returns 409. Repeated same acknowledgement returns
-its original record; changing a terminal acknowledgement returns 409. Missing or
-invalid auth is 401, inaccessible objects 404, forbidden publish 403, bad input 400.
-Default inbox page size 50, max 100. Opaque cursors must be agent/space-bound and
-safe under concurrent commits; polling doesn't delete or acknowledge deliveries.
+Talk to the NYC startup contact and confirm sponsor rules alongside development.
+No quotes, validation, adoption, or domain feedback have been supplied yet.
 
 ## Working together
 
-Start from the same committed scaffold on separate branches/clones. A owns shared
-files; B can build transport/tool wiring immediately. Don't run concurrent installs
-in one checkout. Coordinate interface changes instead of independently guessing.
+1A owned relay/contracts/root setup; 1B owned client/CLI. Both are now merged into
+main. Shared wire types live in `packages/contracts/src/index.ts`; use those as the
+source of truth rather than duplicating validators in clients.
 
-Bring up the DB/relay, bootstrap identities, and start two MCP processes. Subscribe
-one to `project/maintenance-api`; publish/retrieve v1 then v2. Restart and retrieve
-persisted inbox data. An unrelated identity must not read the space. Fix blockers
-in this real walkthrough, then move to section 2. Record actual commands in README
-as code lands. Local bootstrap is not finished public onboarding.
+Coordinate root manifests, lockfile, relay endpoints, and shared schemas when
+parallel agents resume. Preserve unrelated work and document real commands in
+README. Do not spend time creating more framework or planning files.
