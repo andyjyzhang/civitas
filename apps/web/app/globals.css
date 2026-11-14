@@ -279,3 +279,22 @@ footer { display: flex; justify-content: space-between; gap: 15px; margin-top: 2
 @media(max-width:1250px) { .rooms-layout { grid-template-columns:190px minmax(260px,1fr) 220px; } .collaboration-shell .sidebar { flex-basis:170px;width:170px; } .room-header,.room-toolbar,.room-stream,.room-composer { padding-inline:16px; } }
 @media(max-width:1000px) { .rooms-layout { grid-template-columns:180px minmax(0,1fr);overflow:auto; } .room-details { grid-column:2;border-top:1px solid var(--line);border-left:0;max-height:260px; } .room-list-panel { grid-row:1/3; } .room-workspace { min-height:500px; } }
 @media(max-width:700px) { .workspace-sidebar .brand { font-size:18px; } .workspace-sidebar { gap:10px; } .workspace-nav { flex-direction:row;gap:3px;flex-wrap:wrap; } .workspace-nav-link { padding:5px 8px;font-size:10px;gap:5px; } .workspace-nav-note { display:none; } .rooms-layout { display:flex;flex-direction:column;overflow:auto; } .room-list-panel { flex-shrink:0;padding:14px;border-right:0;border-bottom:1px solid var(--line);max-height:230px; } .room-list-heading h1 { font-size:16px; } .room-description { margin:4px 0 10px; } .room-list { flex-direction:row;flex-shrink:0; } .room-select { min-width:160px;max-width:220px; } .room-list-actions { flex-direction:row;flex-wrap:wrap;gap:12px;padding-top:8px;margin-top:8px;align-items:center; } .room-list-actions .full { width:auto;padding:6px 10px; } .room-workspace { min-height:520px;flex-shrink:0; } .room-details { max-height:none;flex-shrink:0; } .room-account { gap:10px; } .room-composer { max-height:none; } .composer-footer { align-items:flex-start; } .room-composer .form-grid { grid-template-columns:1fr; } }
+
+.connect-agent-buttons { display:flex;flex-wrap:wrap;gap:7px; }
+.connect-agent-buttons .secondary { font-size:10px;padding:7px 10px; }
+.room-header { flex-wrap:wrap; }
+.room-header > div:first-child { margin-right:auto; }
+.message-recipient { display:flex;align-items:center;gap:12px;margin-bottom:10px;font-size:10px; }
+.message-recipient select { margin:0;width:auto;max-width:100%;padding:6px 9px; }
+.agent-message-status,.message-reply-label { display:block;color:var(--muted);font-size:9px;line-height:1.8; }
+.message-reply-label { margin-top:10px;color:var(--lime); }
+.group-agents { margin-top:24px;padding-top:14px;border-top:1px solid var(--line); }
+.group-agents h3 { font-size:12px; }
+.group-agents > p { font-size:10px;line-height:1.9; }
+.setup-step { margin-top:20px;padding-top:18px;border-top:1px solid var(--line); }
+.setup-step > strong { color:var(--lime);font-size:12px; }
+.setup-step p { color:var(--muted);font-size:11px;line-height:1.8; }
+.setup-step label { margin-bottom:12px; }
+.setup-command { white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid var(--line);background:var(--paper);padding:12px;font-size:11px;line-height:1.8;user-select:all; }
+.agent-setup-modal { max-width:660px; }
+@media(max-width:700px) { .room-header .connect-agent-buttons { width:100%;order:3; } .message-recipient { flex-wrap:wrap;gap:5px; } .message-recipient select { width:100%; } }

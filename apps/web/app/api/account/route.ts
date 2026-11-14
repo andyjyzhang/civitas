@@ -1,3 +1,5 @@
+import { resolve, join } from 'node:path';
+import { homedir } from 'node:os';
 import { cookies } from 'next/headers';
 import { CivitasApiError } from '@civitas/client';
 import { accountClientFor, baseUrl, accountCookieName, cookieName, createSession, deleteSession, json, sameOrigin, session } from '../../../lib/relay';
@@ -30,6 +32,12 @@ export async function POST(request: Request) {
       await client.logout();
       for (const name of [accountCookieName, cookieName]) { deleteSession(jar.get(name)?.value); jar.delete(name); }
       return json({ ok: true });
+    }
+    if (operation === 'createAgentLink') return json({...await client.createAgentLink(input.spaceId,{provider:input.provider,name:input.name}),relayUrl:process.env.CIVITAS_PUBLIC_RELAY_URL||baseUrl()});
+    if (operation === 'connectGroupAgent') {
+      const credential=await client.connectGroupAgent(input.spaceId,{provider:input.provider,name:input.name});
+      const filename=`civitas-${credential.agentId}.env`;
+      return json({...credential,relayUrl:process.env.CIVITAS_PUBLIC_RELAY_URL||baseUrl(),bridgePath:resolve(process.cwd(),'../../packages/cli/dist/index.js'),suggestedEnvPath:join(homedir(),'Downloads',filename)});
     }
     if (operation === 'createSpace') return json(await client.createSpace(input.name,{kind:input.kind,visibility:input.visibility}));
     if (operation === 'joinServer') return json(await client.joinServer(input.spaceId));
