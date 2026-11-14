@@ -2,7 +2,57 @@
 
 Build the real flow. No new tests, lint/check pipelines, CI, or release automation.
 
-## Sections
+## Current sprint: 20 minutes
+
+The full 1A/1B assignments below are follow-up scope, not twenty-minute tasks.
+For this sprint, these reduced assignments override their persistence, versioning,
+bootstrap, acknowledgement, and schema-tooling requirements. Reuse any working
+code already built; do not rip it out to match the shortcut.
+
+**Goal:** one active agent publishes a synthetic update and another retrieves it
+through MCP. No website, desktop, Deep Agents, database setup, or account flow yet.
+
+### 1A now — Person A: tiny relay
+
+- Own `apps/relay/`, `packages/contracts/`, and root setup as before.
+- Implement only publish, subscribe, and get-updates using the three existing routes
+  below. Keep events/subscriptions/inboxes in memory for this explicitly temporary
+  local prototype. Restart clears them; do not claim durability or Tiger Data use.
+- Use one fixed demo space and two agent credentials supplied through private env
+  config. Derive agent identity from the token and reject other credentials. Bind
+  to localhost; use only synthetic content. No account/membership tables yet.
+- Publish accepts `topic, title, content, source, idempotencyKey` and returns the
+  existing `ContextEvent` shape with `version: 1` and `previousVersion: null`.
+  Repeated same key/body returns the stored event. Defer appending versions.
+- Exact-topic subscriptions only for now. Get-updates returns
+  `{ items: Delivery[], nextCursor: null }`; replay is fine. No ack or pagination.
+- Share the relay URL/config and runnable command with B immediately when ready.
+
+### 1B now — Person B: minimal MCP bridge
+
+- Own `packages/client/` and `packages/cli/` as before.
+- Implement only `publishContext`, `subscribe`, `getUpdates` and their MCP tools
+  `publish_context`, `subscribe`, `get_updates`. Use the existing wire shapes below;
+  defer ack, generalized retries, polling daemons, and provider auto-configuration.
+- Read `CIVITAS_RELAY_URL` and `CIVITAS_AGENT_TOKEN`. Keep stdout for MCP and logs
+  on stderr. Use the actual MCP SDK, not a simulated tool interface.
+- Start on HTTP/tool wiring while A builds the relay. Provide one manual MCP setup
+  command/config for an installed coding agent; no installer or sign-in work.
+
+### Timebox
+
+- **Minutes 0–2:** agree on the three routes/shapes and file ownership.
+- **Minutes 2–13:** build the two halves independently; exchange start commands.
+- **Minutes 13–20:** connect real MCP processes to the relay, subscribe one agent,
+  publish from the other, and retrieve the same event. Spend remaining time fixing
+  that path, not adding features. If MCP setup blocks, an HTTP walkthrough is only
+  partial progress; don't call it a completed agent integration.
+
+This is a target, not a guaranteed estimate. Installation/configuration may take
+most of the sprint. PostgreSQL/Tiger Cloud, proper onboarding, version history,
+acknowledgements, and the fuller assignments below come after this live connection.
+
+## Later sections
 
 | Order | Deliverable |
 | --- | --- |
@@ -17,7 +67,7 @@ Build the real flow. No new tests, lint/check pipelines, CI, or release automati
 Talk to a real user and confirm sponsor rules alongside the build. Keep Deep Agents
 and the working cross-owner demo ahead of desktop polish.
 
-## Section 1A — Person A's agent: relay + contracts
+## Full 1A follow-up — relay + contracts
 
 **Own:** `apps/relay/`, `packages/contracts/`, root manifests/lockfile/build config,
 `.env.example`, Compose. Do not edit Person B's client or CLI packages.
@@ -39,7 +89,7 @@ and the working cross-owner demo ahead of desktop polish.
 **Done:** real PostgreSQL-backed relay works with B's MCP bridge, including v1/v2
 retrieval after restart. No fake or in-memory persistence in the demo path.
 
-## Section 1B — Person B's agent: client + MCP
+## Full 1B follow-up — client + MCP
 
 **Own:** `packages/client/`, `packages/cli/`, their manifests and runnable instructions.
 Do not edit relay, contracts, root config, or lockfile; request shared changes from A.
