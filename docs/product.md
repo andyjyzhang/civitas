@@ -62,14 +62,22 @@ UI preserving urgent priority, source history, and real Tiger-backed delivery/re
 timings. Aim for three receiving agents and at least two useful changes. No new
 automated testing infrastructure is required for the hackathon.
 
-| Target | Demonstrate |
-| --- | --- |
-| **LangChain — primary sponsor target** | Real planning, specialist delegation, evidence files, review, and MCP publication |
-| **Business and Enterprise — primary main-track category** | Less manual SWE coordination across repositories/tools, scoped access, working outcome |
-| Amazon / Practical AI | A concrete failure fixed through grounded AI and visible results |
-| Tiger Data / selected database prize | Actual Tiger Cloud persistence and useful Timescale analytics |
-| Peri / Forward Deploy | Real person, specific problem, feedback-driven change, and user tries it |
-| CoStar / Built World | A convincing property-maintenance workflow; domain framing alone may not qualify |
+Rank targets by fit and remaining work, not predicted winning odds:
+
+| Priority | Target | Required demo evidence / remaining work |
+| --- | --- | --- |
+| **1** | **Business and Enterprise — main category** | Strongest natural fit: one API change reaches teammates across tools/repos and prevents incompatible work; show scoped access and useful code changes. |
+| **2** | **LangChain — primary sponsor target** | Real Deep Agents planning, contract/impact specialists, evidence files, human review, and MCP publication. SDK installation alone is insufficient; complete and run the analyst. |
+| **3** | **Amazon — Practical AI Innovation** | Reuse the same grounded source-to-code demo to show a concrete coordination failure fixed. Confirm whether Amazon technology is required before adding services. |
+| **4** | **Tiger Data — selected database prize** | Build on working local PostgreSQL persistence: connect actual Tiger Cloud, run the Timescale migration, and show useful measured analytics. Hosted verification is pending. |
+| **5 — conditional** | **Peri — Forward Deploy** | Talk to a real developer about a specific coordination failure, change a feature based on feedback, and have them try it. An anonymized contact description alone is insufficient. |
+| **6 — stretch** | **CoStar — Built World** | Demonstrate a meaningful property/building workflow benefit. The synthetic maintenance API is a possible vehicle; domain naming alone does not establish fit. |
+
+Put most remaining effort into the working cross-agent demo and real Deep Agents
+integration. Reuse one source → analysis → reviewed publication → independent-agent
+adaptation story across eligible entries. Pursue Amazon and Tiger Data with that
+same demo; pursue Peri and CoStar only when the required evidence exists. Sponsor
+rules and award compatibility still need organizer confirmation.
 
 Tiger Data fits the existing SQL model and event analytics better than introducing
 MongoDB for this MVP. This is our design choice, not a limitation of Atlas.
