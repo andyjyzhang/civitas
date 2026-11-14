@@ -43,27 +43,88 @@ activity does not prove a coding model is active; retrieval does not prove usefu
 work. Both website sessions and relay state are temporary. Restarting the relay
 clears events and subscriptions. No Tiger Data/durability claim yet.
 
-## Next build order
+## Active assignments — two people
 
-1. Website slice is complete for local demo-key access; ready for review on
-   `feat/web-demo`. Keep the remaining public onboarding scope explicit.
-2. Build the actual Deep Agents publisher next; prioritize this prize-critical
-   feature over polished public onboarding or decorative graph animation.
-3. Connect independent Claude Code/Codex agents, show useful maintenance UI/SDK
-   changes, and wire Tiger Cloud with space-scoped propagation metrics.
-4. Finish public sign-in/invitations and desktop UX as time allows. Keep their
-   unfinished status visible; do not label demo-key login a real account system.
-5. Record actual user feedback and rehearse the submission. GitHub binaries come last.
+Start both agents from current `origin/main` (`c4b4ced` or newer), on separate
+branches/clones. The 1A/1B integration fix and dashboard have now merged. Share
+these assignments with both agents; do not start from an older local main.
 
-Talk to the NYC startup contact and confirm sponsor rules alongside development.
-No quotes, validation, adoption, or domain feedback have been supplied yet.
+### Person A — Deep Agents publisher
 
-## Working together
+**Branch:** `feat/deep-agents`. **Own:** `apps/change-analyst/**` and
+`examples/api-change/**`. This is the primary LangChain prize feature.
 
-1A owned relay/contracts/root setup; 1B owned client/CLI. Both are now merged into
-main. Shared wire types live in `packages/contracts/src/index.ts`; use those as the
-source of truth rather than duplicating validators in clients.
+Give your agent this task:
 
-Coordinate root manifests, lockfile, relay endpoints, and shared schemas when
-parallel agents resume. Preserve unrelated work and document real commands in
-README. Do not spend time creating more framework or planning files.
+> Implement a minimal real TypeScript Deep Agents runner. Read `docs/product.md`
+> and use the existing contracts/MCP bridge. Add synthetic maintenance API fixtures:
+> before `{ priority: "urgent" }`, after `{ priority_code: "P1" }`, with an explicit
+> P1-to-urgent mapping. Run a plan, contract/impact specialists, and virtual evidence
+> files. Produce a schema-valid context packet, display it for terminal approval,
+> and publish through the existing MCP `publish_context` tool only after approval.
+> Keep its idempotency key stable across retries. Use one admitted publisher identity;
+> internal specialists are not independent network agents. Keep tools restricted to
+> supplied fixtures and reviewed publication. Provide runnable package commands.
+> Run it with an available model credential and show a real recipient retrieving
+> the event. If no credential is available, complete the runner and state precisely
+> that the model run is pending. Do not fabricate a successful analysis. No test
+> suite, new planning docs, dashboard redesign, or relay changes. Update only A's
+> status below with completed work, actual execution, and remaining blockers.
+
+**First runnable target:** fixtures → model-generated candidate → terminal approval
+→ existing relay via MCP. Add specialist/evidence depth next if the first pass is
+slow. A single-prompt first pass is progress, not the completed Deep Agents target.
+
+**A status:** Assigned, not started. Needs a model-provider key supplied privately;
+no model key has been confirmed in this session. Dependencies belong in A's package.
+
+### Person B — Tiger Data storage
+
+**Branch:** `feat/tiger-storage`. **Own:** `apps/relay/**`, root config/lockfile,
+`.env.example`, Compose. Keep the existing API and MCP bridge compatible.
+
+Give your agent this task:
+
+> Replace relay in-memory event/subscription/inbox storage with PostgreSQL when
+> DATABASE_URL is configured. Preserve the existing demo identities, HTTP routes,
+> response shapes, space access checks, and dashboard activity endpoint. Add small
+> SQL migrations and startup commands. Make publish + fanout transactional, keep
+> retry deduplication unique, and persist subscriptions, deliveries, and first
+> retrieval timestamps. Prove a real published event survives relay restart. Then
+> add Timescale activity storage and a per-space time_bucket analytics endpoint on
+> a real Tiger Cloud connection. Keep core uniqueness constraints in normal tables.
+> Return truthful storage/durability metadata; preserve an explicitly labeled
+> memory mode if needed. Do not claim Tiger use from vanilla PostgreSQL alone.
+> If Tiger credentials are unavailable, build/run the portable PostgreSQL slice
+> and state the hosted integration blocker. No tests/CI, auth-provider work,
+> desktop work, or new planning docs. Update only B's status below.
+
+**First runnable target:** same API with restart-safe PostgreSQL data. Timescale
+analytics follows persistence; do not delay the first working slice for charts.
+
+**B status:** Assigned, not started. Needs an existing Tiger Cloud URI supplied
+privately for hosted proof; local PostgreSQL can be used first. No cloud resource
+creation or paid provisioning is implied by this assignment.
+
+## Shared handoff and integration
+
+- Freeze current publish/subscribe/get-updates shapes. A works against today's relay
+  while B changes storage underneath it. No version append requirement in this round.
+- A uses `sp_demo`, topic `project/maintenance-api`, and the generated publisher
+  credential. Subscribe the receiver before publishing. Use real MCP processes.
+- B owns root dependency/build/env changes. A declares dependencies and scripts in
+  its own package manifest. Reconcile the root lockfile after merging; do not run
+  concurrent installs in a shared checkout.
+- One planned cross-file change: B may update `ActivitySnapshotSchema` storage
+  metadata in `packages/contracts` and the corresponding memory labels in
+  `apps/web/app/page.tsx`. Coordinate this narrowly; no dashboard redesign.
+- Each agent edits only its status paragraph here, records commands/limitations,
+  and commits its own branch. Do not rewrite the whole plan during parallel work.
+- Integrate by publishing A's real candidate through MCP into B's relay, retrieving
+  it from another process, restarting the relay, and showing the saved event in
+  the dashboard. Fix blockers directly; no validation framework.
+
+These are focused build slices, not guaranteed twenty-minute tasks. Get the first
+runnable target working before expanding. Public onboarding, desktop, and download
+packaging stay queued. Talk to the actual customer and confirm sponsor criteria
+alongside development; no customer feedback has been documented yet.
