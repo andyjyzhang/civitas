@@ -16,7 +16,6 @@ async function operation(operation: string, input?: unknown) {
 }
 export default function Settings() {
   const [overview, setOverview] = useState<Overview | null>(null);
-  const [register, setRegister] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
@@ -27,7 +26,7 @@ export default function Settings() {
   const refresh = useCallback(async () => {
     const response = await fetch('/api/account', { cache: 'no-store' });
     const data = await response.json();
-    if (response.status === 401) { setOverview(null); return; }
+    if (response.status === 401) { setOverview(null); window.location.replace('/'); return; }
     if (!response.ok) throw new Error(data.error);
     setOverview(data); setSpaceId(previous => data.spaces.some((space: Space) => space.spaceId === previous) ? previous : data.spaces[0]?.spaceId || '');
   }, []);
@@ -59,16 +58,8 @@ export default function Settings() {
     <header className="settings-header"><a className="brand" href="/">civitas<span className="brand-dot">.</span></a><a className="text-button" href="/relay">Back to relay</a></header>
     <div className="settings-heading"><h1>People, spaces, agents.</h1><p>Invite collaborators and choose what each agent can read and publish.</p></div>
     {message && <div className="alert" role="status">{message}</div>}
-    {loading ? <p>Loading your account…</p> : !overview ? <section className="card settings-auth">
-      <h2>{register ? 'Create your account' : 'Sign in'}</h2><p>Accounts use a local password. Email verification and password recovery are not available in this demo.</p>
-      <form onSubmit={event => submit(event, async fields => { await operation(register ? 'register' : 'login', { email: fields.get('email'), password: fields.get('password'), ...(register ? { name: fields.get('name') } : {}) }); })}>
-        {register && <label>Your name<input name="name" required maxLength={100} autoComplete="name"/></label>}
-        <label>Email<input name="email" type="email" autoComplete="email" required maxLength={254}/></label>
-        <label>Password<input name="password" type="password" autoComplete={register ? 'new-password' : 'current-password'} minLength={12} maxLength={128} required/></label>
-        <button className="primary" disabled={busy}>{busy ? 'Connecting…' : register ? 'Create account' : 'Sign in'}</button>
-      </form><button className="text-button" onClick={() => setRegister(value => !value)}>{register ? 'Already have an account? Sign in' : 'New here? Create an account'}</button>
-    </section> : <>
-      <div className="settings-account"><span>{overview.account.name} · {overview.account.email}</span><button className="text-button" disabled={busy} onClick={async () => { setBusy(true); try { await operation('logout'); setCredential(null); setOverview(null); } catch (error) { setMessage(error instanceof Error ? error.message : 'Could not sign out.'); } finally { setBusy(false); } }}>Sign out</button></div>
+    {loading ? <p>Loading your account…</p> : !overview ? <p>Returning to login…</p> : <>
+      <div className="settings-account"><span>{overview.account.name} · {overview.account.email}</span><button className="text-button" disabled={busy} onClick={async () => { setBusy(true); try { await operation('logout'); setCredential(null); setOverview(null); window.location.replace('/'); } catch (error) { setMessage(error instanceof Error ? error.message : 'Could not sign out.'); } finally { setBusy(false); } }}>Sign out</button></div>
       <div className="settings-grid">
         <section className="card settings-section"><h2>Your spaces</h2>{overview.spaces.length ? <label>Selected space<select value={spaceId} onChange={event => { setSpaceId(event.target.value); setInvite(''); }}>{overview.spaces.map(space => <option value={space.spaceId} key={space.spaceId}>{space.name} ({space.role})</option>)}</select></label> : <p>Create a space or accept an invitation to get started.</p>}
           {currentSpace && <p className="source-id">{currentSpace.spaceId}</p>}

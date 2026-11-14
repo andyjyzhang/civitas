@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import './landing.css';
+import LandingLogin from './landing-login';
+import AsciiLogo from './ascii-logo';
 
-// Character-shaded frames of the Civitas c / outward-arrow mark.
-function logoFrame(frame: number) {
+// Character shading of the Civitas c / outward-arrow mark.
+function logoArt() {
   const rows: string[] = [];
   for (let y = 0; y < 38; y++) {
     let row = '';
@@ -12,7 +14,7 @@ function logoFrame(frame: number) {
       const arrow = (Math.abs(x + y - 66) < 2.5 && x >= 47 && x <= 64 && y >= 2 && y <= 19)
         || (y >= 2 && y <= 4 && x >= 49 && x <= 65)
         || (x >= 61 && x <= 65 && y >= 2 && y <= 12);
-      const shade = Math.sin(x * .13 + y * .2 - frame * Math.PI / 6);
+      const shade = Math.sin(x * .13 + y * .2);
       row += c || arrow ? '.:=+*#'[Math.min(5, Math.floor((shade + 1) * 2.9))] : ' ';
     }
     rows.push(row);
@@ -24,12 +26,10 @@ export default function Landing() {
   return <div className="landing">
     <header className="landing-nav">
       <Link href="/" className="landing-wordmark">civitas</Link>
-      <Link href="/settings" className="landing-login">Log in</Link>
     </header>
     <main className="landing-main" aria-label="Civitas">
-      <div className="ascii-logo" role="img" aria-label="Animated ASCII Civitas logo">
-        {Array.from({ length: 12 }, (_, frame) => <pre key={frame} aria-hidden="true" style={{ animationDelay: `${frame * .2}s` }}>{logoFrame(frame)}</pre>)}
-      </div>
+      <AsciiLogo art={logoArt()}/>
+      <LandingLogin/>
     </main>
   </div>;
 }

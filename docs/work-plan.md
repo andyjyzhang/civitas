@@ -4,6 +4,22 @@ Build the real flow. No new test suites, lint/check pipelines, CI, release
 or deployment automation. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Inline login and smooth ASCII (November 14)
+
+Latest follow-up places email/password login directly on the landing page. Removed
+the separate settings login form; unauthenticated settings visits return to `/`.
+Successful login opens the existing relay if an agent session is connected, otherwise
+the signed-in space/agent management UI. Authentication uses the existing account
+API and HttpOnly sessions. Replaced stepped ASCII frames with a canvas light sweep
+using requestAnimationFrame; the character logo stays stable while illumination
+moves continuously. Reduced motion shows a static logo; background tabs pause time.
+Website build passed. Production HTTP walkthrough verified inline email/password
+and canvas markup; server-side 307 from unauthenticated `/settings` to `/`; actual
+valid/invalid login; HttpOnly account session; authenticated main UI access; and
+logout followed by redirect. Disposable account was created only on the isolated
+memory relay. Registration API remains; the minimal UI offers login only. Visual
+animation and browser form interactions remain unverified (browser host unavailable).
+
 ## Minimal animated landing (November 14)
 
 Latest user request supersedes the prior landing content: only the Civitas name

@@ -1,11 +1,14 @@
 .landing { min-height: 100svh; background: #0c1013; color: #e5eae5; display: flex; flex-direction: column; }
 .landing-nav { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 30px 40px; }
 .landing-wordmark { font-size: 23px; font-weight: 500; letter-spacing: -1px; }
-.landing-login { font-size: 12px; color: #c9d6ba; padding: 8px 0; }
-.landing-login:hover { color: #e5f0cd; }
-.landing-main { margin: 0; flex: 1; display: grid; place-items: center; padding: 24px 20px 100px; }
-.ascii-logo { display: grid; color: #b5c99a; user-select: none; max-width: 100%; }
-.ascii-logo pre { grid-area: 1 / 1; margin: 0; white-space: pre; font: clamp(5px, 1.25vw, 13px)/1.15 'Courier New', monospace; opacity: 0; animation: logo-frame 2.4s step-end infinite; }
-@keyframes logo-frame { 0%, 8.32% { opacity: 1; } 8.34%, 100% { opacity: 0; } }
-@media(max-width:600px) { .landing-nav { padding: 22px 24px; } .landing-wordmark { font-size: 21px; } .landing-main { padding-bottom: 80px; } }
-@media(prefers-reduced-motion:reduce) { .ascii-logo pre { animation: none; } .ascii-logo pre:first-child { opacity: 1; } }
+.landing-main { margin: 0; flex: 1; display: grid; justify-items: center; align-content: center; gap: 30px; padding: 10px 20px 70px; }
+.ascii-logo { display: grid; position: relative; color: #b5c99a; user-select: none; width: min(520px, 100%); }
+.ascii-logo pre { grid-area: 1 / 1; margin: 0; white-space: pre; font: clamp(5px, 1.1vw, 11.4px)/1.15 'Courier New', monospace; justify-self: center; }
+.ascii-logo canvas { grid-area: 1 / 1; display: block; width: 100%; height: auto; }
+.landing-login-form { width: min(290px, 100%); display: grid; gap: 18px; }
+.landing-login-form label { font-size: 11px; color: #a8b7ac; }
+.landing-login-form input { font-size: 14px; padding: 10px 12px; }
+.landing-login-form button { margin-top: 4px; }
+.login-error { color: #e2bba0; font-size: 11px; line-height: 1.7; margin: 0; }
+@media(min-width:800px) and (min-height:750px) { .landing-main { gap: 38px; } }
+@media(max-width:600px) { .landing-nav { padding: 22px 24px; } .landing-wordmark { font-size: 21px; } .landing-main { padding-bottom: 40px; gap: 18px; } .ascii-logo { width: min(350px, 100%); } .landing-login-form input { font-size: 16px; } }
