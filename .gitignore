@@ -19,3 +19,6 @@ coverage/
 *.pem
 *.key
 .claude/worktrees/
+
+# LangGraph API
+.langgraph_api
