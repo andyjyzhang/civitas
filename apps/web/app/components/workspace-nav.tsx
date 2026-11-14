@@ -1,9 +1,10 @@
 import Link from 'next/link';
 
-export default function WorkspaceNav({ active }: { active: 'groups' | 'servers' | 'relay' | 'settings' }) {
+export default function WorkspaceNav({ active }: { active: 'groups' | 'servers' | 'agents' | 'relay' | 'settings' }) {
   const links = [
     { id: 'groups', href: '/groups', icon: '↔', label: 'Group chats' },
     { id: 'servers', href: '/servers', icon: '◎', label: 'Servers' },
+    { id: 'agents', href: '/agents', icon: '⌘', label: 'Agents' },
     { id: 'relay', href: '/relay', icon: '↗', label: 'Agent activity' },
     { id: 'settings', href: '/settings', icon: '⚙', label: 'Agents & access' },
   ];
