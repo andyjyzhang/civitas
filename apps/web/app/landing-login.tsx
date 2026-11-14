@@ -26,8 +26,8 @@ export default function LandingLogin() {
   }
 
   return <form className="landing-login-form" onSubmit={login} aria-label="Log in">
-    <label htmlFor="login-email">Email<input id="login-email" name="email" type="email" autoComplete="username" maxLength={254} required disabled={busy}/></label>
-    <label htmlFor="login-password">Password<input id="login-password" name="password" type="password" autoComplete="current-password" maxLength={128} required disabled={busy}/></label>
+    <label htmlFor="login-email">email<input id="login-email" name="email" type="email" autoComplete="username" maxLength={254} required disabled={busy}/></label>
+    <label htmlFor="login-password">password<input id="login-password" name="password" type="password" autoComplete="current-password" maxLength={128} required disabled={busy}/></label>
     {error && <p className="login-error" role="alert">{error}</p>}
     <button className="primary" disabled={busy}>{busy ? 'Logging in…' : 'Log in'}</button>
   </form>;

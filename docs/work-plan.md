@@ -4,6 +4,20 @@ Build the real flow. No new test suites, lint/check pipelines, CI, release
 or deployment automation. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Visible ASCII motion and horizontal login (November 14)
+
+Latest correction replaces the subtle canvas lighting with actual character changes
+at 30 fps using requestAnimationFrame and a visible traveling density wave. The
+logo is ordinary preformatted text again, so there is no canvas/fallback visibility
+handoff. Reduced motion remains static. Desktop uses side-by-side logo/login;
+small phones stack to preserve readable fields. Email/password labels are lowercase
+and inputs use only an underline, including focused state. Website production build
+passed; served HTML confirms lowercase fields and preformatted logo. An ad hoc
+execution of the actual animation effect with mocked DOM/RAF confirmed changing
+characters across frames, preserved mask, reduced-motion handling, restart and
+cleanup. This is runtime logic evidence, not browser visual verification; browser
+host remains unavailable.
+
 ## Inline login and smooth ASCII (November 14)
 
 Latest follow-up places email/password login directly on the landing page. Removed

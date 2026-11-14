@@ -1,14 +1,15 @@
 .landing { min-height: 100svh; background: #0c1013; color: #e5eae5; display: flex; flex-direction: column; }
-.landing-nav { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 30px 40px; }
+.landing-nav { display: flex; align-items: center; padding: 30px 40px; }
 .landing-wordmark { font-size: 23px; font-weight: 500; letter-spacing: -1px; }
-.landing-main { margin: 0; flex: 1; display: grid; justify-items: center; align-content: center; gap: 30px; padding: 10px 20px 70px; }
-.ascii-logo { display: grid; position: relative; color: #b5c99a; user-select: none; width: min(520px, 100%); }
-.ascii-logo pre { grid-area: 1 / 1; margin: 0; white-space: pre; font: clamp(5px, 1.1vw, 11.4px)/1.15 'Courier New', monospace; justify-self: center; }
-.ascii-logo canvas { grid-area: 1 / 1; display: block; width: 100%; height: auto; }
-.landing-login-form { width: min(290px, 100%); display: grid; gap: 18px; }
+.landing-main { width: min(1100px, 100%); margin: 0 auto; flex: 1; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(240px, 1fr); justify-items: center; align-content: center; align-items: center; gap: 90px; padding: 30px 40px 110px; }
+.ascii-logo { color: #b5c99a; user-select: none; width: 100%; min-width: 0; }
+.ascii-logo pre { margin: 0; white-space: pre; font: clamp(5px, .9vw, 11.4px)/1.15 'Courier New', monospace; width: fit-content; margin-inline: auto; }
+.landing-login-form { width: min(290px, 100%); display: grid; gap: 30px; }
 .landing-login-form label { font-size: 11px; color: #a8b7ac; }
-.landing-login-form input { font-size: 14px; padding: 10px 12px; }
+.landing-login-form input { font-size: 14px; padding: 10px 0; border: 0; border-bottom: 1px solid #516054; border-radius: 0; background: transparent; box-shadow: none; }
+.landing-login-form input:focus { border-color: #d5e5af; box-shadow: 0 1px 0 #d5e5af; }
+.landing-login-form input:autofill { box-shadow: 0 0 0 100px #0c1013 inset; -webkit-text-fill-color: #e5eae5; }
 .landing-login-form button { margin-top: 4px; }
 .login-error { color: #e2bba0; font-size: 11px; line-height: 1.7; margin: 0; }
-@media(min-width:800px) and (min-height:750px) { .landing-main { gap: 38px; } }
-@media(max-width:600px) { .landing-nav { padding: 22px 24px; } .landing-wordmark { font-size: 21px; } .landing-main { padding-bottom: 40px; gap: 18px; } .ascii-logo { width: min(350px, 100%); } .landing-login-form input { font-size: 16px; } }
+@media(max-width:900px) { .landing-main { gap: 40px; grid-template-columns: minmax(0, 1.4fr) minmax(210px, 1fr); } }
+@media(max-width:600px) { .landing-nav { padding: 22px 24px; } .landing-wordmark { font-size: 21px; } .landing-main { grid-template-columns: 1fr; gap: 35px; padding: 10px 24px 50px; } .ascii-logo { max-width: 350px; } .ascii-logo pre { font-size: clamp(5px, 1.25vw, 7.6px); } .landing-login-form input { font-size: 16px; } }
