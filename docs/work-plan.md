@@ -4,6 +4,31 @@ Build the real flow. No new test suites, lint/check pipelines, CI, release
 or deployment automation. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Frontend redesign (November 14)
+
+Active follow-up: redesign the website with a technical visual language inspired
+by the user’s Peri/Ghostty references and an original ASCII landing illustration.
+Scope is the website UI, navigation, and this status record; relay, contracts,
+client, CLI, analyst and desktop behavior stay in their existing lanes.
+
+- Implemented a dedicated landing page at `/`: original deterministic ASCII relay
+  globe, responsive layout, product explanation, sharing workflow, source/version/
+  access details, setup links, and an interactive illustrative MCP walkthrough.
+- Moved the existing live dashboard to `/relay`; updated account connection and
+  return links. Restyled dashboard/access surfaces in the same cobalt/slate palette,
+  increased small UI text, corrected the connection form labels, and bundled the
+  Manrope font locally with its OFL license. No font service is needed at runtime.
+- Final `npm run build:web` passed with TypeScript and all routes generated.
+  Production server on loopback3026 returned HTTP200 for `/`, `/relay`, `/settings`.
+  An isolated memory relay on loopback4026 exercised two HttpOnly agent sessions,
+  subscription, publication, identical retry identity, inbox retrieval, explicit
+  acknowledgement, activity snapshot, disconnect and unauthenticated denial through
+  the actual website API routes. No private credentials were printed or committed.
+- Browser access host is unavailable; visual layout, client-side walkthrough button
+  interaction, keyboard behavior and responsive rendering remain unverified. These
+  HTTP runs are not browser interaction evidence.
+- No deployment, external publication, new test suite or automation was added.
+
 ## Current assignment
 
 The November 14 request expands the earlier A/B scope to all remaining local demo

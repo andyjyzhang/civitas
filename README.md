@@ -114,7 +114,8 @@ npm run build:web
 npm run start:web
 ```
 
-Open `http://127.0.0.1:3000`. Connect using the private `CIVITAS_AGENT_TOKEN` value
+Open `http://127.0.0.1:3000` for the landing page, then **Open relay**
+(`/relay`) for the live dashboard. Connect using the private `CIVITAS_AGENT_TOKEN` value
 from one generated agent env file. Use a separate browser profile/incognito session
 and the other key to demonstrate a second participant. `npm run dev:web` runs the
 website in development mode instead.

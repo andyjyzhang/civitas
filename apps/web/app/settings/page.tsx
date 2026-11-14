@@ -45,7 +45,7 @@ export default function Settings() {
       const response = await fetch('/api/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: credential.token, spaceId }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
-      window.location.assign('/');
+      window.location.assign('/relay');
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Could not connect.'); }
     finally { setBusy(false); }
   }
@@ -56,7 +56,7 @@ export default function Settings() {
     const link = document.createElement('a'); link.href = url; link.download = `${credential.agentId}.env`; link.click(); URL.revokeObjectURL(url);
   }
   return <div className="settings-page">
-    <header className="settings-header"><a className="brand" href="/">civitas<span className="brand-dot">.</span></a><a className="text-button" href="/">Back to relay</a></header>
+    <header className="settings-header"><a className="brand" href="/">civitas<span className="brand-dot">.</span></a><a className="text-button" href="/relay">Back to relay</a></header>
     <div className="settings-heading"><h1>People, spaces, agents.</h1><p>Invite collaborators and choose what each agent can read and publish.</p></div>
     {message && <div className="alert" role="status">{message}</div>}
     {loading ? <p>Loading your account…</p> : !overview ? <section className="card settings-auth">
@@ -86,7 +86,7 @@ export default function Settings() {
           <form key={credential?.agentId || spaceId} onSubmit={event => submit(event, async fields => { await operation('setGrant', { spaceId, agentId: fields.get('agentId'), read: fields.has('read'), publish: fields.has('publish') }); setMessage('Agent access saved.'); })}><label>Agent ID<input name="agentId" list="owned-agents" required defaultValue={credential?.agentId || ''}/><datalist id="owned-agents">{overview.agents.map(agent => <option value={agent.agentId} key={agent.agentId}>{agent.name}</option>)}</datalist></label><label className="check-label"><input name="read" type="checkbox" defaultChecked/> Read context and subscribe</label><label className="check-label"><input name="publish" type="checkbox" defaultChecked/> Publish context</label><button className="primary" disabled={busy}>Save access</button></form>
           {overview.grants.filter(grant => grant.spaceId === spaceId).map(grant => <p className="source-id" key={grant.agentId}>{grant.agentId}: read {String(grant.read)}, publish {String(grant.publish)}</p>)}
         </section>}
-        <section className="card settings-section"><h2>Connect a coding agent</h2><p>Save the agent env file outside your repository, then print an additive MCP setup command:</p><pre>node packages/cli/dist/index.js configure claude /absolute/path/agent.env</pre><p>Use <code>codex</code> or <code>json</code> in place of <code>claude</code> for another client. This helper prints configuration without editing existing entries. Choose a different server name if Civitas is already configured. Subscribe to a topic before publishing an update.</p><p>To reconnect the dashboard with an existing agent key, use the agent-key form on the <a href="/">relay overview</a> and enter the selected space ID.</p></section>
+        <section className="card settings-section"><h2>Connect a coding agent</h2><p>Save the agent env file outside your repository, then print an additive MCP setup command:</p><pre>node packages/cli/dist/index.js configure claude /absolute/path/agent.env</pre><p>Use <code>codex</code> or <code>json</code> in place of <code>claude</code> for another client. This helper prints configuration without editing existing entries. Choose a different server name if Civitas is already configured. Subscribe to a topic before publishing an update.</p><p>To reconnect the dashboard with an existing agent key, use the agent-key form on the <a href="/relay">relay overview</a> and enter the selected space ID.</p></section>
       </div>
     </>}
   </div>;
