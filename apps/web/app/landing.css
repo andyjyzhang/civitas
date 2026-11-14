@@ -20,5 +20,5 @@
 
 .auth-submit { border: 1px solid #d5e5af; border-radius: 3px; background: #d5e5af; color: #192015; padding: 7px 14px; font-size: 12px; text-align: left; }
 .auth-submit:hover:not(:disabled) { background: #e5f0cd; border-color: #e5f0cd; }
-.auth-back { justify-self: start; padding: 0; border: 0; background: transparent; color: #c9d6ba; font-size: 22px; line-height: 1; }
+.auth-back { transform: translateX(-8px); justify-self: start; padding: 0; border: 0; background: transparent; color: #c9d6ba; font-size: 22px; line-height: 1; }
 .auth-back:hover:not(:disabled) { color: #e5f0cd; }

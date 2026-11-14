@@ -4,6 +4,10 @@ Build the real flow. No new test suites, lint/check pipelines, CI, release
 or deployment automation. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Signup arrow spacing (November 14)
+
+Nudged the signup back arrow 8px left; behavior is unchanged.
+
 ## Compact green auth actions (November 14)
 
 Landing login and signup submit actions now use small green buttons. Signup mode
