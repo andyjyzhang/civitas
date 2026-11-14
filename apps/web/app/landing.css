@@ -14,6 +14,11 @@
 @media(max-width:900px) { .landing-main { gap: 40px; grid-template-columns: minmax(0, 1.4fr) minmax(210px, 1fr); } }
 @media(max-width:600px) { .landing-nav { padding: 22px 24px; } .landing-wordmark { font-size: 21px; } .landing-main { grid-template-columns: 1fr; gap: 35px; padding: 10px 24px 50px; } .ascii-logo { max-width: 350px; } .ascii-logo pre { font-size: clamp(5px, 1.25vw, 7.6px); } .landing-login-form input { font-size: 16px; } }
 
-.auth-submit,.auth-toggle { border: 0; background: transparent; color: #c9d6ba; font-size: 12px; padding: 0; justify-self: start; text-align: left; text-decoration: underline; text-underline-offset: 4px; }
+.auth-toggle { border: 0; background: transparent; color: #c9d6ba; font-size: 12px; padding: 0; justify-self: start; text-align: left; text-decoration: underline; text-underline-offset: 4px; }
 
 .auth-actions { display: flex; align-items: center; justify-content: flex-start; gap: 24px; }
+
+.auth-submit { border: 1px solid #d5e5af; border-radius: 3px; background: #d5e5af; color: #192015; padding: 7px 14px; font-size: 12px; text-align: left; }
+.auth-submit:hover:not(:disabled) { background: #e5f0cd; border-color: #e5f0cd; }
+.auth-back { justify-self: start; padding: 0; border: 0; background: transparent; color: #c9d6ba; font-size: 22px; line-height: 1; }
+.auth-back:hover:not(:disabled) { color: #e5f0cd; }

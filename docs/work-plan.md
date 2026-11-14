@@ -4,6 +4,13 @@ Build the real flow. No new test suites, lint/check pipelines, CI, release
 or deployment automation. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Compact green auth actions (November 14)
+
+Landing login and signup submit actions now use small green buttons. Signup mode
+replaces the login toggle with an accessible back-arrow button above the name field,
+aligned left; the login form retains its inline signup link. Production build
+and TypeScript passed; visual browser review remains unavailable.
+
 ## Inline auth action row (November 14)
 
 Moved the landing’s log in/sign up actions into a single left-aligned flex row.
