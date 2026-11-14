@@ -21,7 +21,7 @@ publication is authorized as a side effect.
 | Relay + protocol | Memory/PostgreSQL; immutable versions, idempotency, pagination, ack/dismiss; real hosted Tiger Cloud persistence/Timescale analytics and MCP flow verified | Independent model-generated packet integration; wildcard subscriptions intentionally absent |
 | Client + MCP | Publish/append, subscribe, paginated updates, acknowledgements, additive Claude/Codex/JSON setup helper | Actual coding-model session blocked by expired Claude OAuth |
 | Website/onboarding | Local password registration/sign-in, private spaces, invitations, separate agent keys, owner-managed grants/revocation; dashboard version/inbox controls | Browser visual interaction unavailable; no verified email, recovery, or public deployment |
-| Deep Agents | Existing bounded planning/specialists/evidence/checkpoint/review runner builds; fails closed without provider key | Actual model analysis/delegation/evidence, explicit human review and model-generated publication |
+| Deep Agents | Runner builds; configured OpenAI key and gpt-5.4-mini access verified | Add API credits (429 credit_balance_exhausted), then run real analysis/delegation/evidence, human review and model-generated publication |
 | Maintenance consumers | Runnable SDK normalization, triage UI, dispatch decision, source trace and selected-event receipts | Independent live coding-model adaptations; genuine customer validation |
 | Desktop | Electron companion; sign-in/link/status/subscribe/retrieve/open-web and private MCP env setup; build + native launch | Native UI interactions unavailable because computer-use access was denied; signed installers absent |
 | Submission | Current rules checked, attribution, draft description and two-minute walkthrough in README | Team eligibility, final sponsor details, timed team rehearsal and actual submission |
@@ -98,7 +98,8 @@ from relay routing. Retrieved remote context never authorizes execution.
 
 ### 1. Run real analysis and reviewed publication
 
-- [ ] Privately configure a provider key in `.local/model.env` or the shell.
+- [x] Privately configure a provider key in `.local/model.env`. OpenAI authenticated
+  the key and returned 200 for access to the configured `gpt-5.4-mini` model.
 - [ ] Run the actual Deep Agents planner and contract/impact specialists; inspect
   the evidence and schema-valid checkpoint. Fix any provider-specific runtime issues.
 - [ ] A person reviews the full candidate in the terminal and approves that exact
@@ -106,8 +107,12 @@ from relay routing. Retrieved remote context never authorizes execution.
 - [ ] Publish through MCP into PostgreSQL, retrieve from separate receivers, retry
   approval and show the same event/delivery after restart in the dashboard.
 
-**Blocker:** absent provider credential. SDK graph construction and hand-authored
-packets do not complete this requirement. See `apps/change-analyst/README.md`.
+**Blocker:** actual analysis returned HTTP 429 `credit_balance_exhausted`; the
+provider says to add API credits. No successful model analysis, evidence checkpoint,
+or publication resulted. After funding, use a fresh run ID (the failed
+`key-verification-20261114-01` remains reserved). SDK graph construction and
+hand-authored packets do not complete this requirement. See
+`apps/change-analyst/README.md`.
 
 ### 2. Run independent receiving coding models
 

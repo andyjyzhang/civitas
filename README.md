@@ -10,7 +10,8 @@ The local demo supports password accounts, private spaces/invitations, separate
 agent credentials with read/publish grants, immutable context versions, paginated
 inboxes, explicit acknowledgements, and a live dashboard. An Electron companion
 links agents and prints MCP configuration. PostgreSQL persistence works locally.
-The Deep Agents runner is implemented; real model analysis needs a provider key.
+The Deep Agents runner is implemented; the configured OpenAI key is valid, but
+real model analysis is blocked by exhausted API credits.
 Hosted Tiger Cloud persistence/analytics are verified; independent coding-model
 adaptation remains pending. This is a loopback hackathon demo, not a deployed public service.
 
