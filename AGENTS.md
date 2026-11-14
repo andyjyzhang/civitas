@@ -21,3 +21,5 @@ Civitas is a hackathon project. Build a working demo; keep code and process simp
   activity, customer feedback, sponsor eligibility, or successful integrations.
 - Website and desktop are intended surfaces. GitHub downloadable releases are low
   priority. Do not deploy or publish as a side effect of local implementation.
+- Commit incrementally using `<type>(optional scope): <brief description>`. Branch
+  where appropriate and tell the user when a PR is ready to open.
