@@ -4,6 +4,55 @@ Build the real flow. No new test suites, lint/check pipelines, CI, release
 or deployment automation. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Real agent workflow: analyst → relay → three adapters (November 14)
+
+Branch `claude/affectionate-volta-cosqvw`. Two parallel lanes (analyst; adapter
+agent + consumers) in separate worktrees, then integration on one branch.
+
+- **Analyst** (`apps/change-analyst`): Deep Agents over real files. `/repo/` is the
+  read-only `examples/api-change/spec/` folder (OpenAPI v1/v2 + noisy CHANGELOG);
+  `/evidence/` is scratch. v2 renames `priority`→`priority_code` (P1/P2/P3) and
+  deprecates `GET /work-orders/{id}`. The prompt no longer states P1→urgent; only
+  the changelog does, and P2/P3 are deliberately undefined. The agent plans, delegates
+  to `contract` and `impact` subagents, writes evidence, and calls a wrapped
+  `publish_context` (MCP adapters) that pauses via `interruptOn`; the runner injects
+  space/topic/source/retry key and publishes only the exact approved arguments.
+  `todoListMiddleware()` stays: deepagents 1.16.5 only adds it for Codex profiles.
+- **Adapter agent** (`apps/adapter-agent`): one Deep Agents definition run once per
+  role (sdk, triage, dispatch), each with its own Civitas credential. Reads its v1-only
+  consumer under `examples/consumers/<role>` read-only, edits a `/work/` copy, computes
+  a diff with git (`make_patch`, plus `tsc --noEmit`), and pauses on `submit_patch`.
+  After approval the runner applies the patch to `.local/adapter/<run>/<role>/` and only
+  then acknowledges the delivery. The model never sees `acknowledge_update`.
+- **Seed + budget**: `npm run seed:agents` creates one owner, one space, an analyst
+  publisher and three subscribed receivers (private env files in `.local/agents/`).
+  `budget.ts` prices every model call (incl. subagents) into `.local/model-spend.jsonl`
+  and refuses/aborts past $15 total or $1 per run (user budget $20 on OpenAI).
+  Cloud runs need `NODE_USE_ENV_PROXY=1` so Node fetch uses the key-injecting proxy.
+
+**What actually ran (gpt-4.1-mini, memory relay):** fresh relay + seed, then real run
+`e2e-01`: analyst planned, delegated to both subagents, wrote both evidence files,
+inferred P1→urgent from CHANGELOG, tagged `unresolved:P2`/`unresolved:P3`, paused,
+and published `evt_7d5f…` after approval. The three adapters then ran **concurrently
+as separate processes**; each paused, applied cleanly, passed the type check and
+acknowledged; all three inboxes show the same event `acknowledged`. Patched triage
+renders P1 "Urgent maintenance" and P2 "Needs review" (original renders "Low priority"
+for both): `docs/demo/triage-preview-e2e-01.png`. e2e-01 cost ≈ $0.10; all development
+plus e2e ≈ $0.56 in the ledger. Lane runs also exercised: analyst self-check rejection
+and idempotent republish; adapter reject (nothing applied/acked) and failed-apply paths.
+
+**Honest limits:** all approvals in real-model runs used the gated auto-approve flags
+(`CIVITAS_ANALYST_AUTO_APPROVE=1 --approve`, `CIVITAS_ADAPTER_AUTO_APPROVE=1`);
+interactive approve/reject was exercised only with a fake model or a pseudo-TTY. The
+three adapters are one agent definition with one owner, not independent teams.
+Model mistakes a reviewer should catch: the packet misdescribes some v1.4.0 features
+as new and misses the `access_notes` field; dispatch patches pass `work_order_id` to
+`GET /maintenance-requests/{id}`; an earlier sdk patch still threw on unknown codes.
+LangSmith tracing env was set (projects `civitas-dev`, `civitas-demo`); trace arrival
+was not checked in the UI. Checkpoints are in-memory (no crash resume). Only
+gpt-4.1-mini was used. Remaining: interactive run by a person, optional
+`langgraph.json`/Studio, UI round.
+
 ## Product correction: group chats and servers
 
 Implemented on `feat/groups-server-navigation`: separate group/server kinds, private
@@ -184,8 +233,8 @@ publication is authorized as a side effect.
 | Relay + protocol | Memory/PostgreSQL; immutable versions, idempotency, pagination, ack/dismiss; real hosted Tiger Cloud persistence/Timescale analytics and MCP flow verified | Independent model-generated packet integration; wildcard subscriptions intentionally absent |
 | Client + MCP | Publish/append, subscribe, paginated updates, acknowledgements, additive Claude/Codex/JSON setup helper | Actual coding-model session blocked by expired Claude OAuth |
 | Website/onboarding | Local password registration/sign-in, private spaces, invitations, separate agent keys, owner-managed grants/revocation; dashboard version/inbox controls | Browser visual interaction unavailable; no verified email, recovery, or public deployment |
-| Deep Agents | Runner builds; configured OpenAI key and gpt-5.4-mini access verified | Add API credits (429 credit_balance_exhausted), then run real analysis/delegation/evidence, human review and model-generated publication |
-| Maintenance consumers | Runnable SDK normalization, triage UI, dispatch decision, source trace and selected-event receipts | Independent live coding-model adaptations; genuine customer validation |
+| Deep Agents | Real gpt-4.1-mini analyst over OpenAPI/changelog fixtures: plan, two subagents, evidence, interrupt-gated MCP publish; three real adapter agents patched, type-checked and acknowledged the same event | Interactive human approval with a real model; Studio/langgraph.json optional |
+| Maintenance consumers | v1-only `examples/consumers/{sdk,triage,dispatch}` adapted by model-generated, approved patches (copies under `.local/adapter/`); legacy `examples/api-change` demo unchanged | Patch review quality (see agent workflow section); genuine customer validation |
 | Desktop | Electron companion; sign-in/link/status/subscribe/retrieve/open-web and private MCP env setup; build + native launch | Native UI interactions unavailable because computer-use access was denied; signed installers absent |
 | Submission | Current rules checked, attribution, draft description and two-minute walkthrough in README | Team eligibility, final sponsor details, timed team rehearsal and actual submission |
 
@@ -270,12 +319,10 @@ from relay routing. Retrieved remote context never authorizes execution.
 - [ ] Publish through MCP into PostgreSQL, retrieve from separate receivers, retry
   approval and show the same event/delivery after restart in the dashboard.
 
-**Blocker:** actual analysis returned HTTP 429 `credit_balance_exhausted`; the
-provider says to add API credits. No successful model analysis, evidence checkpoint,
-or publication resulted. After funding, use a fresh run ID (the failed
-`key-verification-20261114-01` remains reserved). SDK graph construction and
-hand-authored packets do not complete this requirement. See
-`apps/change-analyst/README.md`.
+**Update (November 14):** funded OpenAI key; real analysis, delegation, evidence and
+interrupt-gated MCP publication now run (see "Real agent workflow" above). Still open:
+a person approving interactively in a terminal (runs so far used gated auto-approve),
+and publishing into PostgreSQL/Tiger instead of the memory relay.
 
 ### 2. Run independent receiving coding models
 
@@ -285,9 +332,10 @@ hand-authored packets do not complete this requirement. See
   Have independent sessions make at least two useful, reviewable consumer changes.
 - [ ] Run their adapted consumer/UI flow and retain source/version evidence.
 
-**Current evidence:** three distinct identities and real bridge processes work,
-as do three checked-in consumer adaptations. Independent model-generated changes
-and cross-owner customer repositories have not been demonstrated.
+**Current evidence:** three distinct identities and real bridge processes work.
+Model-generated, approved consumer patches now exist via the Deep Agents adapter
+(one definition, three credentials, one owner). Independent coding-agent sessions
+(e.g. Claude Code) and cross-owner customer repositories have not been demonstrated.
 
 ### 3. Verify actual Tiger Cloud
 
