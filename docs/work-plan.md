@@ -14,7 +14,7 @@ and what is still missing. Keep one current plan rather than adding documents.
 | **3: Deep Agents analyst** | Not started; primary sponsor feature | Plan, evidence files, contract/impact specialists, publication review, real MCP publish |
 | **4: domain demo + Tiger Data** | Synthetic maintenance example only | Independent code/UI adaptation, real Tiger Cloud storage/telemetry, measured timings |
 | **5: desktop companion** | Not started | Minimal sign-in/link/status/open-web over the bridge |
-| **6: submission** | Not started | Actual customer feedback, sponsor-rule confirmation, two-minute rehearsal |
+| **6: submission** | Ranked track strategy recorded in product doc | Focus Business and Enterprise + LangChain; reuse demo for Amazon/Tiger; Peri conditional, CoStar stretch; confirm sponsor rules/award compatibility and rehearse |
 | **Later: GitHub downloads** | Low priority | Installer/CLI/self-host release assets; public source repo is separate |
 
 ## What actually ran
@@ -102,9 +102,21 @@ Give your agent this task:
 **First runnable target:** same API with restart-safe PostgreSQL data. Timescale
 analytics follows persistence; do not delay the first working slice for charts.
 
-**B status:** Assigned, not started. Needs an existing Tiger Cloud URI supplied
-privately for hosted proof; local PostgreSQL can be used first. No cloud resource
-creation or paid provisioning is implied by this assignment.
+**B status:** Portable PostgreSQL slice complete on `feat/tiger-storage`; this
+supersedes the earlier memory-only status for B. Added transactional publish/fanout,
+unique retry keys, persistent subscriptions/inboxes/first retrievals, explicit SQL
+migrations (`npm run db:migrate`), verified remote TLS, truthful readiness/dashboard
+storage labels, and separate opt-in Timescale hypertable + analytics route. Relay
+and website builds passed. Live PostgreSQL 16 walkthrough: two relay processes
+handled concurrent retries/polls without duplicate events or transitions; forced
+fanout failure rolled back the whole publish; credentials and spaces stayed scoped.
+Two real MCP bridge processes published/retrieved; the event and retry key survived
+both relay and database restart. Migration reruns and explicit memory mode work.
+No test suite was added. **Remaining:** user has no Tiger Cloud database; provision
+one and run the Timescale migration/analytics flow there. Plain PostgreSQL correctly
+rejects that migration without partial changes. Hosted TLS and real Timescale
+results remain unverified; no cloud resource was provisioned. README has setup
+commands. A's model-generated publication still needs the combined demo.
 
 ## Shared handoff and integration
 
