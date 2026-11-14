@@ -6,7 +6,8 @@
   "description": "Deep Agents receiver that adapts a consumer to a Civitas update and proposes a reviewed patch",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "adapt": "node dist/index.js"
+    "adapt": "node dist/index.js adapt",
+    "preview": "node dist/preview.js"
   },
   "dependencies": {
     "@civitas/contracts": "0.0.0",
