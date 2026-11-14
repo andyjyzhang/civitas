@@ -14,6 +14,11 @@ through MCP. No website, desktop, Deep Agents, database setup, or account flow y
 
 ### 1A now — Person A: tiny relay
 
+Implemented on `feat/relay-sprint`: shared ESM schemas, private demo credential
+setup, and the three in-memory routes. Real HTTP subscribe → publish → retrieve
+worked, including retry reuse/conflict and denied invalid-credential/space access.
+See [README](../README.md) for commands. MCP end-to-end remains pending 1B.
+
 - Own `apps/relay/`, `packages/contracts/`, and root setup as before.
 - Implement only publish, subscribe, and get-updates using the three existing routes
   below. Keep events/subscriptions/inboxes in memory for this explicitly temporary
