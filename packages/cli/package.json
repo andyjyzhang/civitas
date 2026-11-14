@@ -2,5 +2,14 @@
   "name": "@civitas/cli",
   "version": "0.0.0",
   "private": true,
-  "description": "Planned local account setup and MCP stdio bridge"
+  "type": "module",
+  "description": "Civitas MCP stdio bridge",
+  "bin": { "civitas-mcp": "./dist/index.js" },
+  "scripts": { "build": "tsc -p tsconfig.json", "start": "node dist/index.js" },
+  "dependencies": {
+    "@civitas/client": "0.0.0",
+    "@modelcontextprotocol/sdk": "^1.25.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": { "@types/node": "^22.0.0", "typescript": "^5.9.0" }
 }
