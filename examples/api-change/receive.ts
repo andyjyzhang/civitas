@@ -48,7 +48,7 @@ async function main() {
     }
     if (action === 'list') return;
     if (!event || !deliveryId) throw new Error('Selected event was not found in this receiver inbox.');
-    if (event.spaceId !== space_id || event.topic !== topic || event.source.uri !== 'examples/api-change/after.json' || event.source.revision !== 'maintenance-v2') throw new Error('Selected event does not reference the approved synthetic fixture.');
+    if (event.spaceId !== space_id || event.topic !== topic || !['examples/api-change/after.json', 'fixture:examples/api-change/after.json'].includes(event.source.uri) || event.source.revision !== 'maintenance-v2') throw new Error('Selected event does not reference the approved synthetic fixture.');
     // Context is recorded as untrusted data. It cannot supply commands, filenames,
     // code, mappings or credentials. All behavior below comes from local adapters.
     const fixture = JSON.parse(await readFile(new URL('./after.json', import.meta.url), 'utf8'));

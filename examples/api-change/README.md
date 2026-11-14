@@ -56,3 +56,19 @@ it does not automatically modify itself when context arrives.
 A real source → model analysis → human review → relay → independent coding-model
 adaptation demonstration still requires the provider/model sessions and explicit
 review. Keep that distinction when presenting this synthetic local flow.
+
+## Recorded local verification
+
+The checked-in adapters ran against both supplied revisions: urgent stayed urgent
+and the router returned immediate-dispatch. An unknown P2 response produced
+unknown priority, a triage review state and manual-review routing. The local HTTP
+UI and SDK/dispatch/source endpoints served the actual adapter output.
+
+Three separate MCP bridge processes, using three separately admitted receiver
+identities, retrieved one hand-authored synthetic event from PostgreSQL and saved
+SDK/triage/dispatch receipts. This proves selected delivery and local adapter
+execution, not independent coding-model adaptation. A real Claude Code `--print`
+receiver run was attempted but failed before tool calls because its OAuth session
+had expired and could not be refreshed. Claude authentication status alone did not
+prove usable model access. Reauthenticate privately before repeating that part.
+The Deep Agents run separately remains pending a provider API credential.
