@@ -78,7 +78,7 @@ async function analyzeCommand() {
       if (args === undefined) throw new AnalystError('Analysis ended without a publish_context candidate. Nothing published.');
       const { candidate: valid, problems } = validateCandidate(runId, state, args);
       if (valid) { candidate = valid; break; }
-      console.log(`Candidate failed checks: ${problems.join(' ')}`);
+      console.log(`Candidate failed checks: ${problems.join(' ')} Proposed tags: ${escapeText(JSON.stringify((args as { tags?: unknown }).tags ?? null))}`);
       if (attempt >= MAX_FIX_ATTEMPTS) throw new AnalystError('Candidate still failed checks. Nothing published.');
       console.log('Rejecting automatically and asking the analyst to fix it once…');
       state = await analyst.resume({ type: 'reject', message: `Automatic check rejected this packet: ${problems.join(' ')} Fix these issues, then call publish_context again.` });

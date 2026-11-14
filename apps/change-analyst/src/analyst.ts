@@ -52,7 +52,7 @@ Packet requirements:
 - Unresolved: list every new value whose meaning is not explicitly stated, recommend manual review, and do not guess a mapping for it.
 - Note any deprecated endpoint and its sunset information.
 - Evidence: cite /repo/ file paths and /evidence/contract.md and /evidence/impact.md.
-- tags: include "unresolved:<CODE>" for each unresolved value plus a few short topical tags.
+- tags: for EACH unresolved value add one tag of the exact form "unresolved:" + the value exactly as written in the spec (for a hypothetical unresolved value X7 the tag is "unresolved:X7"); then add a few short topical tags.
 - change: kind "field-replacement", breaking true, previous and current describing the replaced field and enum.
 Do not claim any consumer adaptation was executed.`;
 
