@@ -4,6 +4,9 @@ Build the real flow. No new test suites, lint/check pipelines, CI, release
 or deployment automation. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+Signup now requires 8 characters in both the shared API schema and browser form.
+Relay/web builds passed; a live signup accepted 8, rejected 7, and allowed login.
+
 ## Group agent connection and conversation
 
 One-command follow-up on `feat/one-command-agent-link` replaces the manual file
@@ -107,7 +110,7 @@ Visual browser review remains unavailable.
 ## Landing signup and compact relay (November 14)
 
 Added an inline Sign up toggle using the real existing registration API. Signup
-collects name, email, and a 12+ character password, creates an authenticated HttpOnly
+collects name, email, and an 8+ character password, creates an authenticated HttpOnly
 session, and opens account/space setup. Login stays on the same landing form.
 Relay now fills the viewport; stream, inbox and agent/subscription panels scroll
 internally. Inbox replaces the stream instead of pushing it down. Removed marketing
