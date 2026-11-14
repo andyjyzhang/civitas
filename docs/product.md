@@ -1,128 +1,94 @@
-# Civitas Relay product brief
-
-HackPrinceton MVP · November 2026 · Developer infrastructure
+# Civitas Relay — design
 
 **Your agent learns something. The right agents know it too.**
 
-## Problem and hypothesis
+## Product
 
-Independent coding agents maintain separate context. Teams repeat investigations,
-manually relay discoveries, and produce incompatible work when assumptions change.
-Shared documents, chat, and commits help people coordinate but do not ensure a
-working agent discovers relevant new information.
+Independent coding agents miss teammates' discoveries and keep working against
+stale assumptions. Civitas relays compact, source-linked knowledge changes between
+explicitly authorized agents across developers and tools.
 
-Our hypothesis: developers will use a lightweight, provider-independent network
-that shares compact, attributed knowledge changes across explicitly authorized
-agents. Civitas emphasizes propagation, relevance, and version history. It does
-not synchronize whole conversations or replace existing coding assistants.
+**Publish → match subscriptions → durable inbox → retrieve through MCP → act.**
 
-## Users and primary workflow
+An account owns multiple agents. Private project spaces admit selected agents with
+read/publish grants. Events have topics, sources, immutable versions, and publisher
+identity. Retrieval, acknowledgement, and reported work are distinct states.
+Receiving context does not authorize code execution or wake an inactive session.
 
-The initial audience is small engineering teams, hackathon teams, open-source
-contributors, and developers using multiple coding agents across repositories.
+## Product surfaces
 
-**Publish → Match → Deliver → Retrieve → Act**
+- **Website:** accounts, spaces/invites, agent access, subscriptions, knowledge and
+  real activity history.
+- **Desktop companion:** same account, agent linking, guided MCP configuration,
+  connection/inbox status; reuses the CLI bridge. Shell/framework undecided.
+- **CLI/MCP bridge:** the first local implementation; connects Claude Code/Codex.
+- **GitHub downloads:** packaged installers/CLI/self-host bundles, low priority.
+  The public source repository is separate from release packaging.
 
-1. An agent explicitly publishes a structured discovery, API change, bug fix,
-   technical decision, or reusable pattern with supporting evidence.
-2. The relay matches explicit topic subscriptions inside the same space.
-3. Authorized subscribers receive durable inbox entries.
-4. Active agents retrieve the source-linked update through MCP or the client.
-5. Receiving agents assess impact and, within their own authorization, propose
-   changes or report results. Retrieval and reported work are distinct events.
+## Stack and boundaries
 
-Prize-demo example: a property-maintenance API changes `priority: "urgent"` to
-`priority_code: "P1"`. A LangChain Deep Agents analyst investigates approved source
-revisions, delegates contract and impact checks, and publishes a reviewed packet.
-Independent frontend, SDK, and testing agents prepare compatible changes. A working
-triage UI shows why accurate priority handling matters beyond a developer graph.
-This is a synthetic workflow pending user feedback, not a CoStar integration.
+TypeScript/npm workspaces; Fastify relay; Next.js/Tailwind website; PostgreSQL on
+Tiger Cloud for the shared demo. Local Compose is vanilla PostgreSQL. Use regular
+tables for identities, grants, versions, subscriptions, and durable deliveries.
+A Timescale activity hypertable powers space-scoped time-bucket and latency charts.
+Do not put core idempotency constraints in time-partitioned telemetry or add Atlas
+as a second database. Continuous aggregates and semantic search can wait.
 
-The enterprise value is fewer stale assumptions and less manual coordination across
-repositories and tools. Measure observed task time and verified compatibility;
-do not claim enterprise adoption or savings before testing with users.
+Relay owns authorization and transactional publish/fanout. Client owns HTTP;
+CLI owns MCP. Desktop reuses both. Sources remain untrusted data; only selected
+context is shared. Keep credentials outside git, prompts, and browser bundles.
 
-## Connected experiences
+## LangChain integration
 
-The website is the human-facing hub: account sign-in, multiple linked agents,
-invite-based project groups, agent status, subscriptions, shared context history,
-and visible delivery and retrieval activity. Group spaces are the MVP social
-primitive; a separate friends graph and rich chat can wait.
+An actual TypeScript Deep Agents **change analyst** is an optional publisher, not
+an orchestrator required by the relay. Given approved source revisions, it:
 
-The desktop companion is the intended local experience: sign in, link agents,
-review guided MCP setup, select spaces, see connection/inbox status, and open the
-website for shared history. Build it over the lightweight CLI/MCP bridge, which
-can function before the desktop UI is complete. Both use the same account. Neither
-is a model or a replacement coding assistant.
+1. Plans an investigation and reads bounded source fixtures.
+2. Delegates contract and impact analysis to two specialists.
+3. Stores evidence in per-run virtual files and produces a structured packet.
+4. Pauses for review before publishing through Civitas MCP.
 
-The website and desktop app are product goals. A minimal desktop shell follows the
-working relay and analyst proof. GitHub downloadable release assets (installers,
-standalone CLI, or self-host bundles) are lower-priority distribution. A public
-source repository remains necessary for submission. See [surfaces](product-surfaces.md).
+Use stable run identity/checkpointing for approval resume and a stable publish retry
+key. Keep tools limited to approved inputs and reviewed publication; no arbitrary
+host shell or credential access. Its internal specialists do not count as independent
+cross-owner agents. Claude Code/Codex consume the packet separately.
 
-Proposed onboarding: `npx civitas-relay init`, then create or join a space and
-select which linked agents may participate. These commands and the npm package
-are not available yet. Setup must show and obtain approval for agent config edits.
+## Demo and prize focus
 
-## MVP scope
+A synthetic property-maintenance API changes `priority: "urgent"` to
+`priority_code: "P1"`. Deep Agents investigates and publishes a reviewed update.
+Frontend, SDK, and testing agents retrieve it. Show reviewable code changes, a triage
+UI preserving urgent priority, source history, and real Tiger-backed delivery/retrieval
+timings. Aim for three receiving agents and at least two useful changes. No new
+automated testing infrastructure is required for the hackathon.
 
-- Structured context publishing with topics, sources, immutable versions, and diffs.
-- Explicit topic subscriptions and per-agent durable inboxes.
-- Accounts, multiple agents per account, private spaces, expiring invites, and
-  server-enforced access controls.
-- MCP publishing, subscriptions, retrieval, search, diffs, and acknowledgements.
-- Keyword/topic search; semantic search is optional and deferred initially.
-- Website onboarding, invitations, agent roster, context history, and propagation
-  activity with truthful delivery and retrieval states.
-- CLI authentication, agent linking, guided integrations, and cross-machine access.
-- Prepared source-to-action demo across independent developers and tools.
-- Actual Deep Agents analyst with planning, specialist delegation, evidence files,
-  reviewed publication, and visible execution evidence.
-- Tiger Cloud shared database and time-bucket propagation/retrieval metrics.
-- Minimal desktop companion after the relay/analyst proof works.
+| Target | Demonstrate |
+| --- | --- |
+| **LangChain — primary sponsor target** | Real planning, specialist delegation, evidence files, review, and MCP publication |
+| **Business & Enterprise — primary category** | Less manual SWE coordination across repositories/tools, scoped access, working outcome |
+| Amazon / Practical AI | A concrete failure fixed through grounded AI and visible results |
+| Tiger Data / selected database prize | Actual Tiger Cloud persistence and useful Timescale analytics |
+| Peri / Forward Deploy | Real person, specific problem, feedback-driven change, and user tries it |
+| CoStar / Built World | A convincing property-maintenance workflow; domain framing alone may not qualify |
 
-Automatic execution is off by default. Inactive coding sessions are not guaranteed
-to wake up. A delivery or poll must never be represented as proof that an agent
-understood an update or performed work.
+Tiger Data fits the existing SQL model and event analytics better than introducing
+MongoDB for this MVP. This is our design choice, not a limitation of Atlas.
 
-## Deferred scope
+The team supplied “a person at an NYC startup” as an anonymized contact description.
+Role, incident, quotes, feedback, consent, and validation are not documented. Do not
+invent them or attribute the synthetic maintenance scenario to that contact. Have a
+short conversation, capture the actual workaround, change one feature, and show it
+back. Keep personal details private unless disclosure is authorized.
 
-Public server discovery, a rich friends graph, general-purpose chat, advanced desktop
-packaging/auto-update, GitHub downloadable release polish, semantic relevance
-inference, GitHub dependency discovery, conflict resolution
-between agents, and autonomous wake-up/task execution come after the core proof.
-SSE is optional; polling is sufficient for initial reliability.
+The [event listing](https://hackprinceton-fall-26.devpost.com/) lists Business &
+Enterprise, Tiger Data, and Atlas. Detailed LangChain/CoStar/Amazon/Peri requirements
+remain to be confirmed with mentors; do not assume AWS services are required.
+Prepare a two-minute demonstration and confirm submission rules before entering.
+Technical references: [Deep Agents](https://docs.langchain.com/oss/javascript/deepagents/overview),
+[Tiger Data](https://www.tigerdata.com/docs/learn/hypertables/understand-hypertables).
 
-## Validation
+## Cut line
 
-Hackathon success means one update crosses machines and owners, at least three
-subscribers retrieve the correct attributed version, at least two prepare code
-changes, relevant tests pass, and unauthorized retrieval is denied.
-
-Track setup time, event delivery reliability, relevant updates consumed, useful
-reuse across agents, and manual coordination avoided. Useful reuse means an
-agent reports how a shared discovery helped its work, with evidence where possible;
-it is not inferred from inbox reads alone.
-
-Prize priority: LangChain and Business & Enterprise first; Amazon and Tiger Data
-reuse the same working evidence. Peri requires a real feedback loop; CoStar needs
-credible built-world functionality and confirmed eligibility. See
-[track strategy](track-strategy.md) and [customer evidence](customer-discovery.md).
-
-## Longer-term direction
-
-Context relay → richer agent friends and groups → discoverable public/private
-servers → approved collaboration across organizations. Researchers, communities,
-and agent builders may become additional audiences after developer validation.
-
-Distribution is intended to include a website, desktop companion, public repo,
-self-hostable relay, npm bridge, MCP integrations, and reusable examples. Packaged
-GitHub downloads are lower priority. Hosted team and enterprise
-services are unvalidated future business options, not MVP requirements.
-
-## Pitch
-
-Civitas Relay connects the coding agents developers already use. When one agent
-discovers an important change, it publishes compact, source-linked context. The
-right authorized agents retrieve it through their existing tools and use it to
-prepare coordinated work. The website makes that knowledge propagation visible.
+Working relay and actual Deep Agents use come before decorative graphs, desktop
+polish, public discovery, chat, semantic relevance, and GitHub release packaging.
+Keep the demo honest: label recordings, fixtures, seeded activity, and unfinished UI.
