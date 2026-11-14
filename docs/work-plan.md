@@ -9,6 +9,15 @@ model calls, customer feedback or sponsor eligibility into completion claims.
 The first 8px shift was too subtle for the user. Confirmed the preview served it,
 then increased the signup back arrow offset to 24px left. Behavior is unchanged.
 
+## Teammate LAN access (November 14)
+
+Started a second Nginx container, `civitas-nginx-team`, bound specifically to this
+laptop’s current LAN interface `10.25.12.193:8080`; the loopback preview remains.
+HTTP checks from this laptop confirmed landing and memory relay readiness through
+the LAN URL. Access from a teammate’s device remains unverified and depends on
+shared network routing/client isolation/firewall. This is temporary HTTP demo access,
+not public HTTPS hosting. To stop sharing: `docker stop civitas-nginx-team`.
+
 ## Nginx deployment preparation (November 14)
 
 User requested deployment. Hosting/server target is still awaiting user input.
