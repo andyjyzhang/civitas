@@ -190,16 +190,27 @@ export class Accounts {
       const account=this.account(state,credential),membership=this.member(state,account.accountId,spaceId),space=state.get(key('space',spaceId))!;
       const group=(space.kind||'group')==='group';
       const members=records(state,'member').filter(m=>m.spaceId===spaceId).map(m=>({accountId:m.accountId,name:state.get(key('account',m.accountId))!.name,role:m.role,canPublish:group||m.role==='owner'||m.canPublish===true}));
-      return {space:{spaceId,name:space.name,kind:space.kind||'group',visibility:space.visibility||'private',role:membership.role},currentAccountId:account.accountId,canPublish:group||membership.role==='owner'||membership.canPublish===true,members,posts:records(state,'roompost').filter(p=>p.spaceId===spaceId).slice(-100)};
+      const agents=records(state,'grant').filter(g=>g.spaceId===spaceId&&g.read).map(g=>{const a=state.get(key('agent',g.agentId))!;return {agentId:a.agentId,name:a.name,provider:a.provider||'mcp',ownerName:state.get(key('account',a.accountId))!.name,lastSeenAt:a.lastSeenAt||null,canReply:g.publish,owned:a.accountId===account.accountId};});
+      return {agents,space:{spaceId,name:space.name,kind:space.kind||'group',visibility:space.visibility||'private',role:membership.role},currentAccountId:account.accountId,canPublish:group||membership.role==='owner'||membership.canPublish===true,members,posts:records(state,'roompost').filter(p=>p.spaceId===spaceId).slice(-100)};
     });
   }
-  async post(credential:string,spaceId:string,input:{content:string;title?:string;topic?:string;source?:unknown}) {
+  async post(credential:string,spaceId:string,input:{content:string;title?:string;topic?:string;source?:unknown;targetAgentId?:string;idempotencyKey?:string}) {
     return this.store.run(state=>{
       const account=this.account(state,credential),membership=this.member(state,account.accountId,spaceId),space=state.get(key('space',spaceId))!;
       const server=space.kind==='server';
       if(server&&membership.role!=='owner'&&!membership.canPublish)throw new HttpError(403,'PUBLISH_DENIED','Only approved publishers can post to this server.');
       if(server&&(!input.title||!input.topic||!input.source))throw new HttpError(400,'INVALID_INPUT','Knowledge posts require a title, topic and source.');
-      const post={postId:`post_${randomUUID()}`,spaceId,authorId:account.accountId,authorName:account.name,content:input.content,createdAt:new Date().toISOString(),...(server?{title:input.title,topic:input.topic,source:input.source}:{})};
+      let target;
+      if(input.targetAgentId){
+        if(server)throw new HttpError(400,'INVALID_INPUT','Direct agent messages belong to project groups.');
+        target=state.get(key('agent',input.targetAgentId));const grant=state.get(key('grant',`${spaceId}:${input.targetAgentId}`));
+        if(!target||!grant?.read||!grant?.publish)throw new HttpError(404,'NOT_FOUND','Agent is not available to reply in this group.');
+      }
+      if(input.idempotencyKey){
+        const old=records(state,'roompost').find(p=>p.spaceId===spaceId&&p.authorId===account.accountId&&p.idempotencyKey===input.idempotencyKey);
+        if(old){if(old.content!==input.content||old.targetAgentId!==input.targetAgentId||old.title!==input.title||old.topic!==input.topic||canonical(old.source)!==canonical(input.source))throw new HttpError(409,'IDEMPOTENCY_CONFLICT','Message retry changed.');return old;}
+      }
+      const post={postId:`post_${randomUUID()}`,spaceId,authorId:account.accountId,authorName:account.name,content:input.content,createdAt:new Date().toISOString(),...(input.idempotencyKey?{idempotencyKey:input.idempotencyKey}:{}),...(target?{targetAgentId:target.agentId,targetAgentName:target.name}:{}),...(server?{title:input.title,topic:input.topic,source:input.source}:{})};
       state.set(key('roompost',post.postId),post);return post;
     });
   }
@@ -210,4 +221,67 @@ export class Accounts {
       const target=this.member(state,accountId,spaceId);target.canPublish=canPublish;return {ok:true};
     });
   }
+  async connectGroupAgent(credential:string,spaceId:string,input:{provider:'claude'|'codex';name:string}) {
+    const raw=token();
+    return this.store.run(state=>{
+      const account=this.account(state,credential);this.member(state,account.accountId,spaceId);
+      if((state.get(key('space',spaceId))?.kind||'group')!=='group')throw new HttpError(400,'INVALID_INPUT','Connect to a project group here. Server agent access is owner-managed.');
+      const agent={agentId:`ag_${randomUUID()}`,accountId:account.accountId,name:input.name,provider:input.provider,tokenHash:digest(raw)};
+      state.set(key('agent',agent.agentId),agent);
+      state.set(key('grant',`${spaceId}:${agent.agentId}`),{spaceId,agentId:agent.agentId,read:true,publish:true});
+      return {agentId:agent.agentId,name:agent.name,token:raw};
+    });
+  }
+  async createAgentLink(credential:string,spaceId:string,input:{provider:'claude'|'codex';name:string}) {
+    const code=token();
+    return this.store.run(state=>{
+      const account=this.account(state,credential);this.member(state,account.accountId,spaceId);
+      if((state.get(key('space',spaceId))?.kind||'group')!=='group')throw new HttpError(400,'INVALID_INPUT','Link agents from a project group.');
+      const now=Date.now();
+      for(const [id,link]of state)if(id.startsWith('agentlink:')&&Date.parse(link.expiresAt)<=now)state.delete(id);
+      const expiresAt=new Date(now+5*60000).toISOString();
+      state.set(key('agentlink',digest(code)),{accountId:account.accountId,spaceId,...input,expiresAt,used:false});
+      return {code,expiresAt};
+    });
+  }
+  async redeemAgentLink(code:string,provider:'claude'|'codex') {
+    const raw=token();
+    return this.store.run(state=>{
+      const link=state.get(key('agentlink',digest(code)));
+      if(!link||link.used||link.provider!==provider||Date.parse(link.expiresAt)<=Date.now())throw new HttpError(400,'LINK_INVALID','Link code expired, already used, or does not match this coding tool. Generate a new command in the group.');
+      this.member(state,link.accountId,link.spaceId);
+      if((state.get(key('space',link.spaceId))?.kind||'group')!=='group')throw new HttpError(404,'NOT_FOUND','Group not found.');
+      const agent={agentId:`ag_${randomUUID()}`,accountId:link.accountId,name:link.name,provider,tokenHash:digest(raw)};
+      state.set(key('agent',agent.agentId),agent);
+      state.set(key('grant',`${link.spaceId}:${agent.agentId}`),{spaceId:link.spaceId,agentId:agent.agentId,read:true,publish:true});
+      link.used=true;
+      return {agentId:agent.agentId,name:agent.name,token:raw,spaceId:link.spaceId,provider};
+    });
+  }
+  private groupAgent(state:State,spaceId:string,agentId:string,permission:'read'|'publish') {
+    const agent=state.get(key('agent',agentId));const grant=state.get(key('grant',`${spaceId}:${agentId}`));
+    if(!agent||!grant?.[permission]||(state.get(key('space',spaceId))?.kind||'group')!=='group')throw new HttpError(404,'NOT_FOUND','Group agent access denied.');
+    this.member(state,agent.accountId,spaceId);return agent;
+  }
+  async groupMessages(spaceId:string,agentId:string) {
+    return this.store.run(state=>{
+      const agent=this.groupAgent(state,spaceId,agentId,'read');const now=new Date().toISOString();agent.lastSeenAt=now;
+      const items=records(state,'roompost').filter(p=>p.spaceId===spaceId&&p.targetAgentId===agentId&&!p.repliedAt).slice(0,100);
+      for(const post of items)post.retrievedAt??=now;
+      return {items};
+    });
+  }
+  async replyToGroupMessage(spaceId:string,agentId:string,messageId:string,content:string) {
+    return this.store.run(state=>{
+      const agent=this.groupAgent(state,spaceId,agentId,'publish');
+      const message=state.get(key('roompost',messageId));
+      if(!message||message.spaceId!==spaceId||message.targetAgentId!==agentId)throw new HttpError(404,'NOT_FOUND','Message not addressed to this agent.');
+      const previous=records(state,'roompost').find(p=>p.spaceId===spaceId&&p.replyTo===messageId);
+      if(previous){if(previous.content!==content)throw new HttpError(409,'REPLY_CONFLICT','This message already has a different reply.');return previous;}
+      const now=new Date().toISOString();agent.lastSeenAt=now;message.retrievedAt??=now;message.repliedAt=now;
+      const post={postId:`post_${randomUUID()}`,spaceId,authorId:agentId,authorName:agent.name,origin:'agent',content,createdAt:now,replyTo:messageId};
+      state.set(key('roompost',post.postId),post);return post;
+    });
+  }
+
 }

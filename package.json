@@ -25,7 +25,8 @@
     "start:desktop": "npm run start --workspace @civitas/desktop",
     "demo:consumers": "tsx examples/api-change/demo.ts",
     "receive:consumers": "tsx examples/api-change/receive.ts",
-    "seed:agents": "node apps/relay/scripts/seed-agents.mjs"
+    "seed:agents": "node apps/relay/scripts/seed-agents.mjs",
+    "link": "npm run build:bridge && node packages/cli/dist/index.js link"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

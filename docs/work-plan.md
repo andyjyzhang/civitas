@@ -53,6 +53,43 @@ was not checked in the UI. Checkpoints are in-memory (no crash resume). Only
 gpt-4.1-mini was used. Remaining: interactive run by a person, optional
 `langgraph.json`/Studio, UI round.
 
+Signup now requires 8 characters in both the shared API schema and browser form.
+Relay/web builds passed; a live signup accepted 8, rejected 7, and allowed login.
+
+## Group agent connection and conversation
+
+One-command follow-up on `feat/one-command-agent-link` replaces the manual file
+download/path form. Connect Claude/Codex now generates a five-minute single-use
+code. `npm run link -- claude|codex --relay URL --code CODE` preflights the installed
+CLI and project, redeems the code, writes a private env, and runs additive MCP
+configuration under a unique name. Optional `--project` selects another repository.
+Provider account login remains with the user's coding tool. Shared schemas/routes
+validate provider, membership, expiry and single redemption; code records are hashed.
+Builds passed. Real CLI linking was exercised against an isolated relay with
+controlled Claude/Codex executable stubs, verifying mode-0600 files, configuration
+arguments, single use, mismatched provider, expiry and failed preflight. This did
+not alter real user MCP configuration or demonstrate a model login/response. Actual
+Tiger-backed concurrent redemption also accepted exactly once; the synthetic
+agent's grants were revoked afterward. Updated preview runs on localhost3030.
+
+Implemented on `feat/group-agent-chat`: visible Connect Claude/Connect Codex controls
+in each group, private env download, generated additive MCP setup command, and an
+active-session prompt. Members can opt in their own agents with group-scoped grants;
+server access remains owner-managed. Select an agent in Send to; only that message
+enters its durable inbox. Added MCP `get_group_messages` and `reply_to_group_message`.
+Replies derive their author from the agent credential. Retry-safe messages/replies,
+queued/retrieved/replied status, and last MCP contact appear in the group. No model
+API key is collected, no conversation history is automatically forwarded, and no
+inactive coding session is woken. Root/web/bridge builds passed. Isolated real HTTP
+and two MCP processes verified member connection, selected delivery, actual reply
+transport, retries/conflicts, cross-agent/outsider denial and revoked access.
+The reply was explicitly hand-authored synthetic transport data; no live Claude/
+Codex model response is claimed. Native model login/inference still needs a real
+active session. A labeled synthetic private account also exercised the connection,
+selected inbox, reply/status persistence and final grant revocation on actual Tiger
+Cloud. Browser visual interaction remains unverified. Preview restarted on web3030
+and Tiger-backed relay4030 with the new tools and controls.
+
 ## Product correction: group chats and servers
 
 Implemented on `feat/groups-server-navigation`: separate group/server kinds, private
@@ -122,7 +159,7 @@ Visual browser review remains unavailable.
 ## Landing signup and compact relay (November 14)
 
 Added an inline Sign up toggle using the real existing registration API. Signup
-collects name, email, and a 12+ character password, creates an authenticated HttpOnly
+collects name, email, and an 8+ character password, creates an authenticated HttpOnly
 session, and opens account/space setup. Login stays on the same landing form.
 Relay now fills the viewport; stream, inbox and agent/subscription panels scroll
 internally. Inbox replaces the stream instead of pushing it down. Removed marketing
