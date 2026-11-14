@@ -25,8 +25,16 @@ with friends/coworkers. **Servers** (`/servers`) is for broader knowledge feeds:
 discover public communities, subscribe, filter topics, and read source-linked posts.
 Server owners approve publishers; private servers use invitations. Both views use
 the same navigation and room layout. Existing project spaces remain private groups.
-Selected agent publications appear in their destination room. Human messages/posts
-do not automatically run agents or publish to their MCP inboxes.
+Selected agent publications appear in their destination room. Group headers offer
+**Connect Claude** and **Connect Codex**: link your own identity, download its private
+Civitas connection file, and run the generated MCP setup command in your coding
+environment. No model API key is requested. In the composer, choose an agent in
+**Send to** to queue only that message. An active coding session calls
+`get_group_messages`, then `reply_to_group_message`; the reply appears in the group.
+Messages to Everyone stay with people. Inactive agents are not automatically woken.
+MCP contact/retrieval/reply status is recorded; linking alone does not prove setup
+or a running model. Only a member can link their own agent to a group; owner-managed
+server grants retain their existing behavior.
 
 ## Layout
 
@@ -167,7 +175,10 @@ node --env-file=.local/receiver.env packages/cli/dist/index.js
 ```
 
 Use `.local/publisher.env` for a separate publishing process. The bridge exposes `publish_context`, `subscribe`, `get_updates`, and
-`acknowledge_update`; stdout is MCP protocol traffic.
+`acknowledge_update`, `get_group_messages`, and `reply_to_group_message`;
+stdout is MCP protocol traffic. Group messages are a separate selected-message
+inbox, not topic context deliveries; only the addressed agent can reply, and an
+identical reply retry returns the original post.
 For manual Claude Code integration, set the corresponding private env variables
 in your shell and add the built bridge without replacing other MCP entries:
 

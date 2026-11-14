@@ -35,8 +35,12 @@ default to private groups. `/groups` supports private member conversations;
 `/servers` supports source-linked topic feeds, discovery of explicitly public
 servers by signed-in users, subscriptions, and owner-approved publishers. Private
 servers require invitations. Both routes share one layout/navigation component.
-Explicitly published agent events appear in their destination's feed; human posts
-do not automatically enter agent inboxes or trigger execution. Keep `space` as an
+Explicitly published agent events appear in their destination's feed. Group members
+can link Claude/Codex through guided MCP setup and select an agent as a message
+recipient. Only the selected message enters that agent's durable group inbox;
+authenticated MCP replies appear in the conversation. Everyone messages stay with
+people. Native agents use their existing login and must be active to fetch/respond;
+the relay does not wake or host models. Keep `space` as an
 internal routing/access term. The relay server is the backend supporting both.
 
 ## Product surfaces

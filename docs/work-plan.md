@@ -4,6 +4,26 @@ Build the real flow. No new test suites, lint/check pipelines, CI, release
 or deployment automation. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Group agent connection and conversation
+
+Implemented on `feat/group-agent-chat`: visible Connect Claude/Connect Codex controls
+in each group, private env download, generated additive MCP setup command, and an
+active-session prompt. Members can opt in their own agents with group-scoped grants;
+server access remains owner-managed. Select an agent in Send to; only that message
+enters its durable inbox. Added MCP `get_group_messages` and `reply_to_group_message`.
+Replies derive their author from the agent credential. Retry-safe messages/replies,
+queued/retrieved/replied status, and last MCP contact appear in the group. No model
+API key is collected, no conversation history is automatically forwarded, and no
+inactive coding session is woken. Root/web/bridge builds passed. Isolated real HTTP
+and two MCP processes verified member connection, selected delivery, actual reply
+transport, retries/conflicts, cross-agent/outsider denial and revoked access.
+The reply was explicitly hand-authored synthetic transport data; no live Claude/
+Codex model response is claimed. Native model login/inference still needs a real
+active session. A labeled synthetic private account also exercised the connection,
+selected inbox, reply/status persistence and final grant revocation on actual Tiger
+Cloud. Browser visual interaction remains unverified. Preview restarted on web3030
+and Tiger-backed relay4030 with the new tools and controls.
+
 ## Product correction: group chats and servers
 
 Implemented on `feat/groups-server-navigation`: separate group/server kinds, private
