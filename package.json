@@ -30,6 +30,7 @@
     "demo:agents": "bash scripts/demo-agents.sh"
   },
   "devDependencies": {
+    "@langchain/langgraph-cli": "^1.7.2",
     "@types/node": "^22.0.0",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"

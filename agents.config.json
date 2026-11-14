@@ -1,0 +1,20 @@
+{
+  "_comment": "Connected sources and consumers the Deep Agents server may read (read-only). Paths are relative to the repo root. Only these are exposed to agents; no arbitrary paths.",
+  "agentServerUrl": "http://127.0.0.1:2024",
+  "sources": [
+    {
+      "id": "maintenance-api",
+      "label": "Maintenance API (synthetic OpenAPI v1/v2 + changelog)",
+      "path": "examples/api-change/spec",
+      "files": ["openapi-v1.yaml", "openapi-v2.yaml", "CHANGELOG.md"],
+      "topic": "project/maintenance-api",
+      "sourceUri": "examples/api-change/spec/openapi-v2.yaml",
+      "revision": "maintenance-v2"
+    }
+  ],
+  "consumers": [
+    { "role": "sdk", "label": "SDK decoder", "path": "examples/consumers/sdk", "topic": "project/maintenance-api" },
+    { "role": "triage", "label": "Triage UI", "path": "examples/consumers/triage", "topic": "project/maintenance-api" },
+    { "role": "dispatch", "label": "Dispatch service", "path": "examples/consumers/dispatch", "topic": "project/maintenance-api" }
+  ]
+}
