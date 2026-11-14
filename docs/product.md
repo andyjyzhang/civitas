@@ -20,7 +20,7 @@ Receiving context does not authorize code execution or wake an inactive session.
 - **Website:** accounts, spaces/invites, agent access, subscriptions, knowledge and
   real activity history.
 - **Desktop companion:** same account, agent linking, guided MCP configuration,
-  connection/inbox status; reuses the CLI bridge. Shell/framework undecided.
+  connection/inbox status; the local Electron shell reuses the CLI bridge.
 - **CLI/MCP bridge:** the first local implementation; connects Claude Code/Codex.
 - **GitHub downloads:** packaged installers/CLI/self-host bundles, low priority.
   The public source repository is separate from release packaging.
@@ -69,7 +69,7 @@ Rank targets by fit and remaining work, not predicted winning odds:
 | **1** | **Business and Enterprise — main category** | Strongest natural fit: one API change reaches teammates across tools/repos and prevents incompatible work; show scoped access and useful code changes. |
 | **2** | **LangChain — primary sponsor target** | Real Deep Agents planning, contract/impact specialists, evidence files, human review, and MCP publication. SDK installation alone is insufficient; complete and run the analyst. |
 | **3** | **Amazon — Practical AI Innovation** | Reuse the same grounded source-to-code demo to show a concrete coordination failure fixed. Confirm whether Amazon technology is required before adding services. |
-| **4** | **Tiger Data — selected database prize** | Build on working local PostgreSQL persistence: connect actual Tiger Cloud, run the Timescale migration, and show useful measured analytics. Hosted verification is pending. |
+| **4** | **Tiger Data — selected database prize** | Local PostgreSQL and Timescale migrations/analytics are verified; connect actual Tiger Cloud and demonstrate hosted telemetry. Hosted verification is pending. |
 | **5 — conditional** | **Peri — Forward Deploy** | Talk to a real developer about a specific coordination failure, change a feature based on feedback, and have them try it. An anonymized contact description alone is insufficient. |
 | **6 — stretch** | **CoStar — Built World** | Demonstrate a meaningful property/building workflow benefit. The synthetic maintenance API is a possible vehicle; domain naming alone does not establish fit. |
 
@@ -113,8 +113,10 @@ back. Keep personal details private unless disclosure is authorized.
 
 The [event listing](https://hackprinceton-fall-26.devpost.com/) is the submission
 reference; the main-track rules above come from the team's supplied descriptions.
-Detailed LangChain/CoStar/Amazon/Peri requirements
-remain to be confirmed with mentors; do not assume AWS services are required.
+The November 14 rules check confirms one main track plus sponsor tracks; the
+README records current submission requirements and a deadline conflict. Detailed
+LangChain/CoStar/Amazon/Peri requirements remain to be confirmed with mentors;
+do not assume AWS services are required.
 Prepare a two-minute demonstration and confirm submission rules before entering.
 Technical references: [Deep Agents](https://docs.langchain.com/oss/javascript/deepagents/overview),
 [Tiger Data](https://www.tigerdata.com/docs/learn/hypertables/understand-hypertables).
