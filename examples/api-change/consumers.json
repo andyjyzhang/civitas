@@ -1,0 +1,8 @@
+{
+  "synthetic": true,
+  "consumers": [
+    { "name": "triage-ui", "behavior": "Reads response.priority; highlights urgent requests." },
+    { "name": "maintenance-sdk", "behavior": "Decodes priority as a string; does not yet read priority_code." }
+  ],
+  "scope": "Only these synthetic behaviors are supplied. No consumer repository was inspected. Preserve the urgent label for P1; do not invent mappings for other codes."
+}

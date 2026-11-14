@@ -1,0 +1,8 @@
+{
+  "synthetic": true,
+  "revision": "maintenance-v2",
+  "endpoint": "GET /maintenance/requests/:id",
+  "response": { "id": "req_demo", "priority_code": "P1" },
+  "contract": { "priority_code": "Replaces priority. This fixture covers P1 only." },
+  "priority_mapping": { "P1": "urgent" }
+}
