@@ -1,0 +1,7 @@
+{
+  "synthetic": true,
+  "revision": "maintenance-v1",
+  "endpoint": "GET /maintenance/requests/:id",
+  "response": { "id": "req_demo", "priority": "urgent" },
+  "contract": { "priority": "Human-readable priority. This fixture covers urgent only." }
+}
