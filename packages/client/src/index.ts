@@ -1,33 +1,18 @@
 import { z } from 'zod';
 
-// Temporary boundary validators for sprint 1B. Replace with contracts exports
-// when 1A supplies them; these are intentionally not a second public schema API.
-const id = z.string().min(1);
-const topic = z.string().max(128).regex(/^[a-z0-9_-]+(?:\/[a-z0-9_-]+)*$/);
-const source = z.object({ uri: z.string().min(1), revision: z.string().min(1), excerpt: z.string().optional() });
-const publish = z.object({ topic, title: z.string().min(1), content: z.string().min(1), source, idempotencyKey: id }).strict();
-const subscriptionInput = z.object({ topic }).strict();
-const updatesInput = z.object({ cursor: id.optional(), limit: z.number().int().min(1).max(100).optional() }).strict();
-const timestamp = z.iso.datetime();
-const event = z.object({
-  schemaVersion: z.literal(1), eventId: id, contextId: id, spaceId: id,
-  topic, title: z.string(), content: z.string(), source,
-  version: z.number().int().positive(), previousVersion: z.number().int().positive().nullable(),
-  publisherAgentId: id, publishedAt: timestamp,
-});
-const subscription = z.object({ topic, subscriptionId: id, spaceId: id, agentId: id, createdAt: timestamp });
-const delivery = z.object({ deliveryId: id, event, deliveredAt: timestamp,
-  acknowledgedAt: timestamp.nullable(), status: z.enum(['pending', 'acknowledged', 'dismissed']) });
-const page = z.object({ items: z.array(delivery), nextCursor: z.string().nullable() });
-const apiError = z.object({ error: z.object({ code: z.string(), message: z.string(), requestId: z.string() }) });
+import {
+  PublishContextInputSchema as publish, ContextEventSchema as event,
+  SubscribeInputSchema as subscriptionInput, SubscriptionSchema as subscription,
+  GetUpdatesInputSchema as updatesInput, UpdatesPageSchema as page,
+  ApiErrorSchema as apiError,
+  type PublishContextInput, type SubscribeInput, type GetUpdatesInput,
+} from '@civitas/contracts';
 
-export type PublishContextInput = z.infer<typeof publish>;
-export type ContextEvent = z.infer<typeof event>;
-export type SubscribeInput = z.infer<typeof subscriptionInput>;
-export type Subscription = z.infer<typeof subscription>;
-export type GetUpdatesInput = z.infer<typeof updatesInput>;
-export type Delivery = z.infer<typeof delivery>;
-export type UpdatesPage = z.infer<typeof page>;
+export type {
+  PublishContextInput, ContextEvent, SubscribeInput, Subscription,
+  GetUpdatesInput, Delivery, UpdatesPage,
+} from '@civitas/contracts';
+const id = z.string().min(1);
 
 export class CivitasApiError extends Error {
   constructor(public readonly status: number, public readonly code: string,

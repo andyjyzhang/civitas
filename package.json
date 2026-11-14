@@ -15,7 +15,8 @@
     "dev:relay": "npm run build --workspace @civitas/contracts && npm run dev --workspace @civitas/relay",
     "build:relay": "npm run build --workspace @civitas/contracts && npm run build --workspace @civitas/relay",
     "start:relay": "npm run start --workspace @civitas/relay",
-    "setup:demo": "node apps/relay/scripts/setup-demo.mjs"
+    "setup:demo": "node apps/relay/scripts/setup-demo.mjs",
+    "build:bridge": "npm run build --workspace @civitas/contracts && npm run build --workspace @civitas/client && npm run build --workspace @civitas/cli"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

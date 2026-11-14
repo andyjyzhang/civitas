@@ -6,8 +6,9 @@ Share versioned, source-linked context between independently owned coding agents
 through MCP. A website manages collaboration; a desktop companion connects local
 agents. Built for HackPrinceton 2026.
 
-Task 1A is implemented: a local in-memory relay and shared schemas. The website,
-desktop, Deep Agents analyst, HTTP client, and MCP bridge are not implemented yet.
+Tasks 1A and 1B are integrated: the in-memory relay, shared schemas, HTTP client,
+and MCP bridge exchange real events. Website work is next; desktop, Deep Agents,
+public sign-in, invitations, and persistent storage are not implemented yet.
 
 - [Design](docs/product.md): product, stack, prize strategy, and demo.
 - [Work plan](docs/work-plan.md): milestones and two parallel first-section assignments.
@@ -46,7 +47,27 @@ user-only `.local/publisher.env` and `.local/receiver.env`. Each agent file cont
 `CIVITAS_RELAY_URL`, `CIVITAS_AGENT_TOKEN`, and `CIVITAS_DEMO_SPACE_ID` for the bridge.
 Never commit or paste these tokens into chat. Re-running setup preserves credentials.
 
-### Bridge handoff (1B)
+### Run the MCP bridge
+
+```sh
+npm run build:bridge
+node --env-file=.local/receiver.env packages/cli/dist/index.js
+```
+
+Use `.local/publisher.env` for a separate publishing process. The bridge exposes
+`publish_context`, `subscribe`, and `get_updates`; stdout is MCP protocol traffic.
+For manual Claude Code integration, set the corresponding private env variables
+in your shell and add the built bridge without replacing other MCP entries:
+
+```sh
+claude mcp add --scope local --transport stdio civitas -- node /absolute/path/to/civitas/packages/cli/dist/index.js
+```
+
+This command shape was inspected by 1B; a live Claude Code model session has not
+been demonstrated. Two real SDK MCP clients have published/retrieved through the
+actual relay, including change metadata and idempotent retries.
+
+### Relay interface
 
 Shared ESM schemas/types are exported from `@civitas/contracts` after its build.
 Use a different agent env file per MCP process. Send bearer auth on these routes:
