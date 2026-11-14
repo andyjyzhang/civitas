@@ -1,5 +1,5 @@
 import Fastify, { type FastifyError } from 'fastify';
-import { PublishContextInputSchema, SubscribeInputSchema, GetUpdatesInputSchema, AckUpdateInputSchema, RegisterAccountInputSchema, LoginAccountInputSchema, NameInputSchema, InviteInputSchema, AcceptInviteInputSchema, GrantInputSchema, CreateSpaceInputSchema, RoomPostInputSchema, ConnectGroupAgentInputSchema, GroupMessageReplyInputSchema } from '@civitas/contracts';
+import { PublishContextInputSchema, SubscribeInputSchema, GetUpdatesInputSchema, AckUpdateInputSchema, RegisterAccountInputSchema, LoginAccountInputSchema, NameInputSchema, InviteInputSchema, AcceptInviteInputSchema, GrantInputSchema, CreateSpaceInputSchema, RoomPostInputSchema, ConnectGroupAgentInputSchema, GroupMessageReplyInputSchema, RedeemAgentLinkInputSchema } from '@civitas/contracts';
 import { HttpError, MemoryStorage, type RelayStorage } from './storage.js';
 import { Accounts, IdentityStore } from './accounts.js';
 
@@ -37,6 +37,8 @@ export function createRelay(config: Config, storage: RelayStorage = new MemorySt
   app.post<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/grants',async request=>accounts.grant(bearer(request.headers.authorization),request.params.spaceId,parse(GrantInputSchema,request.body)));
 
   app.post<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/connect-agent',async request=>accounts.connectGroupAgent(bearer(request.headers.authorization),request.params.spaceId,parse(ConnectGroupAgentInputSchema,request.body)));
+  app.post<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/agent-links',async request=>accounts.createAgentLink(bearer(request.headers.authorization),request.params.spaceId,parse(ConnectGroupAgentInputSchema,request.body)));
+  app.post('/v1/agent-links/redeem',async request=>{limitAccount(request.ip);const input=parse(RedeemAgentLinkInputSchema,request.body);return accounts.redeemAgentLink(input.code,input.provider);});
   app.get('/v1/servers',async request=>accounts.directory(bearer(request.headers.authorization)));
   app.get<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/room',async request=>{
     const spaceId=request.params.spaceId;

@@ -138,3 +138,6 @@ export type Room = z.infer<typeof RoomSchema>;
 
 export const ConnectGroupAgentInputSchema = z.object({provider:z.enum(['claude','codex']),name:z.string().trim().min(1).max(100)}).strict();
 export const GroupMessageReplyInputSchema = z.object({content:z.string().trim().min(1).max(8000)}).strict();
+export const AgentLinkSchema = z.object({code:z.string(),expiresAt:timestamp});
+export const RedeemAgentLinkInputSchema = z.object({code:z.string().regex(/^[A-Za-z0-9_-]{43}$/),provider:z.enum(['claude','codex'])}).strict();
+export const LinkedAgentSchema = AgentCredentialSchema.extend({spaceId:id,provider:z.enum(['claude','codex'])});

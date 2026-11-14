@@ -232,6 +232,32 @@ export class Accounts {
       return {agentId:agent.agentId,name:agent.name,token:raw};
     });
   }
+  async createAgentLink(credential:string,spaceId:string,input:{provider:'claude'|'codex';name:string}) {
+    const code=token();
+    return this.store.run(state=>{
+      const account=this.account(state,credential);this.member(state,account.accountId,spaceId);
+      if((state.get(key('space',spaceId))?.kind||'group')!=='group')throw new HttpError(400,'INVALID_INPUT','Link agents from a project group.');
+      const now=Date.now();
+      for(const [id,link]of state)if(id.startsWith('agentlink:')&&Date.parse(link.expiresAt)<=now)state.delete(id);
+      const expiresAt=new Date(now+5*60000).toISOString();
+      state.set(key('agentlink',digest(code)),{accountId:account.accountId,spaceId,...input,expiresAt,used:false});
+      return {code,expiresAt};
+    });
+  }
+  async redeemAgentLink(code:string,provider:'claude'|'codex') {
+    const raw=token();
+    return this.store.run(state=>{
+      const link=state.get(key('agentlink',digest(code)));
+      if(!link||link.used||link.provider!==provider||Date.parse(link.expiresAt)<=Date.now())throw new HttpError(400,'LINK_INVALID','Link code expired, already used, or does not match this coding tool. Generate a new command in the group.');
+      this.member(state,link.accountId,link.spaceId);
+      if((state.get(key('space',link.spaceId))?.kind||'group')!=='group')throw new HttpError(404,'NOT_FOUND','Group not found.');
+      const agent={agentId:`ag_${randomUUID()}`,accountId:link.accountId,name:link.name,provider,tokenHash:digest(raw)};
+      state.set(key('agent',agent.agentId),agent);
+      state.set(key('grant',`${link.spaceId}:${agent.agentId}`),{spaceId:link.spaceId,agentId:agent.agentId,read:true,publish:true});
+      link.used=true;
+      return {agentId:agent.agentId,name:agent.name,token:raw,spaceId:link.spaceId,provider};
+    });
+  }
   private groupAgent(state:State,spaceId:string,agentId:string,permission:'read'|'publish') {
     const agent=state.get(key('agent',agentId));const grant=state.get(key('grant',`${spaceId}:${agentId}`));
     if(!agent||!grant?.[permission]||(state.get(key('space',spaceId))?.kind||'group')!=='group')throw new HttpError(404,'NOT_FOUND','Group agent access denied.');
