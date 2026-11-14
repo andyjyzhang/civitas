@@ -1,170 +1,164 @@
-# Build plan
+# Build plan and verified status
 
-Build the real flow. No new tests, lint/check pipelines, CI, or release automation.
-Agents must update this file when features land: what works, what actually ran,
-and what is still missing. Keep one current plan rather than adding documents.
+Build the real flow. No new test suites, lint/check pipelines, CI, release
+or deployment automation. Keep this file current; do not turn pending credentials,
+model calls, customer feedback or sponsor eligibility into completion claims.
+
+## Current assignment
+
+The November 14 request expands the earlier A/B scope to all remaining local demo
+features. Integration branch: `feat/complete-local-demo`, based on
+`feat/deep-agents`. Three delegated lanes implemented relay/contracts,
+website/client/CLI, and analyst/consumer examples; root implemented desktop and
+integration. They used disjoint owned files in one shared checkout, with coordinated
+API changes and one serialized dependency install. No deployment or public
+publication is authorized as a side effect.
 
 ## Current status
 
-| Section | Status | Remaining |
+| Section | Implemented and exercised | Remaining |
 | --- | --- | --- |
-| **1A: relay + contracts** | Working memory/PostgreSQL relay, shared schemas, private credential setup | Hosted Tiger verification, version appends, acknowledgements, pagination |
-| **1B: client + MCP** | Integrated with 1A through two real MCP SDK processes | Verify in actual Claude Code/Codex model sessions; guided config |
-| **2: website/onboarding** | Working local demo dashboard | Public account sign-in, invites, agent linking/grants UI |
-| **3: Deep Agents analyst** | Runner, specialists, evidence, review, and MCP publication implemented | Real provider key and model-generated packet; independent consumer adaptation |
-| **4: domain demo + Tiger Data** | Synthetic fixtures and restart-safe local PostgreSQL flow verified | Independent code/UI adaptation, real Tiger Cloud storage/telemetry, measured timings |
-| **5: desktop companion** | Not started | Minimal sign-in/link/status/open-web over the bridge |
-| **6: submission** | Ranked track strategy recorded in product doc | Focus Business and Enterprise + LangChain; reuse demo for Amazon/Tiger; Peri conditional, CoStar stretch; confirm sponsor rules/award compatibility and rehearse |
-| **Later: GitHub downloads** | Low priority | Installer/CLI/self-host release assets; public source repo is separate |
+| Relay + protocol | Memory/PostgreSQL; immutable version appends, expected-version conflicts, idempotent retries, frozen/scoped pagination, final ack/dismiss; HTTP + real MCP flows | Hosted Tiger Cloud verification; wildcard subscriptions intentionally absent |
+| Client + MCP | Publish/append, subscribe, paginated updates, acknowledgements, additive Claude/Codex/JSON setup helper | Actual coding-model session blocked by expired Claude OAuth |
+| Website/onboarding | Local password registration/sign-in, private spaces, invitations, separate agent keys, owner-managed grants/revocation; dashboard version/inbox controls | Browser visual interaction unavailable; no verified email, recovery, or public deployment |
+| Deep Agents | Existing bounded planning/specialists/evidence/checkpoint/review runner builds; fails closed without provider key | Actual model analysis/delegation/evidence, explicit human review and model-generated publication |
+| Maintenance consumers | Runnable SDK normalization, triage UI, dispatch decision, source trace and selected-event receipts | Independent live coding-model adaptations; genuine customer validation |
+| Desktop | Electron companion; sign-in/link/status/subscribe/retrieve/open-web and private MCP env setup; build + native launch | Native UI interactions unavailable because computer-use access was denied; signed installers absent |
+| Submission | Current rules checked, attribution, draft description and two-minute walkthrough in README | Team eligibility, final sponsor details, timed team rehearsal and actual submission |
 
-## What actually ran
+Local password accounts are a hackathon feature, not an email-verified production
+auth service. Relay stays loopback-only. In memory mode accounts, grants, sessions,
+invites, subscriptions, events, deduplication and inbox state all disappear on
+restart. PostgreSQL is the durable implementation. Deep Agents remains separate
+from relay routing. Retrieved remote context never authorizes execution.
 
-- Relay compiled and served the real HTTP publish → subscribe → inbox flow.
-- Two separate MCP SDK clients launched real bridge processes against that relay.
-  One subscribed; the other published; the receiver retrieved the same event.
-- Compatibility fix: client/CLI now use shared contracts and preserve `change` and
-  `tags`. Same-key MCP retries returned the same event. No fixture server was used.
-- HTTP invalid-token and inaccessible-space requests were denied. Changes under
-  an existing publish key conflicted. These were live walkthroughs, not test suites.
-- Website build succeeded. Two isolated browser sessions connected, subscribed,
-  published, retrieved the matching delivery, and disconnected through the real UI.
-  Live counters updated. Desktop/mobile layouts were inspected; mobile had no
-  horizontal overflow. Public account/invitation flows were not exercised or built.
-- After A/B merged, reconciled the analyst dependencies into the root lockfile.
-  A clean `npm ci --ignore-scripts` and relay/bridge/analyst/website builds passed.
-  The merged code published and retrieved a synthetic event through two separate
-  MCP processes; retries returned one event and one delivery. Model analysis and
-  hosted Tiger verification remain pending their credentials/services.
+## What actually ran in this completion pass
 
-## Working website slice
+- `npm install` and root lockfile reconciliation including Electron. Contracts,
+  client, CLI, relay, website, analyst and desktop builds passed. Native Electron
+  runtime downloaded from its official package distribution; companion launched.
+- Real HTTP memory walkthrough: registration/login/logout; owner/member spaces;
+  email-bound invitation acceptance; denial before membership; non-owner grant
+  denial; read-only publish denial/revocation; v2 append/retry/stale-version conflict;
+  pagination excluding later events; foreign cursor denial; ack retry timestamp and
+  conflicting disposition. No new test suite was created.
+- Started Docker Desktop and the included PostgreSQL 16 Compose service. Applied
+  `001_core.sql` and new `003_protocol_accounts.sql`; existing migrations unchanged.
+  Durable readiness requires the current schema; no fallback to memory. The private
+  local `.env` now selects PostgreSQL for subsequent relay starts.
+- PostgreSQL HTTP walkthrough: same authorization/account flow, concurrent identical
+  append retries, competing expected-version writes (one accepted, one conflict),
+  frozen pages, first retrieval only for returned items, foreign inbox/ack denial,
+  acknowledgement replay/final-status conflict. SQL confirmed four events/four
+  deliveries with exactly four transitions each for publication/delivery/retrieval.
+- Website production build and two isolated cookie sessions exercised real server
+  routes: register, space/invite/accept, agents/grants, connect, subscribe, publish,
+  append, paginate, ack/dismiss conflict, read-only denial, immutable history, logout.
+  Two real MCP stdio bridge processes also exercised new protocol methods. The
+  additive setup helper printed token-free config and installed CLI help confirmed
+  command syntax. These are server/API runs; no visual browser claim is made.
+- Root independently created a publisher plus **three distinct admitted receiver
+  identities**, subscribed each through a separate real MCP process, published a
+  clearly labeled **hand-authored synthetic** maintenance packet, retried the same
+  key, and retrieved exactly one matching delivery per receiver. Private credentials
+  and receipts are ignored under `.local/` and never committed.
+- Each SDK/triage/dispatch receiver used its own real MCP process and selected event
+  ID to produce a private source-linked receipt. Results: urgent decoding, urgent
+  triage, immediate-dispatch decision. Running consumer HTTP demo also exercised
+  both source revisions and unknown P2 -> manual review. These are implemented
+  adapters; receipt retrieval did not generate them with independent coding models.
+- Restarted both relay and PostgreSQL. Account/session/grants, source event ID,
+  delivery IDs, subscriptions and same-key retry identity survived. Repeated ack
+  retained its first timestamp. Website server route returned the same retained
+  event with PostgreSQL metadata and three deliveries.
+- Local TimescaleDB 2.32.0 ran from official `timescale/timescaledb:latest-pg16`
+  on separate loopback DB5433/relay4015. Core/003 then optional002 migrations,
+  reruns, historical backfill, triggers, actual `time_bucket` counts/latencies and
+  relay/database restart persistence passed. Two events retained exactly two
+  transitions of each kind. The live event measured 4 ms delivery and 272 ms first
+  retrieval including an intentional 250 ms wait. Unauthorized/wrong-space/invalid
+  ranges returned 401/404/400. This is local Timescale, not hosted Tiger Cloud/TLS.
+- Actual analyst `analyze` command failed closed without a provider key. Presence-only
+  checks found no `OPENAI_API_KEY`/`ANTHROPIC_API_KEY` in the shell or checked private
+  env files. Existing hand-authored transport checkpoints are not model output.
+- Attempted actual Claude Code receiver with a private MCP config. It failed before
+  tool calls: OAuth session expired and could not be refreshed. `auth status`
+  initially reported logged-in state, which did not prove live access. No successful
+  model adaptation is claimed.
+- Native computer-use request for Electron was denied; built-in browser access host
+  was unavailable. Desktop native launch is verified; desktop interactions and
+  latest web visual layout remain unverified.
+- A subagent inadvertently printed disposable local integration credentials into a
+  tool log. Root invalidated all twelve corresponding identity/session/space/grant
+  records, preserved event history, and regenerated distinct private identities
+  before final MCP receipts/restart verification. No exposed credential remains
+  usable against that old walkthrough account. No secrets entered git.
 
-Next.js at localhost:3000, connecting to the relay at localhost:4000. An existing
-agent key opens a private server-side session. The dashboard shows real events,
-subscriptions, admitted identities, deliveries, and first retrievals. It supports
-publishing context, subscribing, retrieving the current inbox, and disconnecting.
+## Remaining external work, in completion order
 
-This is local demo-key access, not completed public accounts/onboarding. API
-activity does not prove a coding model is active; retrieval does not prove useful
-work. Website sessions are temporary. Relay restart clears state in memory mode;
-PostgreSQL mode preserves it. Hosted Tiger Data verification remains pending.
+### 1. Run real analysis and reviewed publication
 
-## Active assignments — two people
+- [ ] Privately configure a provider key in `.local/model.env` or the shell.
+- [ ] Run the actual Deep Agents planner and contract/impact specialists; inspect
+  the evidence and schema-valid checkpoint. Fix any provider-specific runtime issues.
+- [ ] A person reviews the full candidate in the terminal and approves that exact
+  packet through the existing review command. Do not preapprove unseen model output.
+- [ ] Publish through MCP into PostgreSQL, retrieve from separate receivers, retry
+  approval and show the same event/delivery after restart in the dashboard.
 
-Start both agents from current `origin/main` (`c4b4ced` or newer), on separate
-branches/clones. The 1A/1B integration fix and dashboard have now merged. Share
-these assignments with both agents; do not start from an older local main.
+**Blocker:** absent provider credential. SDK graph construction and hand-authored
+packets do not complete this requirement. See `apps/change-analyst/README.md`.
 
-### Person A — Deep Agents publisher
+### 2. Run independent receiving coding models
 
-**Branch:** `feat/deep-agents`. **Own:** `apps/change-analyst/**` and
-`examples/api-change/**`. This is the primary LangChain prize feature.
+- [ ] Reauthenticate privately with `claude auth login` (or configure another actual
+  model client). Existing CLI OAuth expired before any model/tool execution.
+- [ ] Connect three separate receiver identities; select the reviewed model packet.
+  Have independent sessions make at least two useful, reviewable consumer changes.
+- [ ] Run their adapted consumer/UI flow and retain source/version evidence.
 
-Give your agent this task:
+**Current evidence:** three distinct identities and real bridge processes work,
+as do three checked-in consumer adaptations. Independent model-generated changes
+and cross-owner customer repositories have not been demonstrated.
 
-> Implement a minimal real TypeScript Deep Agents runner. Read `docs/product.md`
-> and use the existing contracts/MCP bridge. Add synthetic maintenance API fixtures:
-> before `{ priority: "urgent" }`, after `{ priority_code: "P1" }`, with an explicit
-> P1-to-urgent mapping. Run a plan, contract/impact specialists, and virtual evidence
-> files. Produce a schema-valid context packet, display it for terminal approval,
-> and publish through the existing MCP `publish_context` tool only after approval.
-> Keep its idempotency key stable across retries. Use one admitted publisher identity;
-> internal specialists are not independent network agents. Keep tools restricted to
-> supplied fixtures and reviewed publication. Provide runnable package commands.
-> Run it with an available model credential and show a real recipient retrieving
-> the event. If no credential is available, complete the runner and state precisely
-> that the model run is pending. Do not fabricate a successful analysis. No test
-> suite, new planning docs, dashboard redesign, or relay changes. Update only A's
-> status below with completed work, actual execution, and remaining blockers.
+### 3. Verify actual Tiger Cloud
 
-**First runnable target:** fixtures → model-generated candidate → terminal approval
-→ existing relay via MCP. Add specialist/evidence depth next if the first pass is
-slow. A single-prompt first pass is progress, not the completed Deep Agents target.
+- [ ] Privately supply an existing Tiger Cloud service URI and trusted CA if needed.
+  Cloud provisioning is not implicitly authorized by local implementation.
+- [ ] Apply migrations with analytics enabled, validate hosted TLS, execute actual
+  `time_bucket` analytics, verify scoped access, and restart against hosted storage.
+- [ ] Report real publication-to-delivery/first-retrieval timings including polling
+  delay, never as proof of comprehension or useful work.
 
-**A status:** Runner implemented on `feat/deep-agents`; real model execution is
-pending a privately supplied `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` (neither was
-present in the shell or local env files). Added bounded synthetic before/after and
-consumer fixtures with the explicit P1 → urgent mapping. The TypeScript Deep Agents
-runner configures todo planning, contract/impact specialists, read-only virtual
-fixtures, evidence files, and shared-schema structured output. It checks required
-plan/delegation tool calls and evidence before saving a private review checkpoint.
-A separate interactive review command displays the packet/evidence and publishes
-only after the exact terminal approval, using the existing MCP bridge. Checkpoints
-retain the exact packet, target space, and stable run retry key across restarts;
-mid-analysis crash recovery is not implemented. Commands and credential setup are
-in `apps/change-analyst/README.md`; dependencies/scripts are confined to A's package.
-Actual execution: `npm run build:bridge`, `npm run build:relay`, and
-`npm run build -w @civitas/change-analyst` passed. The real Deep Agents graph
-constructed offline with planning, specialists, permissions, and structured output;
-this does not prove model planning or delegation ran. `analyze` explicitly failed
-closed without a model key. A **hand-authored, labeled transport-only packet** ran
-through an isolated real in-memory relay: receiver MCP subscription, terminal
-rejection (empty inbox), approval → MCP publication, and separate receiver MCP
-retrieval all worked. A second approved review returned the identical event with
-one inbox delivery. Noninteractive review was rejected. No model-generated packet,
-live specialist analysis, consumer adaptation, or Tiger durability is claimed.
-Remaining: run analysis with a real provider credential, review its evidence, and
-publish/retrieve that model-generated packet. B must reconcile the root lockfile
-at integration; A left it unchanged and used installs with `--package-lock=false`.
+**Blocker:** no hosted database credential/service. Local PostgreSQL and local
+Timescale runs must be identified separately from Tiger Cloud.
 
-### Person B — Tiger Data storage
+### 4. Submission and genuine feedback
 
-**Branch:** `feat/tiger-storage`. **Own:** `apps/relay/**`, root config/lockfile,
-`.env.example`, Compose. Keep the existing API and MCP bridge compatible.
+- [x] Prepare truthful setup instructions, attribution, draft project description
+  and timed walkthrough outline in README.
+- [x] Check official public rules and current event listing; record deadline conflict
+  and sponsor details still needing organizer clarification in README.
+- [ ] Confirm team eligibility/check-in, track selection and sponsor compatibility
+  with organizers; add every team member and required handles.
+- [ ] Perform a timed in-person rehearsal, publish source separately if authorized,
+  and submit Devpost materials. No publication or submission occurred here.
+- [ ] If pursuing Peri, obtain real developer feedback, implement a response and have
+  that developer try it. If pursuing CoStar, validate a real property-workflow benefit.
+  Do not attribute the synthetic demo to a real customer.
 
-Give your agent this task:
+## Implementation limits and later work
 
-> Replace relay in-memory event/subscription/inbox storage with PostgreSQL when
-> DATABASE_URL is configured. Preserve the existing demo identities, HTTP routes,
-> response shapes, space access checks, and dashboard activity endpoint. Add small
-> SQL migrations and startup commands. Make publish + fanout transactional, keep
-> retry deduplication unique, and persist subscriptions, deliveries, and first
-> retrieval timestamps. Prove a real published event survives relay restart. Then
-> add Timescale activity storage and a per-space time_bucket analytics endpoint on
-> a real Tiger Cloud connection. Keep core uniqueness constraints in normal tables.
-> Return truthful storage/durability metadata; preserve an explicitly labeled
-> memory mode if needed. Do not claim Tiger use from vanilla PostgreSQL alone.
-> If Tiger credentials are unavailable, build/run the portable PostgreSQL slice
-> and state the hosted integration blocker. No tests/CI, auth-provider work,
-> desktop work, or new planning docs. Update only B's status below.
-
-**First runnable target:** same API with restart-safe PostgreSQL data. Timescale
-analytics follows persistence; do not delay the first working slice for charts.
-
-**B status:** Portable PostgreSQL slice complete on `feat/tiger-storage`; this
-supersedes the earlier memory-only status for B. Added transactional publish/fanout,
-unique retry keys, persistent subscriptions/inboxes/first retrievals, explicit SQL
-migrations (`npm run db:migrate`), verified remote TLS, truthful readiness/dashboard
-storage labels, and separate opt-in Timescale hypertable + analytics route. Relay
-and website builds passed. Live PostgreSQL 16 walkthrough: two relay processes
-handled concurrent retries/polls without duplicate events or transitions; forced
-fanout failure rolled back the whole publish; credentials and spaces stayed scoped.
-Two real MCP bridge processes published/retrieved; the event and retry key survived
-both relay and database restart. Migration reruns and explicit memory mode work.
-No test suite was added. **Remaining:** user has no Tiger Cloud database; provision
-one and run the Timescale migration/analytics flow there. Plain PostgreSQL correctly
-rejects that migration without partial changes. Hosted TLS and real Timescale
-results remain unverified; no cloud resource was provisioned. README has setup
-commands. A's model-generated publication still needs the combined demo.
-
-## Shared handoff and integration
-
-- Freeze current publish/subscribe/get-updates shapes. A works against today's relay
-  while B changes storage underneath it. No version append requirement in this round.
-- A uses `sp_demo`, topic `project/maintenance-api`, and the generated publisher
-  credential. Subscribe the receiver before publishing. Use real MCP processes.
-- B owns root dependency/build/env changes. A declares dependencies and scripts in
-  its own package manifest. Reconcile the root lockfile after merging; do not run
-  concurrent installs in a shared checkout.
-- One planned cross-file change: B may update `ActivitySnapshotSchema` storage
-  metadata in `packages/contracts` and the corresponding memory labels in
-  `apps/web/app/page.tsx`. Coordinate this narrowly; no dashboard redesign.
-- Each agent edits only its status paragraph here, records commands/limitations,
-  and commits its own branch. Do not rewrite the whole plan during parallel work.
-- Integrate by publishing A's real candidate through MCP into B's relay, retrieving
-  it from another process, restarting the relay, and showing the saved event in
-  the dashboard. Fix blockers directly; no validation framework.
-
-These are focused build slices, not guaranteed twenty-minute tasks. Get the first
-runnable target working before expanding. Public onboarding, desktop, and download
-packaging stay queued. Talk to the actual customer and confirm sponsor criteria
-alongside development; no customer feedback has been documented yet.
+- Email verification/recovery, hosted auth, and public deployment require an explicit
+  production architecture; local accounts are implemented and labeled honestly.
+- Desktop source runs locally. Signed/notarized platform installers and GitHub
+  downloadable releases remain lower priority. A local tracked-source/self-host
+  archive command is documented in README, with platform/signing targets and
+  license/public package naming undecided. No release automation was added.
+- Identity persistence uses private normal JSONB records with serialized mutations,
+  suitable for hackathon scale. Per-process login throttling is not a distributed
+  public-auth defense. Core uniqueness/idempotency stays in normal SQL tables.
+- No mid-analysis crash resume was added; durable review checkpoints support stable
+  publication retries. No automatic execution/wake-up of receiving coding models.
+- No customer feedback, successful live model analysis, hosted Tiger integration,
+  prize eligibility, or successful submission is fabricated.

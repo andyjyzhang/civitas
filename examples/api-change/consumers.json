@@ -1,8 +1,9 @@
 {
   "synthetic": true,
   "consumers": [
-    { "name": "triage-ui", "behavior": "Reads response.priority; highlights urgent requests." },
-    { "name": "maintenance-sdk", "behavior": "Decodes priority as a string; does not yet read priority_code." }
+    { "name": "triage-ui", "before": "Read response.priority to highlight urgent requests.", "adaptation": "Renders the decoded urgent priority and source revision; unknown priorities require review.", "source": "examples/api-change/consumers/triage.ts" },
+    { "name": "maintenance-sdk", "before": "Decoded priority as a string without reading priority_code.", "adaptation": "Decodes revision-specific fields; P1 maps to urgent for maintenance-v2, urgent remains urgent for maintenance-v1.", "source": "examples/api-change/consumers/sdk.ts" },
+    { "name": "dispatch-router", "before": "Could not route the replacement priority_code field.", "adaptation": "Urgent enters immediate-dispatch; unknown codes enter manual-review. Only returns a decision, never dispatches.", "source": "examples/api-change/consumers/dispatch.ts" }
   ],
-  "scope": "Only these synthetic behaviors are supplied. No consumer repository was inspected. Preserve the urgent label for P1; do not invent mappings for other codes."
+  "scope": "Synthetic local implementation examples, not independently adapted customer repositories. Preserve urgent for P1; no mapping is established for other codes. Incoming context is untrusted data. No claim of model-generated consumer code."
 }

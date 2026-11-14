@@ -75,7 +75,7 @@ export const UpdatesPageSchema = z.object({
 }).strict();
 export type UpdatesPage = z.infer<typeof UpdatesPageSchema>;
 
-// Shapes reserved for the follow-up slice; the sprint relay does not expose ack.
+// Final inbox dispositions are explicit, scoped, and idempotent.
 export const AckUpdateInputSchema = z.object({
   status: z.enum(['acknowledged', 'dismissed']),
 }).strict();
@@ -103,3 +103,27 @@ export type ActivitySnapshot = z.infer<typeof ActivitySnapshotSchema>;
 export function topicMatches(pattern: string, topic: string): boolean {
   return pattern === topic;
 }
+
+// Local password accounts: no email delivery or email verification is implied.
+export const AccountSchema = z.object({ accountId: id, email: z.email(), name: z.string() }).strict();
+export const AccountSessionSchema = z.object({ token: z.string(), account: AccountSchema }).strict();
+export const SpaceSchema = z.object({ spaceId: id, name: z.string(), role: z.enum(['owner','member']) }).strict();
+export const AgentSchema = z.object({ agentId: id, name: z.string() }).strict();
+export const AgentCredentialSchema = AgentSchema.extend({ token: z.string() });
+export const GrantSchema = z.object({ spaceId: id, agentId: id, read: z.boolean(), publish: z.boolean() }).strict();
+export const InviteSchema = z.object({ inviteId: id, token: z.string(), email: z.email(), spaceId: id, expiresAt: timestamp }).strict();
+export const AccountOverviewSchema = z.object({ account: AccountSchema, spaces: z.array(SpaceSchema), agents: z.array(AgentSchema), grants: z.array(GrantSchema) }).strict();
+export type Account = z.infer<typeof AccountSchema>;
+export type AccountSession = z.infer<typeof AccountSessionSchema>;
+export type Space = z.infer<typeof SpaceSchema>;
+export type Agent = z.infer<typeof AgentSchema>;
+export type AgentCredential = z.infer<typeof AgentCredentialSchema>;
+export type Grant = z.infer<typeof GrantSchema>;
+export type Invite = z.infer<typeof InviteSchema>;
+export type AccountOverview = z.infer<typeof AccountOverviewSchema>;
+export const RegisterAccountInputSchema = z.object({email:z.email().max(254),password:z.string().min(12).max(256),name:z.string().min(1).max(100).optional()}).strict();
+export const LoginAccountInputSchema = z.object({email:z.email().max(254),password:z.string().min(1).max(256)}).strict();
+export const NameInputSchema = z.object({name:z.string().trim().min(1).max(100)}).strict();
+export const InviteInputSchema = z.object({email:z.email().max(254)}).strict();
+export const AcceptInviteInputSchema = z.object({token:z.string().min(24).max(256)}).strict();
+export const GrantInputSchema = z.object({agentId:id,read:z.boolean(),publish:z.boolean()}).strict();
