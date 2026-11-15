@@ -1,13 +1,23 @@
 import { json, sameOrigin } from '../../../../../lib/relay';
-import { AgentHttpError, STREAM_OPTIONS, agentFailure, lg, summarize, threadAccess } from '../../../../../lib/agents';
+import { AgentHttpError, STREAM_OPTIONS, agentFailure, lg, runTimings, subagentCache, summarize, threadAccess, workspaceActivity } from '../../../../../lib/agents';
 
 export const runtime = 'nodejs';
 
-// GET — any member of the run's space: current plan, files, timeline and pending approval.
+// GET — any member of the run's space: current plan, files, timeline and pending approval, plus
+// step timings (checkpoint history), subagent steps this web server saw live, and the approval's
+// impact (subscribed receivers on the topic, read server-side with the workspace analyst credential).
 export async function GET(_request: Request, { params }: { params: Promise<{ threadId: string }> }) {
   try {
     const { thread, space } = await threadAccess((await params).threadId, false);
-    return json({ run: summarize(thread), canControl: space.role === 'owner' });
+    const run = summarize(thread);
+    const timings = await runTimings(thread.thread_id).catch(() => ({}));
+    let impact: { subscribers: number; topic: string } | null = null;
+    const topic = run.approval?.civitas?.topic;
+    if (run.kind === 'analyst' && topic) {
+      const snapshot = await workspaceActivity(space.spaceId).catch(() => null);
+      if (snapshot) impact = { topic, subscribers: new Set(snapshot.subscriptions.filter(s => s.topic === topic).map(s => s.agentId)).size };
+    }
+    return json({ run, canControl: space.role === 'owner', timings, subagents: subagentCache.get(thread.thread_id) ?? {}, impact });
   } catch (error) { return agentFailure(error); }
 }
 
@@ -23,6 +33,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ thr
     const run = summarize(thread);
     if (thread.status !== 'interrupted' || !run.approval) throw new AgentHttpError(409, 'This run is not waiting for approval.');
     if (!run.approval.allowed.includes(body.decision)) throw new AgentHttpError(400, `This action does not allow ${body.decision}.`);
+    if (body.decision === 'reject' && !message) throw new AgentHttpError(400, 'Give a reason for rejecting.');
     const decision = body.decision === 'approve' ? { type: 'approve' } : { type: 'reject', ...(message ? { message } : {}) };
     const value = run.approval.shape === 'batched' ? { decisions: run.approval.actions.map(() => decision) } : decision;
     const interrupts = Object.values(thread.interrupts || {}).flat();
