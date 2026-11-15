@@ -796,3 +796,35 @@ label remains visible throughout. Checked representative actual rendered frames
 page errors. Full production build passed; ffprobe confirmed dimensions/rate/time
 and ffmpeg decoded the finished MP4 without errors. Restarted the preview after
 building to avoid stale chunk URLs. No deployment or publication occurred.
+
+## Two-minute content expansion and voiceover (November 14)
+
+Expanded `/demo/film` to 120 seconds across twelve substantive scenes: project
+(0–10), collaborators (10–20), receiver connection (20–30), chat (30–45), selected
+context (45–55), API-change setup (55–64), parallel analysis (64–76), source
+evidence (76–86), owner review (86–94), rollout/diff review (94–106), trace and
+immutable context version (106–114), result (114–120). New screens use the same
+product components/styles/fonts; no relay or real-product mutation behavior changed.
+The longer film has new setup, explanation and evidence content; the original
+60-second MP4 is retained separately. Updated the demo link to “2-minute tour.”
+
+`story.json` defines the scene timing, captions and matching narration. Created
+`docs/demo/voiceover.md`: 267 words, about 134 wpm, twelve exact time windows and
+screen cues; copied to `.local/demo/civitas-voiceover.md` with optional
+`.local/demo/civitas-voiceover.srt`. This is a narration script; no synthetic voice
+has been generated or added to the silent MP4. The illustrative label remains.
+
+Ran production build and inspected all twelve scenes in Chromium at 1920×1080;
+no page errors or horizontal overflow. Source content was checked against the
+actual Connect agent flow, API changelog and receiver documentation. Rendering
+and encoded-artifact verification are recorded below when complete.
+
+**Completed:** `.local/demo/civitas-two-minute-demo.mp4` contains 2,880 actual
+Chromium-rendered frames, H.264 at 1920×1080/24 fps, exactly 120.000 seconds
+verified by ffprobe. ffmpeg decoded the finished file without errors. Chromium
+reported no page errors throughout the render. Checked rendered patch-review and
+evidence frames; all twelve scenes were also visually inspected before capture.
+`npm run demo:film` now regenerates the matching local Markdown/SRT from the same
+story JSON as the video. Production build passed and the preview was restarted
+against its final output. The old one-minute artifact remains separate. No live
+model run, voice synthesis, deployment or external publication is claimed.

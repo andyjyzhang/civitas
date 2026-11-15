@@ -7,15 +7,9 @@ import '../../styles/people.css';
 import '../../styles/agents.css';
 import './film.css';
 
-export const filmScenes = [
-  { at: 0, name: 'Civitas', title: 'Civitas. One workspace for people and agents.', caption: 'Civitas brings people, coding agents and source-linked knowledge into one shared workspace.' },
-  { at: 7, name: 'Collaborate', title: 'Bring the team. Connect your agents.', caption: 'Invite teammates to a private group. Each person connects their own Claude Code or Codex.' },
-  { at: 15, name: 'Chat', title: 'Talk to people. Ask an agent.', caption: 'Choose People for team chat, or address a connected agent for a reply in the same feed.' },
-  { at: 27, name: 'Analyze', title: 'Turn one change into shared understanding.', caption: 'The analyst checks the contract and impact in parallel, cites its sources and flags unknowns.' },
-  { at: 36, name: 'Review', title: 'You decide what gets shared.', caption: 'Review the proposed update before it reaches the services that depend on it.' },
-  { at: 41, name: 'Rollout', title: 'The right context reaches each service.', caption: 'Each adapter reads the shared update and proposes a patch. You review before it applies.' },
-  { at: 53, name: 'Result', title: 'Independent agents. Shared context.', caption: 'Chat, evidence, approvals and rollout stay together. Your team keeps the context—and the control.' },
-];
+import story from './story.json';
+export const filmScenes = story.scenes;
+const DURATION = story.duration;
 const nav = [{ name: 'Activity', Icon: Activity }, { name: 'Inbox', Icon: Inbox }, { name: 'Agents', Icon: Bot }, { name: 'Members', Icon: Users }];
 const clamp = (n: number) => Math.max(0, Math.min(1, n));
 const typed = (text: string, t: number, start: number, length: number) => text.slice(0, Math.floor(text.length * clamp((t - start) / length)));
@@ -32,25 +26,26 @@ export default function Film() {
   const [cursorPosition, setCursorPosition] = useState({left:0, top:0});
   useEffect(() => { setCapture(new URLSearchParams(window.location.search).has('capture')); }, []);
   useEffect(() => {
-    const seek = (event: Event) => { setPlaying(false); setTime(Math.max(0, Math.min(60, Number((event as CustomEvent).detail) || 0))); };
+    const seek = (event: Event) => { setPlaying(false); setTime(Math.max(0, Math.min(DURATION, Number((event as CustomEvent).detail) || 0))); };
     window.addEventListener('civitas-film-seek', seek);
     const key = (e: KeyboardEvent) => { if (e.code === 'Space' && !(e.target instanceof HTMLInputElement)) { e.preventDefault(); setPlaying(p => !p); } };
     window.addEventListener('keydown', key);
     return () => { window.removeEventListener('civitas-film-seek', seek); window.removeEventListener('keydown', key); };
   }, []);
   useEffect(() => {
-    if (!playing || time >= 60) return;
+    if (!playing || time >= DURATION) return;
     let previous = performance.now();
-    const interval = setInterval(() => { const now = performance.now(); setTime(t => Math.min(60, t + (now - previous) / 1000)); previous = now; }, 40);
+    const interval = setInterval(() => { const now = performance.now(); setTime(t => Math.min(DURATION, t + (now - previous) / 1000)); previous = now; }, 40);
     return () => clearInterval(interval);
-  }, [playing, time >= 60]);
-  const index = Math.max(0, filmScenes.findLastIndex(scene => time >= scene.at));
-  const scene = filmScenes[index];
+  }, [playing, time >= DURATION]);
+  const sceneIndex = Math.max(0, filmScenes.findLastIndex(scene => time >= scene.at));
+  const scene = filmScenes[sceneIndex];
+  const index = scene.view;
   const local = time - scene.at;
-  const section = index === 1 ? 'Members' : index === 3 ? 'Agents' : 'Activity';
+  const section = [1,7].includes(index) ? 'Members' : [3,10,11].includes(index) ? 'Agents' : 'Activity';
   const sent = index === 2 && local >= 4.5;
   const replied = index === 2 && local >= 8.1;
-  const approved = index > 4 || (index === 4 && local >= 3.1);
+  const approved = [5,6,11].includes(index) || (index === 4 && local >= 6.3);
   const patchApproved = index === 5 && local >= 8.3;
   useLayoutEffect(() => { if (feed.current) feed.current.scrollTop = feed.current.scrollHeight; }, [index, sent, replied, patchApproved, index === 5 && local > 4.4]);
   useLayoutEffect(() => {
@@ -66,13 +61,13 @@ export default function Film() {
   const composerText = index === 1 ? '' : index === 2 && local < 4.5 ? typed('What does API v2 change for our triage service?', local, .8, 2.5) : '';
   // The UI elements below use the product's real classes and primitives. Only the illustrative data and pacing are scripted.
   return <main className={`film ${capture ? 'film-capture' : ''}`} data-scene={scene.name} data-time={time.toFixed(2)}>
-    <header className="film-masthead"><a href="/" className="film-wordmark">civitas</a><div className="film-chapters">{filmScenes.map((s, i) => <button key={s.name} className={i === index ? 'current' : i < index ? 'past' : ''} onClick={() => { setTime(s.at); setPlaying(true); }}>{s.name}</button>)}</div><span className="film-disclosure">Illustrative product walkthrough</span></header>
+    <header className="film-masthead"><a href="/" className="film-wordmark">civitas</a><div className="film-chapters">{filmScenes.map((s, i) => <button key={s.name} className={i === sceneIndex ? 'current' : i < sceneIndex ? 'past' : ''} onClick={() => { setTime(s.at); setPlaying(true); }}>{s.name}</button>)}</div><span className="film-disclosure">Illustrative product walkthrough</span></header>
     <div className="film-title" key={scene.name}><h1>{scene.title}</h1></div>
     <div className={`film-window film-camera-${index}`}>
       <div className="app film-product">
         <aside className="app-sidebar" aria-label="Product sidebar"><div className="switcher"><button className="switcher-button" tabIndex={-1}><span className="group-mark">M</span><span>Maintenance team</span><ChevronsUpDown/></button></div><nav className="nav" aria-label="Product navigation">{nav.map(({name, Icon}) => <button key={name} className="nav-link" aria-current={section === name ? 'page' : undefined} tabIndex={-1}><Icon/>{name}{name === 'Inbox' && index === 4 && !approved && <span className="count-badge">1</span>}</button>)}</nav><div className="account-menu"><button className="account-button" tabIndex={-1}><Avatar name="Alex" small/><span>Alex</span><ChevronsUpDown/></button></div></aside>
         <div className="app-main"><div className="app-content">
-          {index === 0 ? <div className="page film-overview">
+          {index === 7 ? <ConnectionScene local={local}/> : index === 8 ? <ContextScene local={local}/> : index === 9 ? <ChangeScene local={local}/> : index === 10 ? <EvidenceScene local={local}/> : index === 11 ? <TraceScene local={local}/> : index === 0 ? <div className="page film-overview">
             <PageHeader title="Civitas" description="A shared context network for independently owned AI agents."/>
             <Card className="film-overview-main"><div className="film-overview-avatars"><span style={{animationDelay:'.15s'}}><Avatar name="Alex"/></span><span style={{animationDelay:'.35s'}}><Avatar name="Maya"/></span><span style={{animationDelay:'.55s'}}><AgentAvatar/></span><span style={{animationDelay:'.75s'}}><AgentAvatar/></span></div><h2>Your team’s knowledge, connected.</h2><p>People collaborate in private groups. Their agents share selected, versioned context through MCP.</p><div className="film-overview-flow"><span><MessageSquare/>Team chat</span><ArrowRight/><span><FileText/>Shared context</span><ArrowRight/><span><Bot/>Connected agents</span></div></Card>
             <div className="film-overview-grid">{[{Icon:Users,title:'Collaborate',text:'People and their agents, in one group.'},{Icon:Link2,title:'Share context',text:'Source-linked updates across services.'},{Icon:ShieldCheck,title:'Stay in control',text:'Review updates and patches before applying.'}].map(({Icon,title,text},i)=><Card key={title} className="film-stagger" style={{animationDelay:`${.6+i*.25}s`}}><Icon/><h3>{title}</h3><p>{text}</p></Card>)}</div>
@@ -85,9 +80,9 @@ export default function Film() {
               {sent && <FeedRow who="Alex → Alex’s Codex" status={replied?'Replied':local>6?'Replying…':'Sending…'} statusKind={replied?'done':'working'}>What does API v2 change for our triage service?</FeedRow>}
               {sent&&!replied&&<div className="film-typing film-appear"><AgentAvatar small/><span/><span/><span/></div>}
               {replied&&<FeedRow who="Alex’s Codex" agent><p>v2 replaces <code>priority</code> with <code>priority_code</code>.</p><p><strong>P1 means urgent.</strong> P2 and P3 are undocumented, so keep them in manual review.</p><div className="film-citation"><FileText size={13}/>CHANGELOG.md <Badge>Selected context</Badge></div></FeedRow>}
-              {local>9.8&&<div className="activity-note film-appear"><ShieldCheck size={15}/>Chat replies don’t execute commands or change files.</div>}
+              {local>10.8&&<FeedRow who="Maya">Let’s share a reviewed update with SDK and dispatch, too.</FeedRow>}
             </> : <>
-              <FeedRow who="Analyst agent" agent status={approved?'Shared':'Needs your review'} statusKind={approved?'done':'waiting'}><span>{approved?'Shared an update with 3 services.':'Proposed an update for review.'}</span><div className={`rv-card ${!approved?'rv-waiting':''}`}><div className="rv-title"><strong>Maintenance API v2: priority codes</strong><Badge tone="failed">Breaking</Badge></div><ul className="rv-bullets"><li><code>priority</code> → <code>priority_code</code></li><li>P1 = urgent · source: CHANGELOG.md</li><li>P2 and P3 → manual review</li><li>/work-orders sunset: March 31, 2027</li></ul>{index===4&&!approved?<><p className="rv-question">Share this update with 3 services?</p><div className="page-actions"><Button variant="primary" size="sm" className={`film-share-target ${local>2.8?'film-click':''}`} icon={<Check/>}>Approve and share</Button><Button size="sm">Reject…</Button><Button variant="ghost" size="sm">View full report</Button></div></>:<p className="film-shared"><Check size={16}/>Approved and shared</p>}
+              <FeedRow who="Analyst agent" agent status={approved?'Shared':'Needs your review'} statusKind={approved?'done':'waiting'}><span>{approved?'Shared an update with 3 services.':'Proposed an update for review.'}</span><div className={`rv-card ${!approved?'rv-waiting':''}`}><div className="rv-title"><strong>Maintenance API v2: priority codes</strong><Badge tone="failed">Breaking</Badge></div><ul className="rv-bullets"><li><code>priority</code> → <code>priority_code</code></li><li>P1 = urgent · source: CHANGELOG.md</li><li>P2 and P3 → manual review</li><li>/work-orders sunset: March 31, 2027</li></ul>{index===4&&!approved?<><p className="rv-question">Share this update with 3 services?</p><div className="page-actions"><Button variant="primary" size="sm" className={`film-share-target ${local>6?'film-click':''}`} icon={<Check/>}>Approve and share</Button><Button size="sm">Reject…</Button><Button variant="ghost" size="sm">View full report</Button></div></>:<p className="film-shared"><Check size={16}/>Approved and shared</p>}
               {index>=5&&<section className="rollout"><header><h3>Rollout</h3><span className="subtle rollout-all">{index===6?'3 of 3 updated':'Three connected services'}</span></header><ul>{['SDK decoder','Triage UI','Dispatch service'].map((name,i)=>{
                 const phase=index===6?99:local-i*.65;
                 const done=phase>(i===1?7.65:6.3);
@@ -102,9 +97,28 @@ export default function Film() {
           </div>}
         </div></div>
       </div>
-      {(index===2&&local>3.5&&local<5.2)||(index===4&&local>1.5&&local<3.6)||(index===5&&local>7&&local<8.7)?<div style={cursorPosition} className={`film-cursor cursor-${index} ${((index===2&&local>4.1)||(index===4&&local>2.8)||(index===5&&local>8))?'clicking':''}`}><MousePointer2 fill="white" size={28}/></div>:null}
+      {(index===2&&local>3.5&&local<5.2)||(index===4&&local>4.5&&local<6.8)||(index===5&&local>7&&local<8.7)?<div style={cursorPosition} className={`film-cursor cursor-${index} ${((index===2&&local>4.1)||(index===4&&local>6)||(index===5&&local>8))?'clicking':''}`}><MousePointer2 fill="white" size={28}/></div>:null}
     </div>
-    <footer className="film-caption"><p key={index}>{scene.caption}</p><div className="film-progress"><span style={{width:`${time/60*100}%`}}/></div></footer>
-    {!capture&&<div className="film-controls"><Button size="sm" variant="ghost" onClick={()=>{if(time>=60)setTime(0);setPlaying(p=>!p);}} icon={playing&&time<60?<Pause/>:<Play/>}>{playing&&time<60?'Pause':'Play'}</Button><input type="range" min="0" max="60" step=".1" value={time} aria-label="Film position" onChange={e=>{setTime(Number(e.target.value));setPlaying(false);}}/><span>{Math.floor(time)} / 60s</span><Button size="sm" href="/demo">Full workflow & live mode</Button></div>}
+    <footer className="film-caption"><p key={sceneIndex}>{scene.caption}</p><div className="film-progress"><span style={{width:`${time/DURATION*100}%`}}/></div></footer>
+    {!capture&&<div className="film-controls"><Button size="sm" variant="ghost" onClick={()=>{if(time>=DURATION)setTime(0);setPlaying(p=>!p);}} icon={playing&&time<DURATION?<Pause/>:<Play/>}>{playing&&time<DURATION?'Pause':'Play'}</Button><input type="range" min="0" max={DURATION} step=".1" value={time} aria-label="Film position" onChange={e=>{setTime(Number(e.target.value));setPlaying(false);}}/><span>{Math.floor(time)} / {DURATION}s</span><Button size="sm" href="/demo">Full workflow & live mode</Button></div>}
   </main>;
+}
+
+function ConnectionScene({local}: {local:number}) {
+  return <div className="page film-extra"><PageHeader title="Members" description="Connect an agent using the account you already use."/><section className="modal film-inline-modal"><h2>Connect Codex</h2><p>Connect and start automatic chat replies using your Codex account. No model API key needed.</p><h3>1. Run in your Civitas checkout</h3><pre className="setup-command">npm run link -- codex --relay YOUR_RELAY_URL{'\n'}  --code YOUR_ONE_TIME_CODE --listen</pre><p className="subtle">Command shape only · generate a private, single-use code in Members.</p>{local>2&&<div className="film-appear"><h3>2. Keep the receiver terminal open</h3><p className="subtle">It receives addressed messages and replies using your existing CLI login and usage allowance.</p></div>}{local>4.5&&<div className="film-appear"><h3>3. Verify the connection</h3><div className="film-link-check"><AgentAvatar/><span>Alex’s Codex</span><StatusPill status="done" label="Listening"/></div><Button size="sm">Send connection check</Button></div>}<p className="film-explainer">Each person connects their own receiver. Chat generation still takes normal model response time.</p></section></div>;
+}
+function ContextScene({local}: {local:number}) {
+  const selected=['The message addressed to this agent','Recent context updates shared with the group','Recent exchanges addressed to this agent'];
+  return <div className="page film-extra"><PageHeader title="Selected context" description="What the local chat receiver can use for its reply."/><Card title="Sent to the connected agent" padded={false}><div className="list">{selected.map((text,i)=>local>i*.9&&<div key={text} className="list-row film-appear"><Check size={16} className="film-done"/><span className="row-main">{text}</span><Badge tone="done">Included</Badge></div>)}</div></Card>{local>3&&<Card title="Kept separate" className="film-appear"><div className="film-context-boundary"><ShieldCheck/><div><h3>Your private coding conversation</h3><p>Connecting an agent does not copy its private chat history into the group.</p></div></div></Card>}{local>5.5&&<div className="notice film-appear"><ShieldCheck size={18}/><span>Chat tools are disabled. Replies do not run commands or edit files.</span></div>}</div>;
+}
+function ChangeScene({local}: {local:number}) {
+  return <div className="page film-extra"><PageHeader title="Maintenance API v2" description="Synthetic API and consumer repositories used for this demonstration."/><Card title="Breaking field replacement"><div className="film-change-compare"><div><Badge>v1 response</Badge><pre className="code-block">{'{\n  "priority": "urgent"\n}'}</pre></div><ArrowRight/><div><Badge tone="waiting">v2 response</Badge><pre className="code-block">{'{\n  "priority_code": "P1"\n}'}</pre></div></div></Card><Card title="Three services depend on this contract" padded={false}><div className="list">{[{name:'SDK decoder',text:'Parses the API response'},{name:'Triage UI',text:'Shows priority to operators'},{name:'Dispatch service',text:'Routes maintenance work'}].map((item,i)=>local>1+i*.8&&<div className="list-row film-appear" key={item.name}><Code2 size={18}/><div className="row-main"><strong>{item.name}</strong><small className="subtle">{item.text}</small></div><StatusPill status="waiting" label="Needs update"/></div>)}</div></Card></div>;
+}
+function EvidenceScene({local}: {local:number}) {
+  const tab=local<3?'openapi-v2.yaml':local<7?'CHANGELOG.md':'Evidence summary';
+  return <div className="page film-extra"><PageHeader title="Sources and evidence" description="Inspect the files behind the analyst’s proposed update."/><article className="card ag-detail"><header className="ag-detail-head"><div className="ag-detail-title"><div><h2>Analyze Maintenance API</h2><StatusPill status="waiting" label="Needs your review"/></div><p className="ag-meta">Maintenance API v1 → v2 · synthetic source fixture</p></div></header><div className="tabs">{['openapi-v2.yaml','CHANGELOG.md','Evidence summary'].map(name=><button key={name} aria-selected={name===tab}><FileText size={13}/>{name}</button>)}</div><div key={tab} className="film-appear">{local<3?<pre className="code-block film-evidence-code">{'PriorityCode:\n  type: string\n  enum: [P1, P2, P3]\n\n# The schema lists codes.\n# Their business meaning needs another source.'}</pre>:local<7?<pre className="code-block film-evidence-code">{'CHANGELOG.md — selected excerpt\n\nP1 is the direct successor of the former urgent priority.\n\nP2/P3 semantics will be finalized with the operations team;\ndo not assume P2 = normal or P3 = low.\n\nGET /work-orders/{id} is deprecated.\nRemoval is planned for 2027-03-31.'}</pre>:<ul className="film-evidence-list"><li><Check/>P1 = urgent · documented in CHANGELOG.md</li><li><ShieldCheck/>P2, P3 · unresolved → manual review</li><li><FileText/>Legacy endpoint · sunset March 31, 2027</li></ul>}</div></article><p className="film-explainer">An allowed enum value is not a documented business meaning. Unknown mappings stay explicit.</p></div>;
+}
+function TraceScene({local}: {local:number}) {
+  const steps=[{name:'Plan and delegate',text:'Contract and Impact specialists',icon:GitBranch},{name:'Read sources',text:'openapi-v1.yaml · openapi-v2.yaml · CHANGELOG.md',icon:FileText},{name:'Review and share',text:'Owner approves the context update',icon:ShieldCheck},{name:'Review and apply',text:'Adapters propose diffs; owner approves patches',icon:Code2}];
+  return <div className="page film-extra"><PageHeader title="Run detail" description="Inspect the path from source evidence to approved changes."/><Card title="Timeline" description="Illustrative sequence, matching the workflow shown." padded={false}><div className="list">{steps.map((s,i)=>local>i*.8&&<div className="list-row film-appear" key={s.name}><s.icon size={18}/><div className="row-main"><strong>{s.name}</strong><small className="subtle">{s.text}</small></div><Check size={16} className="film-done"/></div>)}</div></Card>{local>3.6&&<Card title="Source-linked context version" className="film-appear"><div className="film-version-row"><Badge>Version 1</Badge><span>Maintenance API v2: priority codes</span><Badge tone="done">Immutable</Badge></div><p className="film-explainer">Later corrections create a new version. The original shared context remains available.</p></Card>}</div>;
 }
