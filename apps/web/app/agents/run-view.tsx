@@ -82,7 +82,7 @@ export default function RunView({ threadId, onChange, onBack }: { threadId: stri
 
     <section className="ag-section" aria-label="Timeline">
       <div className="ag-section-head"><h3>Timeline</h3><span className="subtle">{run.timeline.filter(i => i.kind !== 'say').length} steps</span></div>
-      {run.timeline.length ? <ol className="ag-timeline">{run.timeline.map(item => <Step key={item.id} item={item} timings={timings} sub={item.kind === 'task' ? subFor(item, run.timeline, subagents) : undefined}/>)}</ol>
+      {run.timeline.length ? <ol className="ag-timeline">{run.timeline.map(item => <Step key={item.id} item={run.status === 'waiting' && item.status === 'running' ? { ...item, status: 'waiting' as TimelineItem['status'] } : item} timings={timings} sub={item.kind === 'task' ? subFor(item, run.timeline, subagents) : undefined}/>)}</ol>
         : <p className="subtle">Waiting for the first step…</p>}
     </section>
 
@@ -132,6 +132,7 @@ function Step({ item, timings, sub }: { item: TimelineItem; timings: Timings; su
 }
 function StepStatus({ status }: { status: TimelineItem['status'] }) {
   if (status === 'running') return <span className="ag-dot working" aria-label="Running"/>;
+  if ((status as string) === 'waiting') return <span className="ag-step-wait">Awaiting approval</span>;
   if (status === 'error') return <X className="ag-step-err" aria-label="Error"/>;
   return <Check className="ag-step-ok" aria-label="Done"/>;
 }
@@ -193,7 +194,7 @@ function ApprovalPanel({ run, canControl, impact, onDecided }: { run: RunDetail;
   const change = action?.args.change as { breaking?: boolean; kind?: string } | undefined;
   return <section className="ag-approval" aria-label="Approval required">
     <div className="ag-approval-head">
-      <StatusPill status="waiting" label={canControl ? 'Waiting for you' : 'Waiting for owner'}/>
+      <p className="ag-label">{canControl ? 'Your approval is needed' : 'Waiting for the group owner'}</p>
       <p className="ag-approval-summary">{summary}</p>
     </div>
     <dl className="ag-facts">

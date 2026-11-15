@@ -71,6 +71,9 @@ summary.ag-step-row:hover { background: var(--surface-hover); }
 .ag-step-ok { width: 14px; height: 14px; color: var(--status-done); }
 .ag-step-err { width: 14px; height: 14px; color: var(--status-failed); }
 .ag-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--status-working); animation: pulse 1.6s ease-in-out infinite; }
+.ag-step-wait { color: var(--status-waiting); }
+.ag-step.waiting .ag-step-icon { border-color: var(--status-waiting-border); color: var(--status-waiting); }
+.ag-timeline.nested .ag-say { max-height: 9em; overflow: auto; }
 .ag-step-more { padding: var(--space-1) 0 var(--space-3) 31px; }
 .ag-step.say .ag-step-icon { border-style: dashed; }
 .ag-step.say { display: flex; gap: var(--space-2); padding: 4px 0; }
@@ -106,7 +109,8 @@ summary.ag-step-row:hover { background: var(--surface-hover); }
 
 /* ---------- Approval ---------- */
 .ag-approval { display: flex; flex-direction: column; gap: var(--space-3); margin: var(--space-4) var(--space-5) 0; padding: var(--space-4) !important; border: 1px solid var(--status-waiting-border); border-radius: var(--radius); background: var(--status-waiting-soft); }
-.ag-approval-head { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); }
+.ag-approval-head { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); }
+.ag-approval-head .ag-label { margin: 0; color: var(--status-waiting); }
 .ag-approval-summary { font-size: var(--text-lg); line-height: 1.4; overflow-wrap: anywhere; }
 .ag-approval-summary strong { font-weight: 600; }
 .ag-facts { margin: 0; display: grid; gap: 6px; font-size: var(--text-sm); }
