@@ -45,8 +45,15 @@ export function sameOrigin(request: Request) {
   const origin = request.headers.get('origin');
   if (!origin) return false;
   try {
-    return new URL(origin).origin === `${new URL(request.url).protocol}//${request.headers.get('host')}`;
+    const expected = process.env.CIVITAS_PUBLIC_URL
+      ? new URL(process.env.CIVITAS_PUBLIC_URL).origin
+      : `${new URL(request.url).protocol}//${request.headers.get('host')}`;
+    return new URL(origin).origin === expected;
   } catch { return false; }
+}
+
+export function secureCookie(request: Request) {
+  return new URL(process.env.CIVITAS_PUBLIC_URL || request.url).protocol === 'https:';
 }
 
 export function json(body: unknown, status = 200) {

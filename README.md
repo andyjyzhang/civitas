@@ -14,7 +14,8 @@ A real Deep Agents analyst reads OpenAPI/changelog fixtures, infers what changed
 and publishes an approved packet; three adapter agents (one definition, three
 credentials) retrieve it and propose approved patches to their consumers.
 Hosted Tiger Cloud persistence/analytics are verified; independent coding-agent
-sessions (e.g. Claude Code) as receivers remain pending. This is a loopback hackathon demo, not a deployed public service.
+sessions (e.g. Claude Code) as receivers remain pending. A free Render demo setup
+is included below; public deployment is pending hosting-account access.
 
 - [Design](docs/product.md): product, stack, prize strategy, and demo.
 - [Work plan](docs/work-plan.md): current implementation, verified flows, and external blockers.
@@ -181,6 +182,48 @@ agent ID. Disable both permissions to revoke access. Password recovery is unavai
 Web restart disconnects browser sessions; sign back in to your persisted account
 when using PostgreSQL. An existing agent key can reconnect with its space ID.
 Read-only agents cannot publish; all access is enforced by the relay.
+
+## Shared hackathon hosting (free Render + Tiger Cloud)
+
+`render.yaml` creates **one free web service**, with no paid disk or new database.
+`npm run build:host` builds the relay, bridge and website; `npm run start:host`
+migrates Tiger and runs a public gateway with three private internal services.
+Only `/v1/*` reaches the authenticated relay; the LangGraph API stays on loopback.
+The gateway streams agent activity and serves `/readyz` for service readiness.
+
+After the deployment branch is pushed, use
+[Deploy to Render](https://render.com/deploy?repo=https://github.com/andyjyzhang/civitas/tree/feat/shared-render-deployment)
+or connect the Render app to let your agent finish setup. Provide runtime secrets
+through Render, never git or browser-facing variables:
+
+- `DATABASE_URL`: the existing Tiger connection URI from your ignored `.env`.
+- `DATABASE_CA_PEM`: the complete certificate text in your ignored
+  `.local/tiger-ca.crt` (or an independently verified Tiger console certificate).
+- `OPENAI_API_KEY`: your key from `.local/model.env`. Hosting is free; model API
+  usage still consumes credits. Default hosted model: `gpt-4.1-mini`.
+
+Render generates separate demo credentials and supplies `RENDER_EXTERNAL_URL`.
+The host uses that HTTPS origin for cookies, origin checks, and teammates' agent
+connection commands. For another host/custom domain, set `CIVITAS_PUBLIC_URL` to
+the exact HTTPS origin. Keep one instance: browser sessions are process-local.
+
+After signing up, create a group and open `/api/account` while signed in to find
+`account.accountId`. The host can put approved IDs, comma-separated, in Render's
+`CIVITAS_HOSTED_AGENT_OWNER_IDS` and restart the service. Only those accounts may
+control hosted Deep Agents in groups they own. Personal Claude/Codex linking works
+without that approval and uses each developer's own coding-tool authentication.
+Email addresses are not used for host approval because this demo does not verify
+email ownership. Recheck the allowlist after resyncing the Blueprint.
+
+**Free-tier limits:** Render sleeps after 15 minutes of inactivity. Restarts,
+redeploys and sleep discard browser sessions, generated workspace credentials,
+patch copies and LangGraph development run history. Sign in again and enable
+workspace agents again; accounts, groups, chat and published context remain in
+Tiger. Native agent keys saved on teammates' computers remain usable. The local
+spend ledger also resets, so set provider-side spending controls. One LangGraph
+worker is configured to reduce resource use; a full model run's peak memory on
+Render's 512 MB free instance remains unverified. This is a shared hackathon demo,
+not production hosting. See [Render's free-tier limits](https://render.com/docs/free).
 
 ## Run the MCP bridge
 

@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { activity, cookieName, createSession, deleteSession, json, sameOrigin, spaceId } from '../../../lib/relay';
+import { activity, cookieName, createSession, deleteSession, json, sameOrigin, secureCookie, spaceId } from '../../../lib/relay';
 
 export const runtime = 'nodejs';
 
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     const jar = await cookies();
     deleteSession(jar.get(cookieName)?.value);
     jar.set(cookieName, createSession(body.token, selectedSpace), {
-      httpOnly: true, sameSite: 'strict', secure: new URL(request.url).protocol === 'https:',
+      httpOnly: true, sameSite: 'strict', secure: secureCookie(request),
       path: '/', maxAge: 8 * 60 * 60,
     });
     return json({ connected: true });

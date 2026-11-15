@@ -1,8 +1,48 @@
 # Build plan and verified status
 
 Build the real flow. No new test suites, lint/check pipelines, CI, release
-or deployment automation. Keep this file current; do not turn pending credentials,
+automation. The user explicitly requested a shared deployment; its minimal host
+setup is recorded below. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
+
+## Shared free hosting (November 14)
+
+User requested deployment, then specified **free only**. Branch
+`feat/shared-render-deployment`: one free Render Node service plus the existing
+Tiger database. `render.yaml` and `scripts/host.mjs` build/start the website,
+authenticated relay and private LangGraph development server behind one streaming
+gateway. Exact public origin fixes HTTPS cookies and CSRF checks; generated link
+commands use the public URL. Startup runs existing serialized migrations, verifies
+database readiness, and never falls back to memory. Child failure stops the host;
+shutdown signals LangGraph's worker process group. No paid resource is configured.
+
+Hosted Deep Agents controls require an explicitly approved account ID in
+`CIVITAS_HOSTED_AGENT_OWNER_IDS`; public signup cannot spend the host's key.
+Native Claude/Codex connections continue using each developer's own authentication.
+The Agents page labels ephemeral workspace/run storage. Free-tier sleep/restart
+also loses browser sessions and the local spend ledger; Tiger records and native
+agent keys survive. Workspace agents must be enabled again after ephemeral loss.
+
+**Actually ran:** `npm run build:host`; isolated combined host against real Tiger;
+HTTPS-origin simulation with Secure cookies, foreign-origin denial, short-password
+denial, two synthetic accounts, invitation/private-group chat, outsider denial,
+public relay URL generation, single-use native-agent link redemption, and private
+agent-server health. A real MCP subprocess retrieved one selected message through
+the public gateway and replied; the other account saw the authenticated reply.
+After a full combined-host restart, login, memberships, chat and that reply survived
+in Tiger. An approved owner enabled/reused four real workspace identities; oversized
+payloads were rejected, private agent routes stayed private, and the rendered Agents
+page included the ephemeral-storage notice. The Render Blueprint matches its official
+JSON schema. No model inference or real independent coding-session response is claimed.
+Observed idle process RSS on macOS was about 166 MiB; this is not a Render/Linux
+peak-memory measurement.
+
+**Remaining:** Render is not connected and no hosting credentials/browser access
+are available. No cloud service or paid resource has been created. Connect Render,
+provide the existing database URI/CA and model key through hosting secrets, deploy,
+approve intended host accounts, then verify public HTTPS, full model-run peak memory
+and the three-person native-agent flow. Render free has 512 MB and no persistent
+disk; model-run reliability there remains unverified. No public URL is claimed.
 
 ## Agents view in the website (November 15)
 

@@ -2,7 +2,7 @@ import { resolve, join } from 'node:path';
 import { homedir } from 'node:os';
 import { cookies } from 'next/headers';
 import { CivitasApiError } from '@civitas/client';
-import { accountClientFor, baseUrl, accountCookieName, cookieName, createSession, deleteSession, json, sameOrigin, session } from '../../../lib/relay';
+import { accountClientFor, baseUrl, accountCookieName, cookieName, createSession, deleteSession, json, sameOrigin, secureCookie, session } from '../../../lib/relay';
 export const runtime = 'nodejs';
 export async function GET(request: Request) {
   const current = await session(accountCookieName);
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       const client = accountClientFor();
       const result = operation === 'register' ? await client.register(input) : await client.login(input);
       deleteSession(jar.get(accountCookieName)?.value);
-      jar.set(accountCookieName, createSession(result.token), { httpOnly: true, sameSite: 'strict', secure: new URL(request.url).protocol === 'https:', path: '/', maxAge: 8 * 60 * 60 });
+      jar.set(accountCookieName, createSession(result.token), { httpOnly: true, sameSite: 'strict', secure: secureCookie(request), path: '/', maxAge: 8 * 60 * 60 });
       return json({ account: result.account });
     }
     const current = await session(accountCookieName);
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     if (operation === 'setPublisher') return json(await client.setPublisher(input.spaceId,input.accountId,input.canPublish));
     if (operation === 'invite') return json(await client.invite(input.spaceId, input.email));
     if (operation === 'acceptInvite') return json(await client.acceptInvite(input.token));
-    if (operation === 'createAgent') return json({ ...await client.createAgent(input.name), relayUrl: baseUrl() });
+    if (operation === 'createAgent') return json({ ...await client.createAgent(input.name), relayUrl: process.env.CIVITAS_PUBLIC_RELAY_URL || baseUrl() });
     if (operation === 'setGrant') return json(await client.setGrant(input.spaceId, { agentId: input.agentId, read: input.read, publish: input.publish }));
     return json({ error: 'Unknown account operation.' }, 400);
   } catch (error) { return failure(error); }

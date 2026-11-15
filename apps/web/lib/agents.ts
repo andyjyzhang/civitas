@@ -74,6 +74,14 @@ export async function spaceAccess(spaceId: unknown, needOwner: boolean) {
   const space = overview.spaces.find(s => s.spaceId === spaceId);
   if (!space) throw new AgentHttpError(404, 'Group not found or you are not a member.');
   if (needOwner && space.role !== 'owner') throw new AgentHttpError(403, 'Only the group owner can control workspace agents.');
+  // Public signup must not give visitors access to the host's paid model key.
+  // Use immutable account IDs: email ownership is not verified in this demo.
+  if (needOwner && process.env.CIVITAS_HOSTED_DEMO === 'true') {
+    const approved = (process.env.CIVITAS_HOSTED_AGENT_OWNER_IDS || '').split(',').map(id => id.trim()).filter(Boolean);
+    if (!approved.includes(overview.account.accountId)) {
+      throw new AgentHttpError(403, 'Hosted workspace agents require approval from the host. Your personal Claude/Codex connection is still available.');
+    }
+  }
   return { token: current.token, overview, space };
 }
 export async function threadAccess(threadId: unknown, needOwner: boolean) {
