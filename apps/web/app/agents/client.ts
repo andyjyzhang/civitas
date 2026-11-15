@@ -1,10 +1,44 @@
 'use client';
 
-// Client helpers shared by Agents, Inbox and Context. Everything these pages show that came from a
+// Client helpers shared by Activity, Agents and Inbox. Everything these pages show that came from a
 // model or a remote agent is rendered as plain text (React escapes it) — never as HTML.
-import { useEffect, useState } from 'react';
-import type { RunStatus, RunSummary } from '../../lib/agents';
+import { useCallback, useEffect, useState } from 'react';
+import type { AccountOverview } from '@civitas/contracts';
+import type { RoleStatus, RunStatus, RunSummary } from '../../lib/agents';
 import type { Status } from '../components/ui';
+
+/** GET /api/agents?space= */
+export type AgentsOverview = {
+  space: AccountOverview['spaces'][number]; accountId: string;
+  sources: { id: string; label: string; topic: string }[];
+  consumers: { role: string; label: string; topic: string }[];
+  workspace: RoleStatus[]; agentServer: { url: string; up: boolean; message: string };
+  runs: RunSummary[]; runsError: string;
+};
+export const shortLabel = (label: string) => label.replace(/\s*\(.*\)\s*$/, '').trim() || label;
+
+/** Polls the group's agent overview: every 3s while a run is active or waiting, else every 10s. */
+export function useAgentsOverview(spaceId: string) {
+  const [overview, setOverview] = useState<AgentsOverview | null>(null);
+  const [error, setError] = useState('');
+  const load = useCallback(async () => {
+    if (!spaceId) return;
+    try { setOverview(await call<AgentsOverview>('/api/agents?space=' + encodeURIComponent(spaceId))); setError(''); }
+    catch (e) { setError(e instanceof Error ? e.message : 'Could not load agents.'); }
+  }, [spaceId]);
+  useEffect(() => { void load(); }, [load]);
+  const active = overview?.runs.some(r => r.status === 'running' || r.status === 'waiting') ?? false;
+  useEffect(() => { const t = setInterval(() => void load(), active ? 3000 : 10000); return () => clearInterval(t); }, [load, active]);
+  return { overview, error, load };
+}
+
+/** Owner-only actions (enforced server-side too). */
+export const agentActions = {
+  decide: (threadId: string, decision: 'approve' | 'reject', message = '') => call(`/api/agents/runs/${encodeURIComponent(threadId)}`, { method: 'POST', body: JSON.stringify({ decision, message }) }),
+  startAdapter: (spaceId: string, role: string) => call<{ threadId: string }>('/api/agents/runs', { method: 'POST', body: JSON.stringify({ spaceId, kind: 'adapter', role }) }),
+  startAnalyst: (spaceId: string, sourceId: string, goal: string) => call<{ threadId: string }>('/api/agents/runs', { method: 'POST', body: JSON.stringify({ spaceId, kind: 'analyst', sourceId, goal }) }),
+  sample: (spaceId: string) => call<{ threadId: string; enabled: boolean }>('/api/agents/sample', { method: 'POST', body: JSON.stringify({ spaceId }) }),
+};
 
 export async function call<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, { cache: 'no-store', ...init, headers: { ...(init?.body ? { 'Content-Type': 'application/json' } : {}), ...init?.headers } });
@@ -46,8 +80,10 @@ export function duration(from?: string, to?: string) {
 export function runStatus(run: Pick<RunSummary, 'status' | 'stopped'>, owner: boolean): { status: Status; label: string } {
   const s: RunStatus = run.status;
   if (s === 'running') return { status: 'working', label: 'Working' };
-  if (s === 'waiting') return { status: 'waiting', label: owner ? 'Waiting for you' : 'Waiting for owner' };
-  if (s === 'published' || s === 'applied' || s === 'completed') return { status: 'done', label: 'Done' };
+  if (s === 'waiting') return { status: 'waiting', label: owner ? 'Needs your review' : 'Waiting for owner' };
+  if (s === 'published') return { status: 'done', label: 'Shared' };
+  if (s === 'applied') return { status: 'done', label: 'Updated' };
+  if (s === 'completed') return { status: 'done', label: 'Done' };
   if (s === 'rejected') return { status: 'idle', label: 'Rejected' };
   if (run.stopped) return { status: 'idle', label: 'Stopped' };
   return { status: 'failed', label: 'Failed' };

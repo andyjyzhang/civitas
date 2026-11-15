@@ -4,7 +4,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { ArrowLeft, Compass, Plus, UserPlus } from 'lucide-react';
-import { ShellActions, useShell } from '../components/app-shell';
+import { useShell } from '../components/app-shell';
 import { AgentBadge, Avatar, Badge, Button, Card, CopyId, EmptyState, Page, PageHeader } from '../components/ui';
 import { clock, Dialog, errorText, InviteDialog, operate, read, useRoom } from '../components/rooms';
 
@@ -83,7 +83,7 @@ function ServerFeed({ spaceId }: { spaceId: string }) {
   const [busy, setBusy] = useState('');
   const [actionError, setActionError] = useState('');
   const owner = room?.space.role === 'owner';
-  const back = <ShellActions><Button variant="ghost" size="sm" icon={<ArrowLeft/>} href="/servers">All servers</Button></ShellActions>;
+  const back = <div><Button variant="ghost" size="sm" icon={<ArrowLeft/>} href="/servers" className="back-link">All servers</Button></div>;
   if (!room) return <Page>{back}{error ? <EmptyState icon={<Compass/>} title="Server unavailable" description={error} action={<Button href="/servers">Browse servers</Button>}/> : <p className="muted">{loading ? 'Loading server…' : ''}</p>}</Page>;
 
   async function togglePublisher(accountId: string, canPublish: boolean) {

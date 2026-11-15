@@ -7,6 +7,15 @@ model calls, customer feedback or sponsor eligibility into completion claims.
 
 ## Shared free hosting (November 14)
 
+Latest `main` (`393933d`, Activity redesign and rollout fixes) was merged into the
+deployment branch. The work-plan conflict was resolved by preserving both records;
+the agent helpers merged without losing the hosted-account access restriction.
+`npm run build:host` passed. An isolated combined host booted against Tiger using
+the prepared Render env import; real login, Secure cookies, Activity rendering and
+backing APIs, legacy-page redirects and hosted-model denial passed. No model call
+was made. The Render service must still save the required environment values and
+manually deploy the latest commit on `feat/shared-render-deployment`.
+
 User requested deployment, then specified **free only**. Branch
 `feat/shared-render-deployment`: one free Render Node service plus the existing
 Tiger database. `render.yaml` and `scripts/host.mjs` build/start the website,
@@ -45,11 +54,44 @@ and GitHub has no commit-status reports for that deployment yet. The populated
 database URI, CA certificate and model key were assembled into ignored mode-0600
 `.local/render-required.env`, ready for Render's Environment → Add from .env.
 Its values round-trip through dotenv; no secrets were printed or committed.
+After Render reported the startup configuration guard, the ignored import file was
+updated to explicitly set `RELAY_STORAGE=postgres` and enable Timescale analytics.
+The user still needs to save those values in the Render service environment.
 
 **Remaining:** verify/import the service's saved environment, finish deployment,
 approve intended host accounts, then verify public HTTPS, full model-run peak memory
 and the three-person native-agent flow. Render free has 512 MB and no persistent
 disk; model-run reliability there remains unverified. No public URL is claimed.
+
+## Website redesign: Activity feed (Option C, November 15)
+
+- **Palette/design system** (`apps/web/app/globals.css` header documents it): zinc
+  surfaces, lime `--accent` (primary, live, unread), teal `--agent` + lime→teal ring for
+  agent avatars, borderless 12px cards, 28px titles. Drawer + "⋯ Details" menu
+  (`components/overlays.tsx`) hold IDs, topics, storage and server status.
+- **IA:** sidebar = Activity (home), Inbox, Agents, Members; Explore servers moved to the
+  account menu. `/groups`, `/context`, `/relay` redirect to `/activity` (keep `?space`);
+  signed-in `/` and login land on `/activity`.
+- **`/activity`:** one feed (newest at the bottom, composer pinned) merging room messages
+  (delivery pills, To-agent; workspace agents hidden from To since they never read
+  messages), analyst runs (working → inline "Share this update with N services?" with
+  2–4 bullets from the packet, required reject reason, full report drawer), the shared
+  update with a Rollout list per service (Not started / Updating / Needs your review /
+  Updated; Update / Update all / Retry for the owner), adapter patch cards (6-line diff
+  preview, Apply patch, full diff drawer) and "X updated" rows. Relay posts mirroring a
+  shared update are folded into it. Polls room 4s, runs 3s while active, context 5s.
+  Inbox rows open `/activity?item=<run>`. Agents page: Services instead of Consumers,
+  collapsed steps summary, IDs in Run details; Members: ID behind row ⋯.
+- **Ran** (memory relay 4901, agent server 2901 gpt-4.1-mini, `next start` 3901,
+  Playwright/Chrome): owner signup → group → message → Run sample analysis from Activity →
+  inline approve → Update all services → apply three patches inline → Rollout 3 of 3
+  Updated; extra Triage adapt → Inbox → Activity item → inline reject with reason;
+  member account saw zero action buttons; redirects checked; no console errors; no
+  horizontal scroll at 390 on all pages. `npm run build:web` passes. Spend ≈ $0.19
+  (ledger delta, shared ledger).
+- **Not done:** messaging a real connected Claude/Codex agent was not re-run this pass
+  (composer path unchanged); rollout row status for receivers is overlaid from adapter
+  runs client-side; Members still shows workspace agents as "Not connected yet".
 
 ## Agents view in the website (November 15)
 

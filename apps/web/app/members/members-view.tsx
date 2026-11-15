@@ -1,11 +1,13 @@
 'use client';
 
-// Members & access: people, agents (grants), invitations for the selected group.
+// Members: people, agents (read / publish grants) and invitations for the selected group.
+// Agent IDs stay behind each row's ⋯ menu.
 import { useMemo, useState, type FormEvent } from 'react';
 import { KeyRound, UserPlus, Users } from 'lucide-react';
 import { useShell } from '../components/app-shell';
 import ConnectAgent from '../components/connect-agent';
-import { AgentBadge, Avatar, Badge, Button, Card, CopyId, EmptyState, InfoTip, Page, PageHeader } from '../components/ui';
+import { AgentAvatar, Avatar, Badge, Button, Card, CopyId, EmptyState, Page, PageHeader } from '../components/ui';
+import { DetailRows, DetailsMenu } from '../components/overlays';
 import { clock, CopyButton, Dialog, errorText, InviteDialog, operate, timeAgo, useRoom, type CreatedInvite } from '../components/rooms';
 
 type Credential = { agentId: string; name: string; token: string; relayUrl: string };
@@ -47,45 +49,43 @@ export default function MembersView() {
     finally { setPending(''); }
   }
 
-  if (!spaceId) return <Page><PageHeader title="Members & access"/><EmptyState icon={<Users/>} title="No group selected" description="Create or join a group to manage its members and agents." action={<Button variant="primary" onClick={() => shell.openDialog('create')}>Create group</Button>}/></Page>;
+  if (!spaceId) return <Page><PageHeader title="Members"/><EmptyState icon={<Users/>} title="No group selected" description="Create or join a group to manage its members and agents." action={<Button variant="primary" onClick={() => shell.openDialog('create')}>Create group</Button>}/></Page>;
 
   return <Page>
-    <PageHeader title="Members & access" description={`People and agents in ${space?.name || 'this group'}.`}
+    <PageHeader title="Members" description={`People and agents in ${space?.name || 'this group'}.`}
       actions={owner ? <Button variant="primary" icon={<UserPlus/>} onClick={() => setInviting(true)}>Invite people</Button> : undefined}/>
     {(error || roomError) && <div className="alert" role="alert">{error || roomError}</div>}
 
     <Card title={room ? `People · ${room.members.length}` : 'People'} padded={false}>
       <div className="table-wrap"><table className="table people-table">
-        <thead><tr><th>Name</th><th>Role</th><th>Posting <InfoTip text="Everyone in a group can post. Publisher approval applies to servers."/></th></tr></thead>
+        <thead><tr><th>Name</th><th>Role</th></tr></thead>
         <tbody>{room ? room.members.map(m => <tr key={m.accountId}>
           <td><Avatar name={m.name} small/>{m.name}{m.accountId === room.currentAccountId && <span className="subtle"> (you)</span>}</td>
           <td>{m.role === 'owner' ? <Badge>Owner</Badge> : <span className="muted">Member</span>}</td>
-          <td><span className="muted">{m.canPublish ? 'Can post' : 'Read only'}</span></td>
-        </tr>) : <tr><td colSpan={3} className="muted">Loading…</td></tr>}</tbody>
+        </tr>) : <tr><td colSpan={2} className="muted">Loading…</td></tr>}</tbody>
       </table></div>
     </Card>
 
-    <Card title={`Agents · ${agents.filter(a => a.granted).length}`} description={owner ? 'Choose what each agent can read and publish in this group.' : 'Only the group owner can change agent access.'} padded={false}
+    <Card title={`Agents · ${agents.filter(a => a.granted).length}`} description={owner ? 'Choose what each agent can read and share here.' : 'Only the group owner can change agent access.'} padded={false}
       actions={<><ConnectAgent spaceId={spaceId} onLinked={async () => { await Promise.all([shell.refresh(), reload()]); }} size="sm"/><Button size="sm" icon={<KeyRound/>} onClick={() => setCreating(true)}>Create agent key</Button></>}>
       {agents.length ? <div className="table-wrap"><table className="table agents-table">
-        <thead><tr><th>Agent</th><th>Owner</th><th>Provider</th><th>Read</th><th>Publish</th><th>Last contact</th><th>ID</th></tr></thead>
+        <thead><tr><th>Agent</th><th>Owner</th><th>Read</th><th>Share</th><th>Last seen</th><th><span className="sr-only">More</span></th></tr></thead>
         <tbody>{agents.map(a => <tr key={a.agentId}>
-          <td><Avatar name={a.name} small/>{a.name} <AgentBadge/>{a.mine && <span className="subtle"> (yours)</span>}</td>
+          <td className="nowrap"><AgentAvatar small/>{a.name}{a.mine && <span className="subtle"> (yours)</span>}</td>
           <td>{a.owner || <span className="subtle">—</span>}</td>
-          <td>{a.provider ? <span className="muted">{a.provider === 'claude' ? 'Claude Code' : a.provider === 'codex' ? 'Codex' : a.provider.toUpperCase()}</span> : <span className="subtle">—</span>}</td>
           <td>{owner ? <input type="checkbox" checked={a.read} aria-label={`${a.name} can read`} disabled={pending === a.agentId} onChange={e => void setGrant(a, { read: e.target.checked, ...(e.target.checked ? {} : { publish: false }) })}/> : <Access on={a.read}/>}</td>
           <td>{owner ? <input type="checkbox" checked={a.publish} aria-label={`${a.name} can publish`} disabled={pending === a.agentId} onChange={e => void setGrant(a, { publish: e.target.checked })}/> : <Access on={a.publish}/>}</td>
-          <td>{a.lastSeenAt ? <span className="muted" title={new Date(a.lastSeenAt).toLocaleString()}>{timeAgo(a.lastSeenAt)}</span> : <span className="subtle">{a.granted ? 'Awaiting setup' : 'No access'}</span>}</td>
-          <td><CopyId id={a.agentId}/></td>
+          <td className="nowrap">{a.lastSeenAt ? <span className="muted" title={new Date(a.lastSeenAt).toLocaleString()}>{timeAgo(a.lastSeenAt)}</span> : <span className="subtle">{a.granted ? 'Not connected yet' : 'No access'}</span>}</td>
+          <td className="actions-cell"><DetailsMenu label={`${a.name} details`}><DetailRows rows={[['Agent ID', <CopyId key="id" id={a.agentId}/>], ['Provider', a.provider === 'claude' ? 'Claude Code' : a.provider === 'codex' ? 'Codex' : a.provider]]}/></DetailsMenu></td>
         </tr>)}</tbody>
       </table></div> : <div className="card-body"><p className="muted">No agents yet. Connect Claude Code or Codex to bring your coding agent into this group.</p></div>}
     </Card>
 
-    {owner && <Card title="Invitations" description="Tokens are shown once when created. Pending invitations expire after 24 hours." padded={false}>
+    {owner && invites.length > 0 && <Card title="Invitations" description="Each token is shown once. Invitations expire after 24 hours." padded={false}>
       {invites.length ? <div className="table-wrap"><table className="table">
         <thead><tr><th>Email</th><th>Created</th><th>Expires</th></tr></thead>
         <tbody>{invites.map(i => <tr key={i.inviteId}><td>{maskEmail(i.email)}</td><td className="muted">This session</td><td className="muted">{clock(i.expiresAt)}</td></tr>)}</tbody>
-      </table></div> : <div className="card-body"><p className="muted">Invitations you create here are listed for this visit.</p></div>}
+      </table></div> : null}
     </Card>}
 
     {inviting && <InviteDialog spaceId={spaceId} spaceName={space?.name || 'group'} onClose={() => setInviting(false)} onCreated={i => setInvites(list => [i, ...list])}/>}
@@ -121,16 +121,6 @@ function CreateAgentDialog({ spaceId, owner, onClose }: { spaceId: string; owner
     const url = URL.createObjectURL(new Blob([body], { type: 'text/plain' }));
     const link = document.createElement('a'); link.href = url; link.download = `${credential.agentId}.env`; link.click(); URL.revokeObjectURL(url);
   }
-  async function openRelay() {
-    if (!credential) return;
-    setBusy(true); setError('');
-    try {
-      const response = await fetch('/api/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: credential.token, spaceId }) });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || 'Could not open the relay as this agent.');
-      window.location.assign(`/context?space=${encodeURIComponent(spaceId)}`);
-    } catch (e) { setError(errorText(e)); setBusy(false); }
-  }
   return <Dialog title={credential ? `${credential.name} created` : 'Create agent key'} description={credential ? 'Save this credential now. It is shown only once.' : 'For custom MCP clients. Claude Code and Codex users can use Connect agent instead.'} onClose={onClose} closeDisabled={busy}>
     {!credential ? <form onSubmit={submit}>
       <label>Agent name<input name="name" required maxLength={100} autoFocus placeholder="Frontend agent"/></label>
@@ -139,10 +129,10 @@ function CreateAgentDialog({ spaceId, owner, onClose }: { spaceId: string; owner
     </form> : <form onSubmit={e => { e.preventDefault(); onClose(); }}>
       <p className="muted">Agent ID <CopyId id={credential.agentId}/></p>
       <label>Agent credential<input type="password" value={credential.token} readOnly autoComplete="off" className="mono" onFocus={e => e.currentTarget.select()}/></label>
-      <div className="page-actions"><CopyButton value={credential.token} label="Copy credential"/><Button size="sm" onClick={download}>Download .env</Button><Button size="sm" variant="ghost" disabled={busy} onClick={() => void openRelay()}>Open relay as agent</Button></div>
+      <div className="page-actions"><CopyButton value={credential.token} label="Copy credential"/><Button size="sm" onClick={download}>Download .env</Button></div>
       <p className="subtle">Keep the .env file outside your repository, then print an MCP setup command (use <code>codex</code> or <code>json</code> for other clients):</p>
       <pre className="setup-command">node packages/cli/dist/index.js configure claude /absolute/path/agent.env</pre>
-      <p className="subtle">{owner ? 'Turn on Read and Publish for this agent in the Agents table to give it access to this group.' : 'Ask the group owner to grant this agent access.'}</p>
+      <p className="subtle">{owner ? 'Turn on Read and Share for this agent in the Agents table to give it access to this group.' : 'Ask the group owner to grant this agent access.'}</p>
       {error && <p className="alert" role="alert">{error}</p>}
       <Button type="submit" variant="primary">Done</Button>
     </form>}
