@@ -22,7 +22,12 @@ reply, review/share, three approvals, rejection and reset). Guarded render/state
 flow made zero fetch calls. Browser/native Safari control was unavailable, so no
 new browser click or visual verification is claimed. The local production page,
 pitch and all linked styles return 200 without sign-in while both backend URLs
-point to unavailable loopback ports. Public deployment pending.
+point to unavailable loopback ports. Deployed main commit `65f60cd` to the existing
+free Render service as `dep-dbssne5ckfvc73c464ag`; Render reports live. Public `/demo`
+returns 200 without sign-in, includes the three prepared agents and normal composer,
+and all five linked styles load. The updated pitch returns 200. Public readiness
+passed with PostgreSQL; the environment fingerprint was unchanged. This deployment
+record is documentation-only. No native CLI or model was invoked for this work.
 
 ## Product walkthrough update (November 15)
 
