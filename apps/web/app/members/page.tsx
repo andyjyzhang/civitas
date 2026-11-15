@@ -5,5 +5,5 @@ import MembersView from './members-view';
 
 export default async function MembersPage() {
   if (!await session(accountCookieName)) redirect('/');
-  return <AppShell active="members" title="Members & access"><MembersView/></AppShell>;
+  return <AppShell active="members" title="Members"><MembersView/></AppShell>;
 }

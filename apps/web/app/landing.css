@@ -1,13 +1,14 @@
 /* Landing + login. Form uses the shared tokens and <Button>; only layout lives here. */
 .landing { min-height: 100svh; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
 .landing-nav { display: flex; align-items: center; padding: var(--space-6) var(--space-10); }
-.landing-wordmark { font-size: var(--text-xl); font-weight: 600; letter-spacing: -.02em; }
+.landing-wordmark { display: inline-flex; align-items: center; gap: 10px; font-size: var(--text-xl); font-weight: 650; letter-spacing: -.02em; }
+.landing-wordmark::before { content: ''; width: 22px; height: 22px; border-radius: 7px; background: var(--brand-gradient); }
 .landing-main { width: min(1100px, 100%); margin: 0 auto; flex: 1; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); justify-items: center; align-content: center; align-items: center; gap: 80px; padding: var(--space-8) var(--space-10) 96px; }
-.ascii-logo { color: #b5c99a; user-select: none; width: 100%; min-width: 0; }
+.ascii-logo { color: var(--accent); text-shadow: 0 0 18px rgba(198, 243, 107, .25); user-select: none; width: 100%; min-width: 0; }
 .ascii-logo pre { margin: 0; white-space: pre; font: clamp(5px, .9vw, 11.4px)/1.15 'Courier New', monospace; width: fit-content; margin-inline: auto; }
-.landing-login-form { width: min(320px, 100%); display: flex; flex-direction: column; gap: var(--space-4); }
+.landing-login-form { width: min(340px, 100%); padding: var(--space-8) var(--space-6); border-radius: 16px; background: var(--surface); display: flex; flex-direction: column; gap: var(--space-4); }
 .auth-heading { margin-bottom: var(--space-2); }
-.auth-heading h1 { font-size: var(--text-xl); }
+.auth-heading h1 { font-size: var(--text-title); }
 .auth-heading p { margin-top: var(--space-1); color: var(--text-muted); }
 .auth-hint { display: block; margin-top: var(--space-1); color: var(--text-subtle); font-size: var(--text-xs); font-weight: 400; }
 .auth-error { margin: 0; }
@@ -18,5 +19,6 @@
   .landing-main { grid-template-columns: 1fr; gap: var(--space-8); padding: 0 var(--space-4) var(--space-12); align-content: start; }
   .ascii-logo { max-width: 320px; }
   .ascii-logo pre { font-size: clamp(4px, 1.15vw, 7px); }
+  .landing-login-form { padding: var(--space-6) var(--space-5); }
   .landing-login-form input { font-size: 16px; }
 }

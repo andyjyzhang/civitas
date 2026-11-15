@@ -1,9 +1,7 @@
 import { redirect } from 'next/navigation';
-import { accountCookieName, session } from '../../lib/relay';
-import AppShell from '../components/app-shell';
-import ContextView from './context-view';
 
-export default async function ContextPage() {
-  if (!await session(accountCookieName)) redirect('/');
-  return <AppShell active="context" title="Context"><ContextView/></AppShell>;
+// Chat and the context feed now live in Activity.
+export default async function Redirect({ searchParams }: { searchParams: Promise<{ space?: string | string[] }> }) {
+  const space = (await searchParams).space;
+  redirect(typeof space === 'string' ? `/activity?space=${encodeURIComponent(space)}` : '/activity');
 }

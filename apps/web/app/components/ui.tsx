@@ -1,5 +1,5 @@
-// Shared UI primitives. Server-safe (no hooks) except CopyId, which lives in
-// copy-id.tsx as a client component and is re-exported here.
+// Shared UI primitives. Server-safe (no hooks) except CopyId (copy-id.tsx) and the
+// Drawer / DetailsMenu client components in overlays.tsx (import those directly).
 // Spec and token rules: the comment block at the top of app/globals.css.
 import Link from 'next/link';
 import { Bot, Info } from 'lucide-react';
@@ -30,7 +30,7 @@ export function Button(props: ButtonProps | LinkButtonProps) {
 }
 
 export type Tone = 'neutral' | 'accent' | 'working' | 'waiting' | 'done' | 'failed' | 'idle';
-/** Small label. `mono` for topics / versions / IDs. */
+/** Small label. `mono` for versions / IDs (only inside Details). */
 export function Badge({ tone = 'neutral', mono, icon, className, children, ...rest }: { tone?: Tone; mono?: boolean; icon?: ReactNode } & HTMLAttributes<HTMLSpanElement>) {
   return <span className={cx('badge', tone !== 'neutral' && `badge-${tone}`, mono && 'badge-mono', className)} {...rest}>{icon}{children}</span>;
 }
@@ -55,7 +55,7 @@ export function PageHeader({ title, description, actions }: { title: ReactNode; 
   return <header className="page-header"><div><h1>{title}</h1>{description && <p>{description}</p>}</div>{actions && <div className="page-actions">{actions}</div>}</header>;
 }
 
-/** Wraps page content with standard max-width and padding. `wide` removes the max-width. */
+/** Wraps page content with standard max-width and padding. `wide` allows a wider layout. */
 export function Page({ wide, className, children }: { wide?: boolean; className?: string; children: ReactNode }) {
   return <div className={cx('page', wide && 'page-wide', className)}>{children}</div>;
 }
@@ -64,16 +64,23 @@ export function EmptyState({ icon, title, description, action }: { icon?: ReactN
   return <div className="empty-state">{icon && <span className="empty-state-icon" aria-hidden="true">{icon}</span>}<h2>{title}</h2>{description && <p>{description}</p>}{action && <div className="empty-state-action">{action}</div>}</div>;
 }
 
-/** Marks agent-authored content. */
+/** Marks agent-authored content (teal). */
 export function AgentBadge({ label = 'Agent' }: { label?: string }) {
   return <span className="agent-badge"><Bot aria-hidden="true"/>{label}</span>;
 }
 
-/** Info icon with a native tooltip (title attr). */
+/** Agent identity: bot glyph inside the lime→teal brand ring. People use <Avatar>. */
+export function AgentAvatar({ small, label }: { small?: boolean; label?: string }) {
+  return <span className={cx('agent-avatar', small && 'small')} role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : true}><span><Bot aria-hidden="true"/></span></span>;
+}
+
+/** Info icon with a native tooltip (title attr). Use sparingly. */
 export function InfoTip({ text }: { text: string }) {
   return <span className="info-tip" title={text} aria-label={text} role="img"><Info aria-hidden="true"/></span>;
 }
 
-export function Avatar({ name, small }: { name: string; small?: boolean }) {
+/** A person's initial. Pass `agent` to get the agent ring instead. */
+export function Avatar({ name, small, agent }: { name: string; small?: boolean; agent?: boolean }) {
+  if (agent) return <AgentAvatar small={small}/>;
   return <span className={cx('avatar', small && 'small')} aria-hidden="true">{name.trim()[0]?.toUpperCase() || '?'}</span>;
 }
