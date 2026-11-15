@@ -47,7 +47,7 @@ export default function AgentsView() {
   const adapt = (role: string) => act(async () => { const r = await agentActions.startAdapter(spaceId, role); setSelected(r.threadId); await load(); });
   const sample = () => act(async () => { const r = await agentActions.sample(spaceId); setSelected(r.threadId); await load(); });
 
-  if (!groups.length) return <Page><PageHeader title="Agents"/><EmptyState icon={<Bot/>} title="Create a group first" description="Agents work inside a group."/></Page>;
+  if (!groups.length) return <Page><PageHeader title="Agents"/><EmptyState icon={<Bot/>} title="Create a group first" description="Agents work inside a group." action={<Button href="/demo" variant="secondary">Watch demo</Button>}/></Page>;
 
   const server = overview?.agentServer;
   const enabled = overview?.workspace.every(r => r.present && r.tokenValid !== false) ?? false;
@@ -107,7 +107,7 @@ export default function AgentsView() {
           {selected ? <RunView key={selected} threadId={selected} onChange={load} onBack={() => setSelected('')}/>
             : overview.runs.length ? <EmptyState icon={<Bot/>} title="Select a run" description="See its plan, steps, files and approvals."/>
             : <EmptyState icon={<FlaskConical/>} title="No runs yet" description={owner ? 'Try the sample: the analyst reads a Maintenance API change and proposes one update for your approval.' : 'The group owner starts analyses. Runs appear here as they happen.'}
-                action={owner && <Button variant="primary" icon={<Sparkles/>} disabled={busy || !canStart} onClick={() => void sample()}>{busy ? 'Starting…' : 'Run sample analysis'}</Button>}/>}
+                action={<><Button href={`/demo?space=${encodeURIComponent(spaceId)}`} variant="secondary">Watch demo</Button>{owner && <Button variant="primary" icon={<Sparkles/>} disabled={busy || !canStart} onClick={() => void sample()}>{busy ? 'Starting…' : 'Run sample analysis'}</Button>}</>}/>}
         </section>
       </div>
     </>}

@@ -184,6 +184,14 @@ initial trust. Credentials and private verification receipts remain outside git.
 
 ## Run the website
 
+For a presentation without sign-in or backend setup, open `/demo`. This hard-coded,
+presenter-paced walkthrough covers team chat, selected context, analysis, sharing
+approval and three individual sample patch reviews. It makes no API requests or
+file changes. Reset starts it again; presenter notes and the
+[three-minute pitch script](apps/web/public/demo/pitch.md) provide matching narration
+and click cues. The animated workflow replay/live controls remain at `/demo/replay`,
+and the two-minute automatic tour remains at `/demo/film`.
+
 Keep the relay running, then in another terminal:
 
 ```sh
@@ -480,3 +488,46 @@ git archive --format=tar.gz --output=.local/civitas-local-source.tar.gz HEAD
 Extract it, then follow the install/setup/build instructions above. This is a source
 bundle requiring Node/npm, not a signed desktop installer or published npm package.
 No release pipeline, cloud deployment or GitHub publication is included.
+
+## Watch demo
+
+Open `/demo` (or **Watch demo** on the landing/empty Agents page). The player runs
+for 90 seconds, with speed/seek controls, Space to pause and arrow keys to move.
+Turn off **Auto-play replay approvals** to present the decisions yourself.
+The current bundle is honestly labeled **Illustrative walkthrough**: a real
+recording is still needed in this checkout. No run date, spend or human approval
+is invented.
+
+**Run live instead** uses the existing signed-in group owner controls and real
+approval cards. Start analysis, review/share its packet, then start the three
+service adapters and review each diff. The relay, agent server and privately
+configured model key must be running as described above. Export selected run JSON
+when it finishes; load it in the player, or replace
+`apps/web/public/demo/recording.json` and rebuild to bundle it. Review the selected
+source/evidence and diff contents before sharing. Model, cost and LangSmith link
+are shown only when captured; the live browser capture currently leaves them null.
+
+For a portable offline copy, run `npm run demo:export` and open
+`.local/demo/civitas-demo.html`. It contains the entire bundled replay in one file
+and needs no server or network. After replacing the recording, export again.
+**See the full trace** retains the captured snapshots and original timestamps,
+including approval contents and diffs. These demo assets are local; nothing is
+published by the export command.
+
+The locally generated backup is `.local/demo/civitas-demo-illustrative.mp4`
+(H.264, 90 seconds). It shows the labeled illustrative walkthrough, not a recorded
+model run. Regenerate the backup after capturing and bundling the real run.
+
+A **two-minute tour** at `/demo/film` opens with the project overview,
+collaboration and chat, then condenses the change-analysis workflow. It uses the
+website's actual UI components, CSS and Geist fonts. `npm run demo:film` creates
+`.local/demo/civitas-film.html`; all scripted conversation/workflow content is
+labeled illustrative. The longer `/demo` retains live mode and recording controls.
+The completed local MP4 is `.local/demo/civitas-overview-chat-demo.mp4`
+(original 60-second cut, 1080p, 24 fps, captioned and silent).
+
+The expanded two-minute MP4 is `.local/demo/civitas-two-minute-demo.mp4`. Its
+matching timecoded narration is in `docs/demo/voiceover.md` (also copied to
+`.local/demo/civitas-voiceover.md`), with an optional SRT beside it. The 120-second
+cut adds receiver setup, selected context, API-change setup, evidence and trace
+inspection; it is an illustrative product walkthrough, captioned and silent.

@@ -48,8 +48,9 @@ function useRun(threadId: string, onSettled: () => void) {
   return { run, ...extra, live, streamError, reconnect: connect, refetch: fetchDetail };
 }
 
-export default function RunView({ threadId, onChange, onBack }: { threadId: string; onChange: () => void; onBack?: () => void }) {
+export default function RunView({ threadId, onChange, onBack, onSnapshot }: { threadId: string; onChange: () => void; onBack?: () => void; onSnapshot?: (run: RunDetail, subagents: Record<string, SubagentTrace>) => void }) {
   const { run, canControl, subagents, impact, live, streamError, reconnect, refetch } = useRun(threadId, onChange);
+  useEffect(() => { if (run) onSnapshot?.(run, subagents); }, [run, subagents, onSnapshot]);
   const now = useNow();
   const [stopping, setStopping] = useState(false);
   const [error, setError] = useState('');

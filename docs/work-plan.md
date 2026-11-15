@@ -1,5 +1,33 @@
 # Build plan and verified status
 
+## Presenter-paced hard-coded demo and pitch (November 15)
+
+On `feat/watch-demo`, `/demo` now opens a self-contained sample group workspace:
+team chat → selected agent context → API analysis/evidence → exact packet review
+→ three service-specific patch approvals → result. Chapter navigation unlocks as
+the presenter advances; the result requires all three sample approvals. Reset and
+refresh clear local state. Inline presenter notes follow the current chapter.
+Sample people, replies and patches are explicitly labeled scripted; no model,
+relay, credential, sign-in, file mutation or persistent state is involved.
+
+Preserved the existing workflow player/live integration at `/demo/replay` and the
+automatic film at `/demo/film`; existing offline exports still use their original
+components. Added `apps/web/public/demo/pitch.md`, downloadable from the page:
+three-minute narration, exact click cues, recovery instructions and judge Q&A.
+It distinguishes implemented/previously verified backend capabilities from this
+illustration and retains the unverified hosted-model/Claude/multi-person limits.
+
+**Actually ran:** production `npm run build:web` (including TypeScript); Chromium
+landing → Watch demo → all six chapters at 1440px and 390px; each service diff and
+individual approval; result disabled until all three approvals; evidence back
+navigation; context disclosure; presenter notes; reset/restart; pitch HTTP 200;
+original replay and film loading. No page errors or API requests. Inspected desktop
+chat/patch screenshots and the mobile patch screen; no horizontal page overflow.
+The first browser pass found presenter notes remained open on reset; corrected
+reset to clear them, rebuilt, restarted the preview and reran the full flow.
+Preview: `http://127.0.0.1:3050/demo`. No new test suite, deployment or publication.
+Real service/model execution was not part of this scripted walkthrough validation.
+
 Build the real flow. No new test suites, lint/check pipelines, CI, release
 automation. The user explicitly requested a shared deployment; its minimal host
 setup is recorded below. Keep this file current; do not turn pending credentials,
@@ -702,3 +730,129 @@ authenticated connections. Model-generated packet integration remains pending.
   publication retries. No automatic execution/wake-up of receiving coding models.
 - No customer feedback, successful live model analysis, independent coding-model
   adaptation, prize eligibility, or successful submission is fabricated.
+
+## Watch demo showcase (November 14)
+
+Branch `feat/watch-demo`. Added `/demo`, linked from the landing page and empty
+Agents states. The separate full-screen player has a 90-second six-stage timeline,
+plan/specialist/file activity, staggered service rollout, approval and patch review,
+before/after illustration, trace dialog, replay, speed control, seek, Space/arrow
+shortcuts, and automatic or presenter-operated replay approvals. Reduced motion and
+narrow screens are supported. Replay decisions never issue mutation requests.
+
+Live mode uses the existing owner-authorized sample/start/SSE/review routes and
+exact Agents approval cards for the analyst and all three adapters. It never
+approves automatically. Successful adapter starts are retained independently;
+leaving live mode keeps its component/capture mounted. The in-browser recorder
+exports selected plan, timeline, subagent, evidence, approval, diff and result
+snapshots into one v1 JSON; `/work` files and account/credential state are excluded.
+Load recording replaces the playback data locally. Model/cost/trace links are
+unknown unless present in the recording; only HTTPS `smith.langchain.com` links
+are clickable. The trace dialog includes original snapshots and timestamps.
+
+**Honesty/blocker:** this checkout has no real-run capture, agent-server history,
+`.local/model.env`, or configured OpenAI key. The bundled JSON is explicitly
+`kind: illustrative` with no fake frames, model, date, cost, measured duration or
+human-approval claim. The fallback animation is visibly labeled illustrative.
+A funded/configured model run with actual reviewed approvals is still needed to
+replace `apps/web/public/demo/recording.json`. A verified LangSmith URL is also
+pending. Earlier work-plan accounts of real runs are not a substitute for raw
+recording data. A replay result illustration is labeled as such.
+
+`npm run demo:export` builds `.local/demo/civitas-demo.html`, a single file that
+opens from disk with no API, relay, agent server, web server or external assets.
+The current offline artifact and backup video show the illustrative fallback.
+No new test suite, CI, deployment or external publication was added.
+
+**Actually ran:** production `npm run build:web`; export; Chromium browser flow
+from landing → Watch demo → stages → replay approvals → trace → keyboard/manual
+approval pause; 390px viewport without horizontal page overflow; offline file
+playback; offline live handoff; signed-out live prompt and return to replay.
+Replay made no API calls and no browser page errors occurred. Initial build
+blocked on missing installed dependencies and stale `.next/dev` type output;
+installed the declared dependencies and moved the stale generated cache to `/tmp`,
+then production build passed. Real live model/patch execution remains unverified
+here because the provider key and agent server are unavailable.
+
+**Backup artifact:** `.local/demo/civitas-demo-illustrative.mp4` was captured from
+450 actual Chromium-rendered replay frames using the browser's virtual clock and
+encoded with ffmpeg (H.264, 1440×1000, 5 fps, exactly 90.000 seconds verified by
+ffprobe). It is explicitly illustrative, matching the current replay; it is not a
+video of a real model run. Playwright's built-in recorder returned a path without
+producing a file, so the frame capture/encoding replaced that failed attempt.
+Synthetic recording-import browser fixtures also exercised recorded metadata,
+failed service outcomes, automated-approval labeling, malformed JSON rejection
+and unsafe trace URL suppression. These fixtures are verification data, not run
+evidence. The final export and production build pass.
+
+**Watch demo preview repair:** after a later production rebuild, the still-running
+Next server served an old demo chunk URL that returned 500. Restarted the local
+preview against the current build on port 3040 (detached, log at
+`.local/demo/web.log`). Re-ran the Chromium landing → demo → live-sign-in → replay
+flow and checked for page errors. Opened the repaired demo in the default browser.
+
+## Condensed project + chat film (November 14)
+
+Follow-up on `feat/watch-demo`: a 60-second cut at `/demo/film` adds Civitas project
+overview first (0–7s), private group collaboration and each person's connected
+agents (7–15s), team/agent chat in the Activity feed (15–27s), then analysis
+(27–36s), approval (36–41s), rollout (41–53s) and result (53–60s). The existing
+full workflow/live player remains available from the tour and links to the short
+cut. No changes to real chat, agent routing or authorization.
+
+The film imports the real globals, Activity, composer and agent CSS, and reuses
+Button/Card/PageHeader/Avatar/AgentAvatar/Badge/StatusPill. The sidebar follows the
+actual app shell markup; the offline export embeds the installed Geist Sans/Mono
+variable fonts instead of approximating them with Arial. Added staged navigation,
+message typing/sending/reply status, typing dots, staggered people/agent entrances,
+parallel specialists, plan progress, source tabs, cursor clicks, feed scrolling,
+patch transitions, checkmarks and restrained camera movement. Captions explain
+collaboration and the chat receiver's selected-context boundary. All conversation,
+people and workflow data are explicitly illustrative, not a new real model run.
+
+`npm run demo:film` exports `.local/demo/civitas-film.html` as a portable source for
+the MP4. Chromium visual inspection covered all seven scenes at 1920×1080; fixed
+patch clipping by matching the Activity feed's bottom-following scroll behavior.
+The first production build passed with the new static route. Final MP4 render and
+verification are recorded below when complete.
+
+**Final result:** rendered 1,440 Chromium frames with a virtual clock and encoded
+`.local/demo/civitas-overview-chat-demo.mp4`: H.264, 1920×1080, 24 fps, exactly
+60.000 seconds. The video is silent with explanatory captions; the illustrative
+label remains visible throughout. Checked representative actual rendered frames
+(including overview, chat, approval, patch button and final result); no browser
+page errors. Full production build passed; ffprobe confirmed dimensions/rate/time
+and ffmpeg decoded the finished MP4 without errors. Restarted the preview after
+building to avoid stale chunk URLs. No deployment or publication occurred.
+
+## Two-minute content expansion and voiceover (November 14)
+
+Expanded `/demo/film` to 120 seconds across twelve substantive scenes: project
+(0–10), collaborators (10–20), receiver connection (20–30), chat (30–45), selected
+context (45–55), API-change setup (55–64), parallel analysis (64–76), source
+evidence (76–86), owner review (86–94), rollout/diff review (94–106), trace and
+immutable context version (106–114), result (114–120). New screens use the same
+product components/styles/fonts; no relay or real-product mutation behavior changed.
+The longer film has new setup, explanation and evidence content; the original
+60-second MP4 is retained separately. Updated the demo link to “2-minute tour.”
+
+`story.json` defines the scene timing, captions and matching narration. Created
+`docs/demo/voiceover.md`: 267 words, about 134 wpm, twelve exact time windows and
+screen cues; copied to `.local/demo/civitas-voiceover.md` with optional
+`.local/demo/civitas-voiceover.srt`. This is a narration script; no synthetic voice
+has been generated or added to the silent MP4. The illustrative label remains.
+
+Ran production build and inspected all twelve scenes in Chromium at 1920×1080;
+no page errors or horizontal overflow. Source content was checked against the
+actual Connect agent flow, API changelog and receiver documentation. Rendering
+and encoded-artifact verification are recorded below when complete.
+
+**Completed:** `.local/demo/civitas-two-minute-demo.mp4` contains 2,880 actual
+Chromium-rendered frames, H.264 at 1920×1080/24 fps, exactly 120.000 seconds
+verified by ffprobe. ffmpeg decoded the finished file without errors. Chromium
+reported no page errors throughout the render. Checked rendered patch-review and
+evidence frames; all twelve scenes were also visually inspected before capture.
+`npm run demo:film` now regenerates the matching local Markdown/SRT from the same
+story JSON as the video. Production build passed and the preview was restarted
+against its final output. The old one-minute artifact remains separate. No live
+model run, voice synthesis, deployment or external publication is claimed.
