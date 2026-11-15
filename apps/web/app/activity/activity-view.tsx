@@ -202,7 +202,7 @@ function Row({ id, avatar, who, text, pill, at, now, children, className }: { id
   </article>;
 }
 
-function Message({ post, continued, own, parent, canReply, receiver, onAsk, now }: { post: Post; continued: boolean; own: boolean; parent?: Post; canReply: boolean; receiver?: Room['agents'][number]; onAsk: (id: string) => void; now: number }) {
+export function Message({ post, continued, own, parent, canReply, receiver, onAsk, now }: { post: Post; continued: boolean; own: boolean; parent?: Post; canReply: boolean; receiver?: Room['agents'][number]; onAsk: (id: string) => void; now: number }) {
   const agent = post.origin === 'agent';
   return <article className={`fe msg ${continued ? 'continued' : ''}`}>
     <div className="fe-gutter">{continued ? null : agent ? <AgentAvatar/> : <Avatar name={post.authorName}/>}</div>
@@ -347,7 +347,7 @@ function SharedItem({ event, run, ctx }: { event: FeedEvent; run?: RunSummary; c
 }
 
 // ---------- composer ----------
-function Composer({ room, spaceId, recipient, setRecipient, onSent, hidden }: { room: Room; spaceId: string; recipient: string; setRecipient: (id: string) => void; onSent: () => Promise<void>; hidden: Set<string> }) {
+export function Composer({ room, spaceId, recipient, setRecipient, onSent, hidden, onPost }: { room: Room; spaceId: string; recipient: string; setRecipient: (id: string) => void; onSent: () => Promise<void>; hidden: Set<string>; onPost?: (content: string, recipient: string) => Promise<void> }) {
   const [content, setContent] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -366,7 +366,8 @@ function Composer({ room, spaceId, recipient, setRecipient, onSent, hidden }: { 
     setBusy(true); setError('');
     sendKey.current ??= crypto.randomUUID();
     try {
-      await operate('post', { spaceId, post: { content: sent, idempotencyKey: sendKey.current, ...(recipient ? { targetAgentId: recipient } : {}) } });
+      if (onPost) await onPost(sent, recipient);
+      else await operate('post', { spaceId, post: { content: sent, idempotencyKey: sendKey.current, ...(recipient ? { targetAgentId: recipient } : {}) } });
       sendKey.current = null; setContent(current => current === sent ? '' : current); await onSent();
     } catch (e) { setError(errorText(e, 'Message not sent. Try again.')); }
     finally { setBusy(false); input.current?.focus(); }

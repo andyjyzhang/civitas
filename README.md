@@ -184,15 +184,18 @@ initial trust. Credentials and private verification receipts remain outside git.
 
 ## Run the website
 
-For the presentation, sign in and open `/demo?space=YOUR_GROUP_ID`. It renders the
-actual Activity page: the same sidebar, composer, real group data, agent replies
-and approval controls. There is no separate chapter UI or prewritten question.
-The [pitch and walkthrough](apps/web/public/demo/pitch.md) covers Andy and Ryan’s
-agents, the exact messages to type, and the clicks to show. Agent names default
-to the actual signed-in owner’s name when linking. Both owners must keep their
-local receivers running; analyst/adapter steps need the configured model runner.
-The separate workflow replay remains at `/demo/replay` and the illustrated
-automatic tour at `/demo/film`.
+For the presentation, open `/demo` without signing in. This offline preview uses
+Civitas’s actual message, composer, report/diff and review components with local
+state. David’s Claude, Andy’s Codex and Ryan’s Codex are already listed as connected.
+Choose a recipient, type a message and press Send for a preset scenario response.
+People-only posts do not invoke agents. Review/share the prepared packet, prepare
+three patches and approve them in Inbox. No account, receiver, model key, API call
+or database write is involved. The small Offline preview badge identifies this
+presentation mode. Refresh or Andy’s account menu → Reset preview starts over.
+The [pitch and walkthrough](apps/web/public/demo/pitch.md) includes narration,
+exact chat messages and every click. Use `/activity` after signing in for the real
+service. The separate playback player remains at `/demo/replay` and the automatic
+tour at `/demo/film`.
 
 Keep the relay running, then in another terminal:
 
@@ -493,9 +496,9 @@ No release pipeline, cloud deployment or GitHub publication is included.
 
 ## Watch demo
 
-For the live presentation, use `/demo` or `/activity` after signing in.
-For the separate playback player, open `/demo/replay` (or **View product tour**
-on the landing/empty Agents page). The player runs
+For the offline interactive presentation, use `/demo`; for the real service,
+use `/activity` after signing in.
+For the separate playback player, open `/demo/replay`. The player runs
 for 90 seconds, with speed/seek controls, Space to pause and arrow keys to move.
 Turn off **Auto-play replay approvals** to present the decisions yourself.
 The current bundle is honestly labeled **Illustrative walkthrough**: a real

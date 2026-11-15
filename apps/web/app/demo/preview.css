@@ -1,0 +1,7 @@
+/* Same product shell and Activity classes; only local navigation needs button resets. */
+.preview-shell .nav-link { border:0; background:transparent; text-align:left; width:100%; }
+.preview-shell .nav-link:hover { background:var(--surface); }
+.preview-shell .nav-link[aria-current=page] { background:var(--surface-2); }
+.preview-shell .preview-run { display:flex; flex-direction:column; gap:var(--space-4); min-width:0; }
+.preview-plan { padding-left:20px; display:grid; gap:12px; margin-bottom:20px; }
+@media(max-width:600px) { .preview-shell .activity-head { align-items:flex-start; } .preview-shell .activity-head .page-actions { justify-content:flex-end; gap:6px; } }

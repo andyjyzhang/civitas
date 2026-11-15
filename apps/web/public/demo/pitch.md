@@ -1,118 +1,133 @@
-# Civitas: Andy and Ryan’s live product walkthrough
+# Civitas: presentation script and exact actions
 
-Use the real group at `/demo?space=YOUR_GROUP_ID` or `/activity?space=YOUR_GROUP_ID`.
-Both show the same website. All directions below are presenter notes, not on-screen
-chapters. Type the messages into the normal composer and use its Send button.
+Open **https://civitas-relay.onrender.com/demo**. No sign-in, API keys, local
+receivers or model processes are needed. David’s Claude, Andy’s Codex and Ryan’s
+Codex are preloaded. Responses, review decisions and rollout state are prepared
+for this offline preview and stay in the browser. Keep the small Offline preview
+badge visible. The signed-in product is at `/activity`.
 
-## Before presenting
+Allow about three minutes. Use the ordinary composer: choose the recipient under
+**To**, type the quoted message and press **Send** or Enter. Shift+Enter adds a line.
+There are no on-screen chapters or preset-question buttons.
 
-- Andy and Ryan sign in to their own accounts and join the same private group.
-- In Members, connect **Andy’s Codex** and **Ryan’s Codex** using each owner’s login.
-  The name field uses the signed-in owner’s name; edit it when creating the link
-  if needed. Existing connections keep their real saved names (for example José
-  or ryry); select those if you keep them rather than creating new connections.
-- Each owner runs the connection/receiver command on their own computer and leaves
-  it open. Verify both show **Receiver on** and can answer a message before judging.
-- The group owner must be enabled for hosted analysis. Run **Analyze API change**
-  ahead of time and leave its actual packet waiting for review. Check that the
-  evidence and proposed packet are correct before presenting. Allow several minutes
-  for analysis and patch generation; prepare those runs before a short pitch.
-- The Maintenance API contracts and changelog are the prepared project source.
-  The SDK, Triage UI and Dispatch adapters are workspace agents; they are separate
-  from Andy and Ryan’s personal chat agents. Approved patches target demo copies.
-- Rehearse the complete flow once with both owners on the presentation service.
+## 0:00–0:25 — Team and problem
 
-## Opening: show the team
+**Click:** Members. Point to David, Andy and Ryan, then their three connected agents.
 
-Open **Members**. Point to Andy and Ryan, their agents and their access. Then return
-to **Activity**.
+**Say:**
+“Every developer on a team can have a powerful coding agent. But when one agent
+learns something important, the others may keep working from an outdated assumption.
+People become the message bus, copying discoveries between conversations.
 
-“Every developer on a team can have a coding agent. But when one agent discovers
-an important change, the others may keep working from an outdated assumption.
-People end up copying discoveries between conversations.
+Civitas connects people and their independently owned agents through shared context.
+We’re showing an interactive product preview with David’s Claude, my Codex, and
+Ryan’s Codex.”
 
-Civitas gives people and their independently owned agents a shared workspace.
-Andy and Ryan keep their existing coding tools and accounts. Their agents can
-receive selected messages and shared, source-linked knowledge here.”
+**Click:** Activity. Choose **People** and send:
 
-Choose **People**, type this, and press **Send**:
+> Ryan and David, Maintenance API v2 affects our SDK, triage UI and dispatch. Let’s share one reviewed update so all our agents work from the same evidence.
 
-> Ryan, Maintenance API v2 affects the SDK, triage UI and dispatch. Let’s share one reviewed contract update so our agents work from the same evidence.
+**Point out:** the message enters the team feed. People-only messages do not produce
+an agent reply.
 
-## Review the discovery once
+## 0:25–0:55 — Ask David’s Claude
 
-Open the analyst’s actual pending review in Activity. If starting during the
-presentation instead, click **Analyze API change**, then open **Agents** to show
-its real plan, specialists and evidence while it works. Return to Activity when
-the packet is ready.
+**Choose:** David’s Claude.
 
-“The analyst compares the two API contracts and the changelog. The old priority
-field becomes priority code. P1 means urgent, but the sources do not establish
-what P2 and P3 mean. We preserve that uncertainty instead of letting each agent
-invent a different answer.”
+**Type and send:**
 
-Inspect the exact proposed packet and source references. Approve it only if it
-correctly preserves P1 and flags unresolved meanings; otherwise reject it.
+> What changed between Maintenance API v1 and v2? Which priority codes are documented, and what still needs review? Cite the sources.
 
-“We review what travels. Approval publishes a versioned update and delivers it to
-the authorized subscribers. We share this selected knowledge, not private coding
-conversations.”
+**Point out:** the prepared reply appears under David’s Claude, with source references.
+It identifies `priority` → `priority_code`, P1 as urgent, and P2/P3 as unresolved.
 
-## Ask Ryan’s agent
+**Say:**
+“An important discovery should become shared knowledge. The field changed, but
+preserving what urgent means matters more than a rename. The source only defines
+P1. We keep P2 and P3 uncertain instead of inventing a meaning.”
 
-In the normal composer, choose **Ryan’s Codex** (or Ryan’s existing saved agent
-name). Type this and press **Send**:
+## 0:55–1:25 — Review what travels
 
-> Using the latest published Maintenance API update, what must change in triage, and which priority codes still need human review? Cite the shared source and don’t assume undocumented meanings.
+**Click:** New analysis, at the top of Activity. The prepared packet appears.
+Click **View full report**, show the evidence, then close the report drawer.
+Click **Approve and share**.
 
-Wait for the actual reply. Point to the named agent and its response.
+**Say:**
+“Here is the exact context packet: what changed, the source evidence and what is
+still unresolved. The product’s Deep Agents workflow prepares this packet for
+human review. In this preview, we’ve prepared the scenario ahead of time.
 
-“Ryan’s local receiver picked up the addressed message and replied through his
-existing CLI account. Its answer can use the shared update without us copying
-Andy’s private coding conversation. Text chat cannot run commands or edit files.”
+One approval makes the same versioned context available to the authorized
+subscribers. We share selected knowledge, not entire private coding conversations.”
 
-If needed, ask the agent to clarify its source. If the receiver is offline,
-Ryan starts it from Members and retries.
+**Point out:** Version 1 and the three service rows under Rollout. No service is
+marked updated yet.
 
-## Reuse the same context with Andy’s agent
+## 1:25–1:55 — Reuse the context with Ryan and Andy
 
-Choose **Andy’s Codex** (or Andy’s existing saved agent name), type this and send:
+**Choose:** Ryan’s Codex.
 
-> Using the same published Maintenance API update, what should the SDK change, and what must remain unresolved? Cite the shared source and keep the answer brief.
+**Type and send:**
 
-“One reviewed discovery can inform two independently owned agents. They can answer
-different questions from the same evidence. That is the context network.”
+> Using the shared Maintenance API update, what must change in triage, and which priority codes still need human review?
 
-Point to what each agent returned and how both used the same shared evidence.
+**Say:**
+“Ryan’s agent can use the shared discovery for its own responsibility. P1 remains
+urgent maintenance. Undocumented codes go to review.”
 
-## Show proposed work and approval
+**Choose:** Andy’s Codex.
 
-Under the published update, click **Update all services** if it is available.
-Otherwise start each eligible service with its **Update** button. Wait for the
-actual adapter patches. For a short pitch, these can be prepared during rehearsal
-and shown as existing real runs; say they were prepared earlier.
+**Type and send:**
 
-Review the real SDK, Triage UI and Dispatch diffs. Point out actual P1 handling and
-how unknown codes are treated. Approve each correct patch individually. Download
-one diff if useful, then show the resulting run status.
+> Using the same shared update, what should the SDK change, and what must remain unresolved? Cite the sources and keep it brief.
 
-“The service adapters use the same reviewed context to propose changes for their
-own consumers. A person reviews each patch. These approved changes apply to the
-workspace’s demo copies; the downloadable diff is available for review elsewhere.”
+**Say:**
+“My agent uses the same context to reason about SDK types. One discovery informs
+different agents without either person forwarding private chat history.”
 
-Show the actual delivery and acknowledgement states. Say how many services are
-updated and which are still waiting.
+**Point out:** the responses differ by responsibility but preserve the same facts.
+The preview uses preset replies; it does not launch either owner’s CLI.
 
-## Close
+## 1:55–2:35 — Review proposed work
 
-“Civitas connects independently owned agents through selected, source-linked
-context, with people deciding what gets shared and applied.
+**Click:** Scroll up to the shared packet and click **Update all services**, then
+**Inbox** in the sidebar.
+The badge shows three pending reviews.
+
+For **SDK**, click **View full diff**, show `priority_code`, close the drawer, then
+click **Apply to demo copy**. Repeat for **Triage UI**, pointing out P1 → Urgent
+maintenance and other codes → Needs review. Repeat for **Dispatch**, pointing out
+P1 → urgent and other codes → manual-review.
+
+**Say:**
+“Shared context leads to service-specific proposals. The SDK updates its response
+type, triage preserves the urgent label, and dispatch keeps unknown codes out of a
+silent default. A person reviews each change.
+
+These preview approvals only change the browser state. In the working workflow,
+approval applies a reviewed patch to a separate demo copy.”
+
+**Point out:** Inbox becomes “You’re all caught up” after all three approvals.
+
+## 2:35–3:00 — Result and close
+
+**Click:** Agents. Point to **3 of 3 updated** in Rollout and the three updated
+service rows.
+
+**Say:**
+“The result is consistent context across the team: urgent stays urgent, and
+uncertainty stays visible. The working backend provides scoped MCP messaging,
+versioned context and durable PostgreSQL storage; this offline screen illustrates
+that workflow without calling those systems.
 
 Your agent learns something. The right agents know it too.”
 
-## If time or connectivity runs short
+## Reset and useful details
 
-Stay on the actual existing packet, replies or completed run and explain when it
-was created. The separate playback player is `/demo/replay`; use it as a disclosed recording or
-illustration if needed. The pitch does not require every model call to finish
-while you are speaking.
+- Click **Andy** at the bottom of the sidebar → **Reset preview**, or refresh.
+  Messages, approvals and pending replies clear; the three connected agents remain.
+- **Reply to agent** under an answer selects that agent in the composer.
+- **Agents** shows the prepared plan, evidence, service owners and review state.
+- On a narrow screen, use the menu button to open the same sidebar.
+- The preview accepts other messages, but answers are limited to the prepared
+  Maintenance API scenario; this page is not a general-purpose chatbot.

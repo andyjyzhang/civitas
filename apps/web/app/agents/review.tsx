@@ -2,8 +2,8 @@
 
 // Review cards shared by Activity and the Agents run page: the analyst's "share this update?"
 // card, the adapter's "apply this patch?" card, the drawers with the full report / diff, and the
-// New analysis dialog. Everything shown came from a model: rendered as plain text only.
-// Approve / reject are owner-only and enforced again by POST /api/agents/runs/:id.
+// Live callers render model output as plain text; approvals are enforced server-side.
+// The offline preview supplies its own data and local decision callbacks.
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Check, Download, FileText, Sparkles, X } from 'lucide-react';
 import { Badge, Button } from '../components/ui';
@@ -69,7 +69,8 @@ export function diffPreview(text: string | undefined, max = 6) {
 }
 
 // ---------- approve / reject ----------
-function Decision({ threadId, approveLabel, onDecided, extra }: { threadId: string; approveLabel: string; onDecided: () => void; extra?: ReactNode }) {
+type ReviewDecision = (decision: 'approve' | 'reject', reason: string) => Promise<void>;
+function Decision({ threadId, approveLabel, onDecided, extra, onDecision }: { threadId: string; approveLabel: string; onDecided: () => void; extra?: ReactNode; onDecision?: ReviewDecision }) {
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState<'' | 'approve' | 'reject'>('');
@@ -77,7 +78,7 @@ function Decision({ threadId, approveLabel, onDecided, extra }: { threadId: stri
   async function decide(decision: 'approve' | 'reject') {
     if (decision === 'reject' && !reason.trim()) { setError('Give a reason for rejecting.'); return; }
     setBusy(decision); setError('');
-    try { await agentActions.decide(threadId, decision, reason.trim()); onDecided(); }
+    try { if (onDecision) await onDecision(decision, reason.trim()); else await agentActions.decide(threadId, decision, reason.trim()); onDecided(); }
     catch (e) { setError(e instanceof Error ? e.message : 'Decision failed.'); setBusy(''); }
   }
   return <div className="rv-decision">
@@ -98,7 +99,7 @@ type PacketArgs = { title?: unknown; content?: unknown; tags?: unknown; change?:
 const asTags = (v: unknown) => Array.isArray(v) ? v.map(String) : [];
 
 /** Analyst approval: bullets + "Share this update with N services?" */
-export function AnalystReview({ threadId, args, canControl, services, onDecided }: { threadId: string; args: PacketArgs; canControl: boolean; services: number; onDecided: () => void }) {
+export function AnalystReview({ threadId, args, canControl, services, onDecided, onDecision }: { threadId: string; args: PacketArgs; canControl: boolean; services: number; onDecided: () => void; onDecision?: ReviewDecision }) {
   const [open, setOpen] = useState(false);
   const content = String(args.content ?? ''); const tags = asTags(args.tags);
   const breaking = (args.change as { breaking?: boolean } | undefined)?.breaking;
@@ -108,14 +109,14 @@ export function AnalystReview({ threadId, args, canControl, services, onDecided 
     <ul className="rv-bullets">{summaryBullets(content, tags).map(b => <li key={b}>{b}</li>)}</ul>
     {canControl ? <>
       <p className="rv-question">Share this update with {services} service{services === 1 ? '' : 's'}?</p>
-      <Decision threadId={threadId} approveLabel="Approve and share" onDecided={onDecided} extra={full}/>
+      <Decision threadId={threadId} approveLabel="Approve and share" onDecided={onDecided} extra={full} onDecision={onDecision}/>
     </> : <div className="rv-foot"><span className="subtle">Waiting for the group owner to review.</span>{full}</div>}
     {open && <ReportDrawer title={packetTitle(String(args.title ?? ''))} content={content} breaking={breaking} tags={tags} onClose={() => setOpen(false)}/>}
   </div>;
 }
 
 /** Adapter approval: small diff preview + "Apply patch". */
-export function PatchReview({ threadId, service, summary, diff, notes, canControl, onDecided }: { threadId: string; service: string; summary?: string; diff?: string; notes?: string; canControl: boolean; onDecided: () => void }) {
+export function PatchReview({ threadId, service, summary, diff, notes, canControl, onDecided, onDecision, download, scopeNote }: { threadId: string; service: string; summary?: string; diff?: string; notes?: string; canControl: boolean; onDecided: () => void; onDecision?: ReviewDecision; download?: ReactNode; scopeNote?: string }) {
   const [open, setOpen] = useState(false);
   const preview = diffPreview(diff);
   const full = <Button variant="ghost" size="sm" icon={<FileText/>} onClick={() => setOpen(true)}>View full diff</Button>;
@@ -125,9 +126,9 @@ export function PatchReview({ threadId, service, summary, diff, notes, canContro
       {preview.lines.map((l, i) => <div key={i} className={l.kind}><span aria-hidden="true">{l.kind === 'add' ? '+' : '−'}</span>{l.text || ' '}</div>)}
     </div> : <p className="subtle">No diff was attached.</p>}
     {preview.lines.length > 0 && <p className="rv-stat"><span className="add">+{preview.added}</span> <span className="del">−{preview.removed}</span> in {preview.files} file{preview.files === 1 ? '' : 's'}</p>}
-    <p className="subtle">Approval applies this patch to a server demo copy. Download it to review and use in your own project; your local repository is not changed.</p>
-    {canControl ? <Decision threadId={threadId} approveLabel="Apply to demo copy" onDecided={onDecided} extra={<>{full}{diff?.trim() && <PatchDownload threadId={threadId}/>}</>}/>
-      : <div className="rv-foot"><span className="subtle">Waiting for the group owner to review.</span>{full}{diff?.trim() && <PatchDownload threadId={threadId}/>}</div>}
+    <p className="subtle">{scopeNote ?? 'Approval applies this patch to a server demo copy. Download it to review and use in your own project; your local repository is not changed.'}</p>
+    {canControl ? <Decision threadId={threadId} approveLabel="Apply to demo copy" onDecided={onDecided} onDecision={onDecision} extra={<>{full}{download === undefined ? diff?.trim() && <PatchDownload threadId={threadId}/> : download}</>}/>
+      : <div className="rv-foot"><span className="subtle">Waiting for the group owner to review.</span>{full}{download === undefined ? diff?.trim() && <PatchDownload threadId={threadId}/> : download}</div>}
     {open && <Drawer title={`Patch for ${service}`} onClose={() => setOpen(false)}>
       {summary && <p className="prose-text">{summary}</p>}
       <DiffView text={diff}/>

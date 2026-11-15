@@ -1,5 +1,29 @@
 # Build plan and verified status
 
+## Offline interactive preview (November 15)
+
+User clarified that `/demo` must be fully local, with David’s Claude, Andy’s Codex
+and Ryan’s Codex already connected and preset chat responses. Replaced the live
+page alias with a browser-only workspace using the actual Message, Composer,
+AnalystReview, PatchReview, report/diff drawers and product CSS. Shared components
+accept local send/decision callbacks; live callers retain their existing API paths.
+The preview never mounts account polling, agent streams or remote downloads.
+
+Activity, Members, Agents and Inbox navigation, selected-agent chat, people-only
+posts, packet review/share, three patch approvals/rejections and reset work in local
+state. No on-screen chapters or preset-question button. A small Offline preview
+badge identifies the prepared data. The pitch contains exact narration, four chat
+messages, click actions, expected replies and reset instructions. No receivers,
+accounts, database, API keys, model calls or file changes are required by the demo.
+
+Verified: production website build, actual shared component render and the same
+state transitions used by the UI (all three replies, people isolation, idempotent
+reply, review/share, three approvals, rejection and reset). Guarded render/state
+flow made zero fetch calls. Browser/native Safari control was unavailable, so no
+new browser click or visual verification is claimed. The local production page,
+pitch and all linked styles return 200 without sign-in while both backend URLs
+point to unavailable loopback ports. Public deployment pending.
+
 ## Product walkthrough update (November 15)
 
 Replaced the standalone scripted `/demo` with the actual authenticated Activity
