@@ -3,6 +3,7 @@ services:
   - type: web
     name: civitas-relay
     runtime: node
+    branch: main
     plan: free
     buildCommand: npm ci --include=dev --ignore-scripts && npm run build:host
     startCommand: npm run start:host
@@ -33,10 +34,8 @@ services:
         value: "15"
       - key: CIVITAS_RUN_LIMIT_USD
         value: "1"
-      # Populate with approved account IDs after signup. Empty disables hosted
-      # model controls; native Claude/Codex linking still works for all members.
-      - key: CIVITAS_HOSTED_AGENT_OWNER_IDS
-        value: ""
+      # Set CIVITAS_HOSTED_AGENT_OWNER_IDS in the dashboard after signup.
+      # Omit it here so Blueprint syncs preserve the host's approved account IDs.
       - key: CIVITAS_PUBLISHER_TOKEN
         generateValue: true
       - key: CIVITAS_RECEIVER_TOKEN

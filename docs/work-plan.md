@@ -5,6 +5,16 @@ automation. The user explicitly requested a shared deployment; its minimal host
 setup is recorded below. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Deployment source: main
+
+The user requested that all redeployments use `main`. Merge the hosting changes
+into `main` and point the existing Render service and Blueprint at that branch.
+Keep deployments and Blueprint syncs manual and the existing service on Free.
+`render.yaml` explicitly selects `main`; the approved hosted-account IDs are now
+dashboard-managed so Blueprint syncs preserve them. The README's deploy link and
+update workflow use `main`. A private environment fingerprint was captured before
+the switch to verify that credentials and approved IDs are preserved.
+
 ## Shared free hosting (November 14)
 
 Latest `main` (`393933d`, Activity redesign and rollout fixes) was merged into the

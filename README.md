@@ -193,8 +193,8 @@ migrates Tiger and runs a public gateway with three private internal services.
 Only `/v1/*` reaches the authenticated relay; the LangGraph API stays on loopback.
 The gateway streams agent activity and serves `/readyz` for service readiness.
 
-After the deployment branch is pushed, use
-[Deploy to Render](https://render.com/deploy?repo=https://github.com/andyjyzhang/civitas/tree/feat/shared-render-deployment)
+Deploy reviewed changes from `main`. Use
+[Deploy to Render](https://render.com/deploy?repo=https://github.com/andyjyzhang/civitas/tree/main)
 or connect the Render app to let your agent finish setup. Provide runtime secrets
 through Render, never git or browser-facing variables:
 
@@ -215,7 +215,12 @@ After signing up, create a group and open `/api/account` while signed in to find
 control hosted Deep Agents in groups they own. Personal Claude/Codex linking works
 without that approval and uses each developer's own coding-tool authentication.
 Email addresses are not used for host approval because this demo does not verify
-email ownership. Recheck the allowlist after resyncing the Blueprint.
+email ownership. Blueprint syncs preserve the dashboard-managed allowlist.
+
+For updates, merge changes into `main`, then use **Manual Deploy → Deploy latest
+commit** on the existing service (or ask your agent to trigger the deployment via
+the configured Render API). Automatic deploys stay off. The service remains on the
+free plan and keeps the same public URL and Tiger database.
 
 **Free-tier limits:** Render sleeps after 15 minutes of inactivity. Restarts,
 redeploys and sleep discard browser sessions, generated workspace credentials,
