@@ -756,3 +756,9 @@ Synthetic recording-import browser fixtures also exercised recorded metadata,
 failed service outcomes, automated-approval labeling, malformed JSON rejection
 and unsafe trace URL suppression. These fixtures are verification data, not run
 evidence. The final export and production build pass.
+
+**Watch demo preview repair:** after a later production rebuild, the still-running
+Next server served an old demo chunk URL that returned 500. Restarted the local
+preview against the current build on port 3040 (detached, log at
+`.local/demo/web.log`). Re-ran the Chromium landing → demo → live-sign-in → replay
+flow and checked for page errors. Opened the repaired demo in the default browser.
