@@ -4,6 +4,43 @@ Build the real flow. No new test suites, lint/check pipelines, CI, release
 or deployment automation. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Agents view in the website (November 15)
+
+Deep Agents runs are now part of the product, not only the CLI. Two parallel lanes
+(agent server graphs; website) plus integration on `claude/affectionate-volta-cosqvw`.
+
+- **Agent server:** `npm run agents` serves graph factories `analyst` and `adapter`
+  (`langgraph.json`, LangGraph dev server, `--no-reload`). Config per run:
+  `{spaceId, sourceId|role, runId}`, validated before any file or model access; sources
+  and consumers come from `agents.config.json` (read-only allowlist). Civitas credentials
+  are read server-side from `.local/workspace-agents/<spaceId>/<role>.env`. Publish and
+  submit_patch run their checks, then call `interrupt()` (HITL `{actionRequests,
+  reviewConfigs}` shape); only an explicit approve publishes/applies. Approved patches
+  apply to `.local/workspace-runs/<space>/<run>/<role>/` and only then acknowledge.
+  BudgetGuard is attached to the model so subagent calls are priced.
+- **Website:** `/agents` page per group. Owner-only: enable workspace agents (creates
+  analyst + three adapters, grants, subscriptions; tokens written server-side, mode 0600),
+  start runs, approve/reject. Members view. Live SSE stream of plan (todos), subagent
+  delegations with nested tool calls, files (evidence, diff, notes), approval cards, and
+  run history with status. Model output rendered as text only.
+
+**What actually ran (real gpt-4.1-mini, memory relay, Playwright in Chromium):** sign up →
+create group → enable workspace agents → start analysis → live plan/subagents/evidence →
+approval card → approve → published; then Adapt with agent for triage, sdk, dispatch,
+each showing diff + notes → approve → applied. Server-side check: all three run records
+`applied=true, acknowledged=true, typecheck OK`; all three inboxes `acknowledged`; the
+patched triage copy renders "Urgent maintenance" for P1. Screenshots in `docs/demo/agents-*`.
+Lane checks: member/non-member/foreign-origin denials (403/404), agent-server-down message,
+reject path (nothing applied/acked), bounce-on-failed-check. Ledger total after all work
+≈ $1.16 of the $20 budget.
+
+**Limits:** agent server threads live in the LangGraph dev store (not durable); only the
+UI gates "Adapt with agent" on a published analysis; parallel subagent activity may nest
+under the wrong `task` in the timeline; `unresolved:*` tag checks are specific to the
+maintenance source; port 2024 was occupied in the cloud container so integration ran on
+2124 via `CIVITAS_AGENT_SERVER_URL`. Remaining: demo button, UI polish, durable thread
+store, Tiger-backed relay run of this flow.
+
 ## Real agent workflow: analyst → relay → three adapters (November 14)
 
 Branch `claude/affectionate-volta-cosqvw`. Two parallel lanes (analyst; adapter

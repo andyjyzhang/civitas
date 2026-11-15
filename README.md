@@ -216,7 +216,34 @@ receiver attempt failed before tool calls because its OAuth session expired; run
 have retrieved the same event through real MCP processes and run the local
 consumers. These transport runs do not prove independent coding-model adaptation.
 
-## Run the agent workflow
+## Agents in the website
+
+Each group has an **Agents** page (`/agents?space=…`, linked from the group header and
+sidebar). The group owner enables workspace agents (an analyst that can publish plus
+SDK/triage/dispatch adapters that read their subscribed topic), picks a connected source
+from `agents.config.json`, and starts an analysis. The page streams the Deep Agents plan,
+subagent delegations, tool calls and evidence files live; when the agent wants to publish
+or apply a patch it pauses and the owner approves or rejects the exact packet or diff in
+the browser. Members can watch; only the owner can enable, start or approve. Agent
+credentials stay server-side in `.local/workspace-agents/`; the browser never sees them.
+
+Run three servers (each in its own terminal) after the builds in "Run the relay" and
+"Run the website", with `OPENAI_API_KEY` (and optionally `LANGSMITH_API_KEY`) in
+`.local/model.env` or your shell:
+
+```sh
+npm run build:bridge  # agents use the MCP bridge
+npm run start:relay
+npm run agents        # LangGraph agent server on http://127.0.0.1:2024 (also opens in LangGraph Studio)
+npm run start:web
+```
+
+Then sign in, open a group → **Agents**. Set `CIVITAS_AGENT_SERVER_URL` for the website if
+the agent server uses another port. The agent server keeps threads in its development
+store (`.langgraph_api/`), not durable storage. Screenshots from a real run:
+`docs/demo/agents-*.png`.
+
+## Run the agent workflow from the terminal
 
 Real models, approval-gated. See [analyst](apps/change-analyst/README.md) and
 [adapter](apps/adapter-agent/README.md) for details. One command builds everything,
