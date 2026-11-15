@@ -123,10 +123,10 @@ function Step({ item, timings, sub }: { item: TimelineItem; timings: Timings; su
     <summary className="ag-step-row">{head}</summary>
     <div className="ag-step-more">
       {item.kind === 'task' && item.detail && <p className="ag-say">{item.detail}</p>}
-      {item.kind !== 'task' && item.detail.length > 80 && <pre className="ag-pre">{item.detail}</pre>}
+      {item.kind !== 'task' && item.detail.length > 80 && <pre className="code-block">{item.detail}</pre>}
       {sub && sub.length > 0 && <ol className="ag-timeline nested">{sub.map(s => <Step key={s.id} item={s} timings={{}}/>)}</ol>}
       {item.kind === 'task' && !sub?.length && <p className="subtle">Nested steps are shown only for runs this web server streamed live.</p>}
-      {item.result && <><p className="ag-label">{item.status === 'error' ? 'Error' : 'Result'}</p><pre className="ag-pre">{item.result}</pre></>}
+      {item.result && <><p className="ag-label">{item.status === 'error' ? 'Error' : 'Result'}</p><pre className="code-block">{item.result}</pre></>}
     </div>
   </details></li>;
 }
@@ -148,7 +148,7 @@ function ResultRow({ run }: { run: RunDetail }) {
   return <div className={`ag-result ${run.status}`}>
     <span>{text}</span>
     {event?.eventId ? <CopyId id={String(event.eventId)}/> : null}
-    <details><summary className="text-button">Raw result</summary><pre className="ag-pre">{run.result}</pre></details>
+    <details><summary className="text-button">Raw result</summary><pre className="code-block">{run.result}</pre></details>
   </div>;
 }
 
@@ -159,9 +159,9 @@ function Files({ run }: { run: RunDetail }) {
   return <section className="ag-section" aria-label="Files">
     <div className="ag-section-head"><h3>Files</h3><span className="subtle">{files.length}</span></div>
     {!files.length ? <p className="subtle">No evidence or patch files yet.</p> : <>
-      <div className="ag-tabs" role="tablist">{files.map(f => <button key={f} type="button" role="tab" aria-selected={f === active} onClick={() => setTab(f)}>{f.split('/').pop()}</button>)}</div>
+      <div className="tabs" role="tablist">{files.map(f => <button key={f} type="button" role="tab" aria-selected={f === active} onClick={() => setTab(f)}>{f.split('/').pop()}</button>)}</div>
       <p className="ag-path mono">{active}</p>
-      {/\.(diff|patch)$/.test(active) ? <DiffView text={run.files[active]}/> : <pre className="ag-pre ag-file">{run.files[active]}</pre>}
+      {/\.(diff|patch)$/.test(active) ? <DiffView text={run.files[active]}/> : <pre className="code-block ag-file">{run.files[active]}</pre>}
     </>}
   </section>;
 }
@@ -218,12 +218,12 @@ function ApprovalPanel({ run, canControl, impact, onDecided }: { run: RunDetail;
       <summary className="ag-label">{analyst ? 'Full packet' : 'Full diff and notes'}</summary>
       {analyst ? <div className="ag-packet">
         <div className="ag-packet-tags">{change && <Badge tone={change.breaking ? 'failed' : 'neutral'}>{change.breaking ? 'Breaking' : 'Non-breaking'}{change.kind ? ` · ${change.kind}` : ''}</Badge>}{Array.isArray(action?.args.tags) && (action.args.tags as unknown[]).map(t => <Badge key={String(t)} mono>{String(t)}</Badge>)}</div>
-        <pre className="ag-pre ag-file">{String(action?.args.content ?? '')}</pre>
-        {change && <details><summary className="text-button">Structured change</summary><pre className="ag-pre">{JSON.stringify(change, null, 2)}</pre></details>}
+        <pre className="code-block ag-file">{String(action?.args.content ?? '')}</pre>
+        {change && <details><summary className="text-button">Structured change</summary><pre className="code-block">{JSON.stringify(change, null, 2)}</pre></details>}
       </div> : <div className="ag-packet">
         {typeof action?.args.summary === 'string' && <p>{action.args.summary}</p>}
         <DiffView text={run.files[meta.patchPath || `/patches/${role}.diff`]}/>
-        {run.files[meta.notesPath || `/notes/${role}.md`] && <><p className="ag-label">Notes</p><pre className="ag-pre ag-file">{run.files[meta.notesPath || `/notes/${role}.md`]}</pre></>}
+        {run.files[meta.notesPath || `/notes/${role}.md`] && <><p className="ag-label">Notes</p><pre className="code-block ag-file">{run.files[meta.notesPath || `/notes/${role}.md`]}</pre></>}
       </div>}
     </details>
   </section>;

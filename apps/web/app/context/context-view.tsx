@@ -58,7 +58,7 @@ export default function ContextView() {
               <span title={`${event.source.uri}@${event.source.revision}`}><span className="mono">{event.source.uri.split('/').pop()}</span> @ <span className="mono">{event.source.revision}</span></span>
               <time dateTime={event.publishedAt} title={fullTime(event.publishedAt)}>{relTime(event.publishedAt, now)}</time>
               <CopyId id={event.eventId}/>
-              <details className="cx-content"><summary className="text-button">Content</summary><pre className="ag-pre ag-file">{event.content}</pre></details>
+              <details className="cx-content"><summary className="text-button">Content</summary><pre className="code-block ag-file">{event.content}</pre></details>
             </div>
             <div className="list-row cx-meta">
               <strong className="cx-label">Propagation</strong>

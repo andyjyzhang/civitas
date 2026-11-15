@@ -48,7 +48,6 @@
 .ag-plan li.in_progress { color: var(--text); }
 .ag-plan li.in_progress svg { color: var(--status-working); }
 .ag-label { margin: var(--space-3) 0 var(--space-1); color: var(--text-subtle); font-size: var(--text-xs); font-weight: 500; }
-.ag-pre { margin: 0; padding: var(--space-3); max-height: 360px; overflow: auto; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); font: 400 var(--text-xs)/1.6 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text-muted); }
 .ag-file { max-height: 520px; color: var(--text); }
 
 /* ---------- Timeline ---------- */
@@ -85,10 +84,6 @@ summary.ag-step-row:hover { background: var(--surface-hover); }
 .ag-result.failed { color: var(--status-failed); }
 .ag-result details { flex-basis: 100%; }
 .ag-result + .ag-section { border-top: 0; }
-.ag-tabs { display: flex; gap: var(--space-1); overflow-x: auto; border-bottom: 1px solid var(--border); margin-bottom: var(--space-2); }
-.ag-tabs button { flex-shrink: 0; padding: 6px 10px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--text-muted); font-size: var(--text-sm); }
-.ag-tabs button:hover { color: var(--text); }
-.ag-tabs button[aria-selected=true] { color: var(--text); border-bottom-color: var(--text); }
 .ag-path { margin-bottom: var(--space-2); color: var(--text-subtle); font-size: var(--text-xs); }
 
 /* ---------- Unified diff (GitHub style) ---------- */
