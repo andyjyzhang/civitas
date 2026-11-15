@@ -32,7 +32,8 @@
     "agents": "langgraphjs dev --port 2024 --host 127.0.0.1 --no-browser --no-reload --config langgraph.json",
     "build:host": "npm run build:relay && npm run build:bridge && npm run build:web",
     "start:host": "node scripts/host.mjs",
-    "demo:export": "node scripts/export-demo.mjs"
+    "demo:export": "node scripts/export-demo.mjs",
+    "demo:film": "node scripts/export-demo.mjs --film"
   },
   "devDependencies": {
     "@langchain/langgraph-cli": "^1.7.2",

@@ -509,3 +509,11 @@ published by the export command.
 The locally generated backup is `.local/demo/civitas-demo-illustrative.mp4`
 (H.264, 90 seconds). It shows the labeled illustrative walkthrough, not a recorded
 model run. Regenerate the backup after capturing and bundling the real run.
+
+A shorter **60-second tour** at `/demo/film` opens with the project overview,
+collaboration and chat, then condenses the change-analysis workflow. It uses the
+website's actual UI components, CSS and Geist fonts. `npm run demo:film` creates
+`.local/demo/civitas-film.html`; all scripted conversation/workflow content is
+labeled illustrative. The longer `/demo` retains live mode and recording controls.
+The completed local MP4 is `.local/demo/civitas-overview-chat-demo.mp4`
+(60 seconds, 1080p, 24 fps, captioned and silent).

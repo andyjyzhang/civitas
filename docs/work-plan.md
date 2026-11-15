@@ -762,3 +762,37 @@ Next server served an old demo chunk URL that returned 500. Restarted the local
 preview against the current build on port 3040 (detached, log at
 `.local/demo/web.log`). Re-ran the Chromium landing → demo → live-sign-in → replay
 flow and checked for page errors. Opened the repaired demo in the default browser.
+
+## Condensed project + chat film (November 14)
+
+Follow-up on `feat/watch-demo`: a 60-second cut at `/demo/film` adds Civitas project
+overview first (0–7s), private group collaboration and each person's connected
+agents (7–15s), team/agent chat in the Activity feed (15–27s), then analysis
+(27–36s), approval (36–41s), rollout (41–53s) and result (53–60s). The existing
+full workflow/live player remains available from the tour and links to the short
+cut. No changes to real chat, agent routing or authorization.
+
+The film imports the real globals, Activity, composer and agent CSS, and reuses
+Button/Card/PageHeader/Avatar/AgentAvatar/Badge/StatusPill. The sidebar follows the
+actual app shell markup; the offline export embeds the installed Geist Sans/Mono
+variable fonts instead of approximating them with Arial. Added staged navigation,
+message typing/sending/reply status, typing dots, staggered people/agent entrances,
+parallel specialists, plan progress, source tabs, cursor clicks, feed scrolling,
+patch transitions, checkmarks and restrained camera movement. Captions explain
+collaboration and the chat receiver's selected-context boundary. All conversation,
+people and workflow data are explicitly illustrative, not a new real model run.
+
+`npm run demo:film` exports `.local/demo/civitas-film.html` as a portable source for
+the MP4. Chromium visual inspection covered all seven scenes at 1920×1080; fixed
+patch clipping by matching the Activity feed's bottom-following scroll behavior.
+The first production build passed with the new static route. Final MP4 render and
+verification are recorded below when complete.
+
+**Final result:** rendered 1,440 Chromium frames with a virtual clock and encoded
+`.local/demo/civitas-overview-chat-demo.mp4`: H.264, 1920×1080, 24 fps, exactly
+60.000 seconds. The video is silent with explanatory captions; the illustrative
+label remains visible throughout. Checked representative actual rendered frames
+(including overview, chat, approval, patch button and final result); no browser
+page errors. Full production build passed; ffprobe confirmed dimensions/rate/time
+and ffmpeg decoded the finished MP4 without errors. Restarted the preview after
+building to avoid stale chunk URLs. No deployment or publication occurred.
