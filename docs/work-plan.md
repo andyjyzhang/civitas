@@ -61,7 +61,18 @@ The user still needs to save those values in the Render service environment.
 **Remaining:** verify/import the service's saved environment, finish deployment,
 approve intended host accounts, then verify public HTTPS, full model-run peak memory
 and the three-person native-agent flow. Render free has 512 MB and no persistent
-disk; model-run reliability there remains unverified. No public URL is claimed.
+disk; model-run reliability there remains unverified.
+
+**Render startup follow-up:** user supplied `https://civitas-relay.onrender.com` and
+build logs for `557236a`: build succeeded but startup migrations failed. Public `/`
+and `/readyz` requests timed out. User confirmed only `DATABASE_URL` was added and
+`DATABASE_CA_PEM` is missing/empty. The same Tiger migration fails locally without
+the CA and succeeds with it. Add the full `.local/tiger-ca.crt` contents to Render's
+`DATABASE_CA_PEM`, then Save and deploy; existing host code already supports it.
+Migration and relay startup now report recognized TLS/auth/network causes using
+fixed hints without printing raw database errors, credentials or connection URLs.
+Relay build passed; real missing-CA failure and configured-CA migration rerun were
+verified. Successful cloud startup and model inference remain unverified.
 
 ## Website redesign: Activity feed (Option C, November 15)
 

@@ -5,6 +5,34 @@ import type { ContextEvent, Delivery, PublishContextInput, Subscription, GetUpda
 import { canonical, HttpError, makeEvent, type RelayStorage, type Snapshot, validateAppend, paginate } from './storage.js';
 
 export type DatabaseConfig = { databaseUrl: string; analyticsEnabled: boolean; databaseCaFile?: string };
+
+// Driver messages can contain connection details. Report only recognized causes
+// and fixed instructions, never the raw message, URL, query or error object.
+export function databaseFailureHint(error: unknown): string {
+  const code = error && typeof error === 'object' && 'code' in error ? String(error.code) : '';
+  const hints: Record<string, string> = {
+    SELF_SIGNED_CERT_IN_CHAIN: 'TLS trust failed. Set DATABASE_CA_PEM to the complete trusted Tiger CA certificate.',
+    DEPTH_ZERO_SELF_SIGNED_CERT: 'TLS trust failed. Set DATABASE_CA_PEM to the complete trusted Tiger CA certificate.',
+    UNABLE_TO_VERIFY_LEAF_SIGNATURE: 'TLS trust failed. Check the Tiger CA certificate in DATABASE_CA_PEM.',
+    UNABLE_TO_GET_ISSUER_CERT_LOCALLY: 'TLS trust failed. Check the Tiger CA certificate in DATABASE_CA_PEM.',
+    CERT_HAS_EXPIRED: 'The database TLS certificate has expired. Check the service certificate and CA.',
+    ERR_TLS_CERT_ALTNAME_INVALID: 'The database hostname does not match its TLS certificate. Check DATABASE_URL.',
+    '28P01': 'Database authentication failed. Check the username and password in DATABASE_URL.',
+    '3D000': 'The database name in DATABASE_URL does not exist.',
+    '42501': 'The database role lacks privileges required by the migrations.',
+    ENOTFOUND: 'The database hostname could not be resolved. Check DATABASE_URL.',
+    ECONNREFUSED: 'The database refused the connection. Check its host, port and service status.',
+    ETIMEDOUT: 'The database connection timed out. Check service status and network access rules.',
+    ENOENT: 'A required migration or CA file is missing. On Render use DATABASE_CA_PEM, not a local Mac file path.',
+    ERR_INVALID_URL: 'DATABASE_URL is not a valid PostgreSQL connection URI.',
+  };
+  if (Object.hasOwn(hints, code)) return hints[code];
+  const message = error instanceof Error ? error.message : '';
+  if (/timeout/i.test(message)) return 'The database operation timed out. Check connectivity, service status and migration locks.';
+  if (/Applied migration changed/.test(message)) return 'An applied migration checksum changed. Restore applied SQL and add a new migration instead.';
+  return 'Check database/TLS connectivity, privileges, migration checksums and Timescale availability.';
+}
+
 export function databasePool(config: DatabaseConfig) {
   // pg honors sslmode in the URI. Force certificate verification for remote DBs;
   // strip SSL query options so they cannot overwrite our verified TLS settings.
