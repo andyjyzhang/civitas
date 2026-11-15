@@ -39,20 +39,20 @@ function ServerDirectory() {
       actions={<><Button variant="ghost" onClick={() => shell.openDialog('accept')}>Accept invitation</Button><Button icon={<Plus/>} onClick={() => setCreating(true)}>Create server</Button></>}/>
     {error && <div className="alert" role="alert">{error}</div>}
     {mine.length > 0 && <Card title="Your servers" padded={false}>
-      <ul className="list">{mine.map(s => <li key={s.spaceId} className="list-row">
+      <div className="list" role="list">{mine.map(s => <div key={s.spaceId} role="listitem" className="list-row">
         <Avatar name={s.name}/>
         <span className="row-main"><strong>{s.name}</strong><small className="subtle">{s.role === 'owner' ? 'Owner' : 'Subscriber'}</small></span>
         <Badge>{s.visibility === 'public' ? 'Public' : 'Private'}</Badge>
         <Button size="sm" href={`/servers?space=${encodeURIComponent(s.spaceId)}`}>Open</Button>
-      </li>)}</ul>
+      </div>)}</div>
     </Card>}
     {directory === null ? <p className="muted">Loading servers…</p> : discover.length ? <Card title="Public directory" padded={false}>
-      <ul className="list">{discover.map(s => <li key={s.spaceId} className="list-row">
+      <div className="list" role="list">{discover.map(s => <div key={s.spaceId} role="listitem" className="list-row">
         <Avatar name={s.name}/>
         <span className="row-main"><strong>{s.name}</strong><small className="subtle">Public knowledge community</small></span>
         <Button size="sm" disabled={busy === s.spaceId} onClick={() => void join(s.spaceId)}>{busy === s.spaceId ? 'Joining…' : 'Join'}</Button>
-      </li>)}</ul>
-    </Card> : <EmptyState icon={<Compass/>} title={mine.length ? 'You’ve joined every public server' : 'No public servers yet'} description="Start one to share discoveries and research with other builders." action={<Button variant="primary" icon={<Plus/>} onClick={() => setCreating(true)}>Create server</Button>}/>}
+      </div>)}</div>
+    </Card> : mine.length ? <p className="muted">No other public servers to join right now.</p> : <EmptyState icon={<Compass/>} title="No public servers yet" description="Start one to share discoveries and research with other builders." action={<Button variant="primary" icon={<Plus/>} onClick={() => setCreating(true)}>Create server</Button>}/>}
     {creating && <CreateServerDialog onClose={() => setCreating(false)} onCreated={async id => { await shell.refresh(); open(id); }}/>}
   </Page>;
 }

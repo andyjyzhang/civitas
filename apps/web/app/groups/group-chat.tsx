@@ -98,7 +98,7 @@ function MessageStream({ room, search, onAsk }: { room: Room; search: string; on
               <time dateTime={post.createdAt} title={new Date(post.createdAt).toLocaleString()}>{clock(post.createdAt)}</time>
               {post.targetAgentId && <Delivery post={post}/>}
             </div>}
-            {parent && <div className="msg-reply-to">Replying to <strong>{parent.authorName}</strong>: <span>{parent.content}</span></div>}
+            {parent && <div className="msg-reply-to">Replying to <strong>{parent.authorName}:</strong><span>{parent.content}</span></div>}
             <p className="msg-text">{post.content}</p>
             {agent && replyable.has(post.authorId) && <button type="button" className="msg-action" onClick={() => onAsk(post.authorId)}>Reply to agent</button>}
           </div>
@@ -128,11 +128,12 @@ function Composer({ room, spaceId, recipient, setRecipient, onSent }: { room: Ro
   async function send(event?: FormEvent) {
     event?.preventDefault();
     if (busy || !content.trim()) return;
+    const sent = content;
     setBusy(true); setError('');
     sendKey.current ??= crypto.randomUUID();
     try {
-      await operate('post', { spaceId, post: { content, idempotencyKey: sendKey.current, ...(recipient ? { targetAgentId: recipient } : {}) } });
-      sendKey.current = null; setContent(''); await onSent();
+      await operate('post', { spaceId, post: { content: sent, idempotencyKey: sendKey.current, ...(recipient ? { targetAgentId: recipient } : {}) } });
+      sendKey.current = null; setContent(current => current === sent ? '' : current); await onSent();
     } catch (e) { setError(errorText(e, 'Message not sent. Try again.')); }
     finally { setBusy(false); input.current?.focus(); }
   }
@@ -144,7 +145,7 @@ function Composer({ room, spaceId, recipient, setRecipient, onSent }: { room: Ro
     {error && <p className="alert" role="alert">{error}</p>}
     <div className={`composer-box ${target ? 'to-agent' : ''}`}>
       <label className="sr-only" htmlFor="composer-input">Message</label>
-      <textarea id="composer-input" ref={input} rows={1} value={content} maxLength={8000} disabled={busy && !content}
+      <textarea id="composer-input" ref={input} rows={1} value={content} maxLength={8000} 
         placeholder={target ? `Ask ${target.name}…` : `Message ${room.space.name}`}
         onChange={e => { setContent(e.target.value); sendKey.current = null; }} onKeyDown={key}/>
       <div className="composer-footer">
@@ -167,14 +168,14 @@ function Rail({ room, spaceId, owner, onAsk, onInvite }: { room: Room; spaceId: 
   return <>
     <AgentActivity spaceId={spaceId}/>
     <Card title={`Members · ${room.members.length}`} padded={false} actions={owner ? <Button size="sm" icon={<UserPlus/>} onClick={onInvite}>Invite</Button> : undefined}>
-      <ul className="list">
-        {room.members.map(m => <li key={m.accountId} className="list-row"><Avatar name={m.name} small/><span className="row-main">{m.name}{m.accountId === room.currentAccountId && <span className="subtle"> (you)</span>}</span>{m.role === 'owner' && <Badge>Owner</Badge>}</li>)}
-      </ul>
+      <div className="list" role="list">
+        {room.members.map(m => <div key={m.accountId} role="listitem" className="list-row"><Avatar name={m.name} small/><span className="row-main"><span>{m.name}{m.accountId === room.currentAccountId && <span className="subtle"> (you)</span>}</span></span>{m.role === 'owner' && <Badge>Owner</Badge>}</div>)}
+      </div>
     </Card>
     <Card title={<>Agents · {room.agents.length} <InfoTip text="Coding agents connected to this group. Use Connect agent above to add yours."/></>} padded={false}>
-      {room.agents.length ? <ul className="list">
+      {room.agents.length ? <div className="list" role="list">
         {room.agents.map(a => <AgentRow key={a.agentId} agent={a} onAsk={onAsk}/>)}
-      </ul> : <div className="card-body"><p className="subtle">No agents yet.</p></div>}
+      </div> : <div className="card-body"><p className="subtle">No agents yet.</p></div>}
     </Card>
     <Button variant="ghost" size="sm" icon={<Users/>} href={`/members${q}`}>Manage members & access</Button>
   </>;
@@ -184,11 +185,11 @@ function AgentRow({ agent, onAsk }: { agent: RoomAgent; onAsk: (id: string) => v
   const recent = agent.lastSeenAt && Date.now() - Date.parse(agent.lastSeenAt) < 15 * 60 * 1000;
   const status: Status = !agent.canReply ? 'idle' : recent ? 'done' : agent.lastSeenAt ? 'idle' : 'waiting';
   const label = !agent.canReply ? 'Read only' : agent.lastSeenAt ? `Last MCP contact ${timeAgo(agent.lastSeenAt)}` : 'Awaiting setup';
-  return <li className="list-row rail-agent">
+  return <div role="listitem" className="list-row rail-agent">
     <Avatar name={agent.name} small/>
-    <span className="row-main"><span>{agent.name} <AgentBadge/></span><small className="subtle">{agent.ownerName} · {agent.provider}</small><StatusPill status={status} label={label}/></span>
+    <span className="row-main"><span>{agent.name}</span><small className="subtle">{agent.ownerName} · {agent.provider}</small><StatusPill status={status} label={label}/></span>
     {agent.canReply && <Button size="sm" variant="ghost" onClick={() => onAsk(agent.agentId)} aria-label={`Ask ${agent.name}`}>Ask</Button>}
-  </li>;
+  </div>;
 }
 
 function AgentActivity({ spaceId }: { spaceId: string }) {
@@ -209,12 +210,12 @@ function AgentActivity({ spaceId }: { spaceId: string }) {
   if (!runs.length) return null;
   const q = `space=${encodeURIComponent(spaceId)}`;
   return <Card title="Agent activity" padded={false} actions={<Button size="sm" variant="ghost" href={`/agents?${q}`}>View all</Button>}>
-    <ul className="list">
+    <div className="list">
       {runs.map(run => { const s = RUN_STATUS[run.status] || { status: 'idle' as Status, label: run.status };
-        return <li key={run.threadId}><Link href={`/agents?${q}&run=${encodeURIComponent(run.threadId)}`} className="list-row run-row">
+        return <Link key={run.threadId} href={`/agents?${q}&run=${encodeURIComponent(run.threadId)}`} className="list-row run-row">
           <span className="row-main"><span>{run.kind === 'analyst' ? 'Change analysis' : `Adapter${run.role ? ` · ${run.role}` : ''}`}</span>{run.goal && <small className="subtle">{run.goal}</small>}<time dateTime={run.updatedAt}>{timeAgo(run.updatedAt)}</time></span>
           <StatusPill status={s.status} label={s.label}/>
-        </Link></li>; })}
-    </ul>
+        </Link>; })}
+    </div>
   </Card>;
 }

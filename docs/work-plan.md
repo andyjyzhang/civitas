@@ -290,6 +290,32 @@ client, CLI, analyst and desktop behavior stay in their existing lanes.
   HTTP runs are not browser interaction evidence.
 - No deployment, external publication, new test suite or automation was added.
 
+## UI cleanup lane B: chat, members, servers, login (November 15)
+
+- `/groups` chat: grouped message stream (avatar, name, time, day dividers),
+  agent posts marked with AgentBadge, "→ agent" messages with Queued / Retrieved /
+  Replied status, composer with Send to + Enter to send. Rail of standard cards:
+  agent activity (from `GET /api/agents`, hidden when the agent server is down),
+  members, agents with last MCP contact, owner-only Invite dialog. One "Connect
+  agent" menu replaces the two buttons (same one-time link command flow). Fixed a
+  composer bug where text typed while a send was in flight was cleared.
+- `/members` replaces the old settings view: People, Agents (read/publish via
+  `setGrant`, owner only) and Invitations tables; create-agent-key dialog keeps
+  credential-once, `.env` download, open-relay-as-agent and MCP configure command.
+- `/servers`: your servers + public directory list, join, server feed with publish
+  dialog, subscriber publishing toggles (owner), invite.
+- `/` login form uses the shared tokens and Button; labeled inputs, inline errors.
+- Ran: `npm run build:web` passed; memory relay 4701 + web 3701 with Playwright
+  (1440 and 390): two signups, invite/accept, chat both ways, owner linked a Claude
+  agent through the UI link command (agent side simulated by calling the relay
+  redeem/group-messages/reply API directly, not a real Claude session), Queued →
+  Retrieved → Replied shown, grant toggle, member sees no owner controls, server
+  create/publish/join/publisher grant. No console errors; no horizontal scroll at 390.
+- Remaining: group publishing is not per-member (relay supports publisher roles only
+  for servers); invitations have no list API, so the table shows only invites made
+  in the current visit; shared primitives still lack a menu anchor, list-row text
+  column, nowrap table option and code block (see `app/styles/people.css`).
+
 ## Current assignment
 
 The November 14 request expands the earlier A/B scope to all remaining local demo
