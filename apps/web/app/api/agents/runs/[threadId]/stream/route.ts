@@ -1,4 +1,4 @@
-import { agentFailure, lg, summarize, threadAccess, timelineOf } from '../../../../../../lib/agents';
+import { agentFailure, lg, subagentCache, subagentOf, summarize, threadAccess, timelineOf, type SubagentTrace } from '../../../../../../lib/agents';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -6,7 +6,8 @@ export const dynamic = 'force-dynamic';
 // GET — Server-Sent Events for one run, for any member of its space. The web server joins the
 // active LangGraph run (values + subgraph updates) and forwards condensed, plain-data snapshots:
 //   event: snapshot  -> RunDetail (plan, files, timeline, approval)
-//   event: subagent  -> { ns, timeline } activity inside a delegated subagent (streamSubgraphs)
+//   event: subagent  -> { ns, subagent?, timeline } activity inside a delegated subagent (streamSubgraphs);
+//                       also kept in the web server's memory so a reload still shows it
 //   event: end       -> the run finished or paused; the client reconnects after it acts
 export async function GET(request: Request, { params }: { params: Promise<{ threadId: string }> }) {
   let access;
@@ -40,7 +41,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ thre
                 for (const m of Array.isArray(messages) ? messages : messages && typeof messages === 'object' ? [messages] : []) { list.push(m); changed = true; }
               }
               subagents.set(ns, list);
-              if (changed) send('subagent', { ns, timeline: timelineOf(list as Parameters<typeof timelineOf>[0]) });
+              if (changed) {
+                const messages = list as Parameters<typeof timelineOf>[0];
+                const trace: SubagentTrace = { subagent: subagentOf(messages), timeline: timelineOf(messages) };
+                const cached = subagentCache.get(thread.thread_id) ?? {};
+                cached[ns] = trace; subagentCache.set(thread.thread_id, cached);
+                if (subagentCache.size > 200) subagentCache.delete(subagentCache.keys().next().value!);
+                send('subagent', { ns, ...trace });
+              }
             }
           }
         }

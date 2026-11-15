@@ -1,9 +1,10 @@
 import { json, sameOrigin } from '../../../lib/relay';
-import { SERVER_DOWN, agentFailure, agentServerUp, agentServerUrl, agentsConfig, brief, enableWorkspace, lg, spaceAccess, summarize, workspaceStatus } from '../../../lib/agents';
+import { SERVER_DOWN, agentFailure, agentServerUp, agentServerUrl, agentsConfig, brief, enableWorkspace, spaceAccess, spaceRuns, summarize, workspaceStatus } from '../../../lib/agents';
 
 export const runtime = 'nodejs';
 
 // GET /api/agents?space=<spaceId> — any member: config, workspace agent status, run history.
+// (Chat reads `runs` for its activity strip: only add fields here.)
 export async function GET(request: Request) {
   try {
     const spaceId = new URL(request.url).searchParams.get('space');
@@ -13,8 +14,7 @@ export async function GET(request: Request) {
     let runs: ReturnType<typeof brief>[] = []; let runsError = '';
     if (up) {
       try {
-        const threads = await lg().threads.search({ metadata: { spaceId: space.spaceId }, limit: 40, sortBy: 'created_at', sortOrder: 'desc' });
-        runs = threads.filter(t => t.metadata?.kind === 'analyst' || t.metadata?.kind === 'adapter').map(t => brief(summarize(t)));
+        runs = (await spaceRuns(space.spaceId)).map(t => brief(summarize(t)));
       } catch { runsError = 'Could not load run history from the agent server.'; }
     }
     return json({

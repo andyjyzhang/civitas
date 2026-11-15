@@ -74,7 +74,19 @@ export default function AppShell(props: AppShellProps) {
   return <Suspense fallback={<div className="app"><aside className="app-sidebar" aria-label="Sidebar"/><div className="app-main"><div className="app-topbar"/><p className="app-loading">Loading…</p></div></div>}><ShellInner {...props}/></Suspense>;
 }
 
-function ShellInner({ active, title, scoped = true, inboxCount, actions, children }: AppShellProps) {
+/** Polls the number of agent requests waiting for the signed-in owner (GET /api/inbox?count=1). */
+function useInboxCount() {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    const load = () => fetch('/api/inbox?count=1', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => { if (typeof d?.count === 'number') setCount(d.count); }).catch(() => undefined);
+    void load(); const t = setInterval(load, 10_000); return () => clearInterval(t);
+  }, []);
+  return count;
+}
+
+function ShellInner({ active, title, scoped = true, inboxCount: inboxCountProp, actions, children }: AppShellProps) {
+  const polledInbox = useInboxCount();
+  const inboxCount = inboxCountProp ?? polledInbox;
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
