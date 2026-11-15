@@ -34,6 +34,7 @@ export default async function Landing() {
     <main className="landing-main" aria-label="Civitas">
       <AsciiLogo art={logoArt()}/>
       <LandingLogin/>
+      <Link href="/demo" className="btn btn-secondary">Watch demo</Link>
     </main>
   </div>;
 }
