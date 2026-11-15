@@ -89,22 +89,18 @@ export function useMenu() {
   return { open, setOpen, root };
 }
 
-export function Dialog({ title, description, onClose, closeDisabled, wide, children }: { title: string; description?: ReactNode; onClose: () => void; closeDisabled?: boolean; wide?: boolean; children: ReactNode }) {
+export function Dialog({ title, description, onClose, closeDisabled, children }: { title: string; description?: ReactNode; onClose: () => void; closeDisabled?: boolean; children: ReactNode }) {
   useEffect(() => {
     const key = (e: KeyboardEvent) => { if (e.key === 'Escape' && !closeDisabled) onClose(); };
     document.addEventListener('keydown', key); return () => document.removeEventListener('keydown', key);
   }, [onClose, closeDisabled]);
   return <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget && !closeDisabled) onClose(); }}>
-    <section className={`modal people-dialog ${wide ? 'wide' : ''}`} role="dialog" aria-modal="true" aria-label={title}>
+    <section className="modal" role="dialog" aria-modal="true" aria-label={title}>
       <div className="section-heading"><h2>{title}</h2><Button variant="ghost" size="sm" iconOnly aria-label="Close" icon={<X/>} disabled={closeDisabled} onClick={onClose}/></div>
       {description && <p>{description}</p>}
       {children}
     </section>
   </div>;
-}
-
-export function Switch({ checked, onChange, label, disabled }: { checked: boolean; onChange: (next: boolean) => void; label: string; disabled?: boolean }) {
-  return <button type="button" role="switch" aria-checked={checked} aria-label={label} className="switch" disabled={disabled} onClick={() => onChange(!checked)}><span aria-hidden="true"/></button>;
 }
 
 /** Copy-to-clipboard button for secrets / commands shown once. */
@@ -133,11 +129,11 @@ export function InviteDialog({ spaceId, spaceName, onClose, onCreated }: { space
     {!invite ? <form onSubmit={submit}>
       <label>Email<input name="email" type="email" required autoFocus placeholder="teammate@example.com" maxLength={254}/></label>
       {error && <p className="alert" role="alert">{error}</p>}
-      <div className="dialog-actions"><Button onClick={onClose} disabled={busy}>Cancel</Button><Button type="submit" variant="primary" disabled={busy}>{busy ? 'Creating…' : 'Create invitation'}</Button></div>
-    </form> : <div className="secret-once">
+      <Button type="submit" variant="primary" disabled={busy}>{busy ? 'Creating…' : 'Create invitation'}</Button>
+    </form> : <form onSubmit={e => { e.preventDefault(); onClose(); }}>
       <label>Invitation token<input readOnly value={invite.token} className="mono" onFocus={e => e.currentTarget.select()} aria-describedby="invite-hint"/></label>
-      <p className="form-hint" id="invite-hint">For {invite.email} · expires {clock(invite.expiresAt)}. They use Accept invitation in the group menu.</p>
-      <div className="dialog-actions"><CopyButton value={invite.token} label="Copy token" size="md"/><Button variant="primary" onClick={onClose}>Done</Button></div>
-    </div>}
+      <p className="subtle" id="invite-hint">For {invite.email} · expires {clock(invite.expiresAt)}. They use Accept invitation in the group menu.</p>
+      <div className="page-actions"><CopyButton value={invite.token} label="Copy token" size="md"/><Button type="submit" variant="primary">Done</Button></div>
+    </form>}
   </Dialog>;
 }

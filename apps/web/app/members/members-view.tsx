@@ -2,11 +2,11 @@
 
 // Members & access: people, agents (grants), invitations for the selected group.
 import { useMemo, useState, type FormEvent } from 'react';
-import { Bot, KeyRound, UserPlus, Users } from 'lucide-react';
+import { KeyRound, UserPlus, Users } from 'lucide-react';
 import { useShell } from '../components/app-shell';
 import ConnectAgent from '../components/connect-agent';
 import { AgentBadge, Avatar, Badge, Button, Card, CopyId, EmptyState, InfoTip, Page, PageHeader } from '../components/ui';
-import { clock, CopyButton, Dialog, errorText, InviteDialog, operate, Switch, timeAgo, useRoom, type CreatedInvite } from '../components/rooms';
+import { clock, CopyButton, Dialog, errorText, InviteDialog, operate, timeAgo, useRoom, type CreatedInvite } from '../components/rooms';
 
 type Credential = { agentId: string; name: string; token: string; relayUrl: string };
 type AgentRowData = { agentId: string; name: string; known: boolean; owner: string; provider: string; lastSeenAt: string | null; read: boolean; publish: boolean; granted: boolean; mine: boolean };
@@ -49,32 +49,32 @@ export default function MembersView() {
 
   if (!spaceId) return <Page><PageHeader title="Members & access"/><EmptyState icon={<Users/>} title="No group selected" description="Create or join a group to manage its members and agents." action={<Button variant="primary" onClick={() => shell.openDialog('create')}>Create group</Button>}/></Page>;
 
-  return <Page className="members-page">
+  return <Page>
     <PageHeader title="Members & access" description={`People and agents in ${space?.name || 'this group'}.`}
       actions={owner ? <Button variant="primary" icon={<UserPlus/>} onClick={() => setInviting(true)}>Invite people</Button> : undefined}/>
     {(error || roomError) && <div className="alert" role="alert">{error || roomError}</div>}
 
-    <Card title={<>People <span className="count">{room?.members.length ?? ''}</span></>} padded={false}>
+    <Card title={room ? `People · ${room.members.length}` : 'People'} padded={false}>
       <div className="table-wrap"><table className="table people-table">
         <thead><tr><th>Name</th><th>Role</th><th>Posting <InfoTip text="Everyone in a group can post. Publisher approval applies to servers."/></th></tr></thead>
         <tbody>{room ? room.members.map(m => <tr key={m.accountId}>
-          <td><span className="cell-person"><Avatar name={m.name}/><span>{m.name}{m.accountId === room.currentAccountId && <span className="msg-you">you</span>}</span></span></td>
+          <td><Avatar name={m.name} small/>{m.name}{m.accountId === room.currentAccountId && <span className="subtle"> (you)</span>}</td>
           <td>{m.role === 'owner' ? <Badge>Owner</Badge> : <span className="muted">Member</span>}</td>
           <td><span className="muted">{m.canPublish ? 'Can post' : 'Read only'}</span></td>
         </tr>) : <tr><td colSpan={3} className="muted">Loading…</td></tr>}</tbody>
       </table></div>
     </Card>
 
-    <Card title={<>Agents <span className="count">{agents.filter(a => a.granted).length}</span></>} description={owner ? 'Choose what each agent can read and publish in this group.' : 'Only the group owner can change agent access.'} padded={false}
+    <Card title={`Agents · ${agents.filter(a => a.granted).length}`} description={owner ? 'Choose what each agent can read and publish in this group.' : 'Only the group owner can change agent access.'} padded={false}
       actions={<><ConnectAgent spaceId={spaceId} onLinked={async () => { await Promise.all([shell.refresh(), reload()]); }} size="sm"/><Button size="sm" icon={<KeyRound/>} onClick={() => setCreating(true)}>Create agent key</Button></>}>
       {agents.length ? <div className="table-wrap"><table className="table agents-table">
         <thead><tr><th>Agent</th><th>Owner</th><th>Provider</th><th>Read</th><th>Publish</th><th>Last contact</th><th>ID</th></tr></thead>
         <tbody>{agents.map(a => <tr key={a.agentId}>
-          <td><span className="cell-person"><span className="avatar agent" aria-hidden="true"><Bot/></span><span>{a.name}</span><AgentBadge/>{a.mine && <span className="msg-you">yours</span>}</span></td>
+          <td><Avatar name={a.name} small/>{a.name} <AgentBadge/>{a.mine && <span className="subtle"> (yours)</span>}</td>
           <td>{a.owner || <span className="subtle">—</span>}</td>
           <td>{a.provider ? <span className="muted">{a.provider === 'claude' ? 'Claude Code' : a.provider === 'codex' ? 'Codex' : a.provider.toUpperCase()}</span> : <span className="subtle">—</span>}</td>
-          <td>{owner ? <Switch checked={a.read} label={`${a.name} can read`} disabled={pending === a.agentId} onChange={read => void setGrant(a, { read, ...(read ? {} : { publish: false }) })}/> : <Access on={a.read}/>}</td>
-          <td>{owner ? <Switch checked={a.publish} label={`${a.name} can publish`} disabled={pending === a.agentId} onChange={publish => void setGrant(a, { publish })}/> : <Access on={a.publish}/>}</td>
+          <td>{owner ? <input type="checkbox" checked={a.read} aria-label={`${a.name} can read`} disabled={pending === a.agentId} onChange={e => void setGrant(a, { read: e.target.checked, ...(e.target.checked ? {} : { publish: false }) })}/> : <Access on={a.read}/>}</td>
+          <td>{owner ? <input type="checkbox" checked={a.publish} aria-label={`${a.name} can publish`} disabled={pending === a.agentId} onChange={e => void setGrant(a, { publish: e.target.checked })}/> : <Access on={a.publish}/>}</td>
           <td>{a.lastSeenAt ? <span className="muted" title={new Date(a.lastSeenAt).toLocaleString()}>{timeAgo(a.lastSeenAt)}</span> : <span className="subtle">{a.granted ? 'Awaiting setup' : 'No access'}</span>}</td>
           <td><CopyId id={a.agentId}/></td>
         </tr>)}</tbody>
@@ -100,7 +100,7 @@ function maskEmail(email: string) {
 }
 
 function Access({ on }: { on: boolean }) {
-  return <span className={on ? 'access-on' : 'subtle'}>{on ? 'Yes' : 'No'}</span>;
+  return <span className={on ? undefined : 'subtle'}>{on ? 'Yes' : 'No'}</span>;
 }
 
 /** Manual agent credential (advanced): env file download, relay sign-in, MCP configure command. */
@@ -131,20 +131,20 @@ function CreateAgentDialog({ spaceId, owner, onClose }: { spaceId: string; owner
       window.location.assign(`/context?space=${encodeURIComponent(spaceId)}`);
     } catch (e) { setError(errorText(e)); setBusy(false); }
   }
-  return <Dialog title={credential ? `${credential.name} created` : 'Create agent key'} description={credential ? 'Save this credential now. It is shown only once.' : 'For custom MCP clients. Claude Code and Codex users can use Connect agent instead.'} onClose={onClose} closeDisabled={busy} wide>
+  return <Dialog title={credential ? `${credential.name} created` : 'Create agent key'} description={credential ? 'Save this credential now. It is shown only once.' : 'For custom MCP clients. Claude Code and Codex users can use Connect agent instead.'} onClose={onClose} closeDisabled={busy}>
     {!credential ? <form onSubmit={submit}>
       <label>Agent name<input name="name" required maxLength={100} autoFocus placeholder="Frontend agent"/></label>
       {error && <p className="alert" role="alert">{error}</p>}
-      <div className="dialog-actions"><Button onClick={onClose} disabled={busy}>Cancel</Button><Button type="submit" variant="primary" disabled={busy}>{busy ? 'Creating…' : 'Create key'}</Button></div>
-    </form> : <div className="secret-once">
-      <div className="kv"><span>Agent ID</span><CopyId id={credential.agentId}/></div>
+      <Button type="submit" variant="primary" disabled={busy}>{busy ? 'Creating…' : 'Create key'}</Button>
+    </form> : <form onSubmit={e => { e.preventDefault(); onClose(); }}>
+      <p className="muted">Agent ID <CopyId id={credential.agentId}/></p>
       <label>Agent credential<input type="password" value={credential.token} readOnly autoComplete="off" className="mono" onFocus={e => e.currentTarget.select()}/></label>
-      <div className="step-actions"><CopyButton value={credential.token} label="Copy credential"/><Button size="sm" onClick={download}>Download .env</Button><Button size="sm" variant="ghost" disabled={busy} onClick={() => void openRelay()}>Open relay as agent</Button></div>
-      <p className="form-hint">Keep the .env file outside your repository, then print an MCP setup command (use <code>codex</code> or <code>json</code> for other clients):</p>
-      <pre className="code-block">node packages/cli/dist/index.js configure claude /absolute/path/agent.env</pre>
-      <p className="form-hint">{owner ? 'Turn on Read and Publish for this agent in the Agents table to give it access to this group.' : 'Ask the group owner to grant this agent access.'}</p>
+      <div className="page-actions"><CopyButton value={credential.token} label="Copy credential"/><Button size="sm" onClick={download}>Download .env</Button><Button size="sm" variant="ghost" disabled={busy} onClick={() => void openRelay()}>Open relay as agent</Button></div>
+      <p className="subtle">Keep the .env file outside your repository, then print an MCP setup command (use <code>codex</code> or <code>json</code> for other clients):</p>
+      <pre className="setup-command">node packages/cli/dist/index.js configure claude /absolute/path/agent.env</pre>
+      <p className="subtle">{owner ? 'Turn on Read and Publish for this agent in the Agents table to give it access to this group.' : 'Ask the group owner to grant this agent access.'}</p>
       {error && <p className="alert" role="alert">{error}</p>}
-      <div className="dialog-actions"><Button variant="primary" onClick={onClose}>Done</Button></div>
-    </div>}
+      <Button type="submit" variant="primary">Done</Button>
+    </form>}
   </Dialog>;
 }

@@ -1,24 +1,22 @@
-.landing { min-height: 100svh; background: #0c1013; color: #e5eae5; display: flex; flex-direction: column; font: 13px/1.6 var(--font-mono); }
-.landing-nav { display: flex; align-items: center; padding: 30px 40px; }
-.landing-wordmark { font-size: 23px; font-weight: 500; letter-spacing: -1px; }
-.landing-main { width: min(1100px, 100%); margin: 0 auto; flex: 1; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(240px, 1fr); justify-items: center; align-content: center; align-items: center; gap: 90px; padding: 30px 40px 110px; }
+/* Landing + login. Form uses the shared tokens and <Button>; only layout lives here. */
+.landing { min-height: 100svh; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
+.landing-nav { display: flex; align-items: center; padding: var(--space-6) var(--space-10); }
+.landing-wordmark { font-size: var(--text-xl); font-weight: 600; letter-spacing: -.02em; }
+.landing-main { width: min(1100px, 100%); margin: 0 auto; flex: 1; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); justify-items: center; align-content: center; align-items: center; gap: 80px; padding: var(--space-8) var(--space-10) 96px; }
 .ascii-logo { color: #b5c99a; user-select: none; width: 100%; min-width: 0; }
 .ascii-logo pre { margin: 0; white-space: pre; font: clamp(5px, .9vw, 11.4px)/1.15 'Courier New', monospace; width: fit-content; margin-inline: auto; }
-.landing-login-form { width: min(290px, 100%); display: grid; gap: 30px; }
-.landing-login-form label { font-size: 11px; color: #a8b7ac; }
-.landing-login-form input { font-size: 14px; padding: 10px 0; border: 0; border-bottom: 1px solid #516054; border-radius: 0; background: transparent; box-shadow: none; }
-.landing-login-form input:focus { border-color: #d5e5af; box-shadow: 0 1px 0 #d5e5af; }
-.landing-login-form input:autofill { box-shadow: 0 0 0 100px #0c1013 inset; -webkit-text-fill-color: #e5eae5; }
-.landing-login-form button { margin-top: 4px; }
-.login-error { color: #e2bba0; font-size: 11px; line-height: 1.7; margin: 0; }
-@media(max-width:900px) { .landing-main { gap: 40px; grid-template-columns: minmax(0, 1.4fr) minmax(210px, 1fr); } }
-@media(max-width:600px) { .landing-nav { padding: 22px 24px; } .landing-wordmark { font-size: 21px; } .landing-main { grid-template-columns: 1fr; gap: 35px; padding: 10px 24px 50px; } .ascii-logo { max-width: 350px; } .ascii-logo pre { font-size: clamp(5px, 1.25vw, 7.6px); } .landing-login-form input { font-size: 16px; } }
-
-.auth-toggle { border: 0; background: transparent; color: #c9d6ba; font-size: 12px; padding: 0; justify-self: start; text-align: left; text-decoration: underline; text-underline-offset: 4px; }
-
-.auth-actions { display: flex; align-items: center; justify-content: flex-start; gap: 24px; }
-
-.auth-submit { border: 1px solid #d5e5af; border-radius: 3px; background: #d5e5af; color: #192015; padding: 7px 14px; font-size: 12px; text-align: left; }
-.auth-submit:hover:not(:disabled) { background: #e5f0cd; border-color: #e5f0cd; }
-.auth-back { margin-left: -24px; justify-self: start; padding: 0; border: 0; background: transparent; color: #c9d6ba; font-size: 22px; line-height: 1; }
-.auth-back:hover:not(:disabled) { color: #e5f0cd; }
+.landing-login-form { width: min(320px, 100%); display: flex; flex-direction: column; gap: var(--space-4); }
+.auth-heading { margin-bottom: var(--space-2); }
+.auth-heading h1 { font-size: var(--text-xl); }
+.auth-heading p { margin-top: var(--space-1); color: var(--text-muted); }
+.auth-hint { display: block; margin-top: var(--space-1); color: var(--text-subtle); font-size: var(--text-xs); font-weight: 400; }
+.auth-error { margin: 0; }
+.auth-switch { color: var(--text-muted); font-size: var(--text-sm); text-align: center; }
+@media (max-width: 900px) { .landing-main { gap: 40px; } }
+@media (max-width: 640px) {
+  .landing-nav { padding: var(--space-5) var(--space-4); }
+  .landing-main { grid-template-columns: 1fr; gap: var(--space-8); padding: 0 var(--space-4) var(--space-12); align-content: start; }
+  .ascii-logo { max-width: 320px; }
+  .ascii-logo pre { font-size: clamp(4px, 1.15vw, 7px); }
+  .landing-login-form input { font-size: 16px; }
+}

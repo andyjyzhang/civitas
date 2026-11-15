@@ -34,31 +34,27 @@ export default function ConnectAgent({ spaceId, onLinked, size = 'md' }: { space
   return <>
     <div className="menu-anchor" ref={menu.root}>
       <Button size={size} icon={<Plug/>} iconRight={<ChevronDown/>} disabled={!spaceId} aria-haspopup="menu" aria-expanded={menu.open} onClick={() => menu.setOpen(o => !o)}>Connect agent</Button>
-      {menu.open && <div className="menu menu-right" role="menu" aria-label="Connect agent">
+      {menu.open && <div className="menu" role="menu" aria-label="Connect agent">
         <div className="menu-label">Use your existing login</div>
         {(Object.keys(NAMES) as Provider[]).map(p => <button key={p} type="button" role="menuitem" className="menu-item" onClick={() => open(p)}><span>{NAMES[p]}</span></button>)}
       </div>}
     </div>
-    {provider && <Dialog title={`Connect ${name}`} description={`Link your local ${name} to this group with one command. No API key needed.`} onClose={close} closeDisabled={busy} wide>
+    {provider && <Dialog title={`Connect ${name}`} description={`Link your local ${name} to this group with one command. No API key needed.`} onClose={close} closeDisabled={busy}>
       {!setup ? <form onSubmit={link}>
         <label>Agent name<input name="name" defaultValue={`My ${name}`} maxLength={100} required autoFocus/></label>
-        <p className="form-hint">The agent can read messages addressed to it and reply. The command works once and expires in 5 minutes.</p>
+        <p className="subtle">It can read messages addressed to it and reply. The command works once and expires in 5 minutes.</p>
         {error && <p className="alert" role="alert">{error}</p>}
-        <div className="dialog-actions"><Button onClick={close} disabled={busy}>Cancel</Button><Button type="submit" variant="primary" disabled={busy}>{busy ? 'Preparing…' : 'Generate command'}</Button></div>
-      </form> : <div className="setup-steps">
-        <section>
-          <h3><span className="step-number">1</span>Run in your Civitas checkout <InfoTip text="Needs Node 22+, installed npm dependencies and the provider CLI. The command builds the bridge, stores the connection privately on this computer and adds an MCP entry. Append --project /absolute/path to configure another project. Other computers need a reachable HTTPS relay URL."/></h3>
-          <pre className="code-block">{command}</pre>
-          <div className="step-actions"><CopyButton value={command} label="Copy command"/><span className="form-hint">Expires {new Date(setup.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · keep it private</span><Button variant="ghost" size="sm" onClick={() => setSetup(null)}>New command</Button></div>
-        </section>
-        <section>
-          <h3><span className="step-number">2</span>Restart {name} and ask it</h3>
-          <pre className="code-block wrap">{prompt}</pre>
-          <div className="step-actions"><CopyButton value={prompt} label="Copy prompt"/><span className="form-hint">Then pick the agent in Send to. Inactive sessions keep messages queued.</span></div>
-        </section>
+        <Button type="submit" variant="primary" disabled={busy}>{busy ? 'Preparing…' : 'Generate command'}</Button>
+      </form> : <form onSubmit={e => { e.preventDefault(); close(); }}>
+        <h3>1. Run in your Civitas checkout <InfoTip text="Needs Node 22+, installed npm dependencies and the provider CLI. The command builds the bridge, stores the connection privately on this computer and adds an MCP entry. Append --project /absolute/path to configure another project. Other computers need a reachable HTTPS relay URL."/></h3>
+        <pre className="setup-command">{command}</pre>
+        <div className="page-actions"><CopyButton value={command} label="Copy command"/><Button variant="ghost" size="sm" onClick={() => setSetup(null)}>New command</Button><span className="subtle">Expires {new Date(setup.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}. Keep it private.</span></div>
+        <h3>2. Restart {name} and ask it</h3>
+        <pre className="setup-command">{prompt}</pre>
+        <div className="page-actions"><CopyButton value={prompt} label="Copy prompt"/><span className="subtle">Then pick the agent in Send to.</span></div>
         {error && <p className="alert" role="alert">{error}</p>}
-        <div className="dialog-actions"><Button variant="primary" onClick={close}>Done</Button></div>
-      </div>}
+        <Button type="submit" variant="primary">Done</Button>
+      </form>}
     </Dialog>}
   </>;
 }

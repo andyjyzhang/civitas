@@ -4,10 +4,10 @@
 import Link from 'next/link';
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import type { Room } from '@civitas/contracts';
-import { Bot, MessageSquare, PanelRight, Search, Send, UserPlus, Users, X } from 'lucide-react';
+import { MessageSquare, PanelRight, Search, Send, UserPlus, Users, X } from 'lucide-react';
 import { useShell } from '../components/app-shell';
 import ConnectAgent from '../components/connect-agent';
-import { AgentBadge, Avatar, Badge, Button, EmptyState, InfoTip, StatusPill, type Status } from '../components/ui';
+import { AgentBadge, Avatar, Badge, Button, Card, EmptyState, InfoTip, StatusPill, type Status } from '../components/ui';
 import { clock, dayLabel, errorText, InviteDialog, operate, timeAgo, useRoom } from '../components/rooms';
 
 type Post = Room['posts'][number];
@@ -59,7 +59,7 @@ export default function GroupChat() {
       </> : <p className="app-loading">{loading ? 'Loading messages…' : ''}</p>}
     </section>
     <aside className="chat-rail" aria-label="Members and agents">
-      <div className="rail-head"><span>Details</span><Button size="sm" variant="ghost" iconOnly icon={<X/>} aria-label="Close details" onClick={() => setRailOpen(false)}/></div>
+      <div className="rail-head"><h2>Details</h2><Button size="sm" variant="ghost" iconOnly icon={<X/>} aria-label="Close details" onClick={() => setRailOpen(false)}/></div>
       {room && <Rail room={room} spaceId={spaceId} owner={owner} onAsk={id => { setRecipient(id); setRailOpen(false); }} onInvite={() => setInviting(true)}/>}
     </aside>
     {railOpen && <button type="button" className="rail-scrim" aria-label="Close details" tabIndex={-1} onClick={() => setRailOpen(false)}/>}
@@ -79,7 +79,7 @@ function MessageStream({ room, search, onAsk }: { room: Room; search: string; on
 
   return <div className="chat-stream" ref={stream} role="log" aria-label="Messages" aria-live="polite" tabIndex={0}
     onScroll={e => { const el = e.currentTarget; nearBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; }}>
-    {!posts.length && <div className="chat-empty">{needle ? <p>No messages match “{search}”.</p> : <><h2>No messages yet</h2><p>Say hello, share a decision, or ask a connected agent.</p></>}</div>}
+    {!posts.length && <div className="chat-empty">{needle ? <EmptyState title="No matches" description={`No messages match “${search}”.`}/> : <EmptyState icon={<MessageSquare/>} title="No messages yet" description="Say hello, share a decision, or ask a connected agent."/>}</div>}
     {posts.map((post, i) => {
       const prev = posts[i - 1];
       const newDay = !prev || new Date(prev.createdAt).toDateString() !== new Date(post.createdAt).toDateString();
@@ -90,10 +90,10 @@ function MessageStream({ room, search, onAsk }: { room: Room; search: string; on
       return <Fragment key={post.postId}>
         {newDay && <div className="day-divider" role="separator"><span>{dayLabel(post.createdAt)}</span></div>}
         <article className={`msg ${continued ? 'continued' : ''} ${agent ? 'from-agent' : ''}`}>
-          <div className="msg-gutter">{continued ? <time className="msg-hover-time" dateTime={post.createdAt}>{new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time> : agent ? <span className="avatar msg-avatar agent" aria-hidden="true"><Bot/></span> : <span className="msg-avatar-wrap"><Avatar name={post.authorName}/></span>}</div>
+          <div className="msg-gutter">{continued ? <time className="msg-hover-time" dateTime={post.createdAt}>{new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time> : <Avatar name={post.authorName}/>}</div>
           <div className="msg-body">
             {!continued && <div className="msg-meta">
-              <strong>{post.authorName}</strong>{agent && <AgentBadge/>}{own && <span className="msg-you">you</span>}
+              <strong>{post.authorName}</strong>{agent && <AgentBadge/>}{own && <span className="subtle">(you)</span>}
               {post.targetAgentName && <span className="msg-target">→ {post.targetAgentName}</span>}
               <time dateTime={post.createdAt} title={new Date(post.createdAt).toLocaleString()}>{clock(post.createdAt)}</time>
               {post.targetAgentId && <Delivery post={post}/>}
@@ -139,7 +139,7 @@ function Composer({ room, spaceId, recipient, setRecipient, onSent }: { room: Ro
   function key(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); }
   }
-  if (!room.canPublish) return <div className="composer"><p className="form-hint">You can read this group but not post.</p></div>;
+  if (!room.canPublish) return <div className="composer"><p className="subtle">You can read this group but not post.</p></div>;
   return <form className="composer" onSubmit={send}>
     {error && <p className="alert" role="alert">{error}</p>}
     <div className={`composer-box ${target ? 'to-agent' : ''}`}>
@@ -166,29 +166,27 @@ function Rail({ room, spaceId, owner, onAsk, onInvite }: { room: Room; spaceId: 
   const q = `?space=${encodeURIComponent(spaceId)}`;
   return <>
     <AgentActivity spaceId={spaceId}/>
-    <section className="rail-section">
-      <h2>Members <span>{room.members.length}</span></h2>
-      <ul className="rail-list">
-        {room.members.map(m => <li key={m.accountId}><Avatar name={m.name} small/><span className="rail-name">{m.name}{m.accountId === room.currentAccountId && <span className="msg-you">you</span>}</span>{m.role === 'owner' && <Badge>Owner</Badge>}</li>)}
+    <Card title={`Members · ${room.members.length}`} padded={false} actions={owner ? <Button size="sm" icon={<UserPlus/>} onClick={onInvite}>Invite</Button> : undefined}>
+      <ul className="list">
+        {room.members.map(m => <li key={m.accountId} className="list-row"><Avatar name={m.name} small/><span className="row-main">{m.name}{m.accountId === room.currentAccountId && <span className="subtle"> (you)</span>}</span>{m.role === 'owner' && <Badge>Owner</Badge>}</li>)}
       </ul>
-      {owner && <Button size="sm" icon={<UserPlus/>} onClick={onInvite} className="rail-button">Invite</Button>}
-    </section>
-    <section className="rail-section">
-      <h2>Agents <span>{room.agents.length}</span><InfoTip text="Coding agents connected to this group. Use Connect agent above to add yours."/></h2>
-      {room.agents.length ? <ul className="rail-list">
+    </Card>
+    <Card title={<>Agents · {room.agents.length} <InfoTip text="Coding agents connected to this group. Use Connect agent above to add yours."/></>} padded={false}>
+      {room.agents.length ? <ul className="list">
         {room.agents.map(a => <AgentRow key={a.agentId} agent={a} onAsk={onAsk}/>)}
-      </ul> : <p className="rail-empty">No agents yet.</p>}
-    </section>
-    <Link className="rail-link" href={`/members${q}`}><Users aria-hidden="true"/>Manage members & access</Link>
+      </ul> : <div className="card-body"><p className="subtle">No agents yet.</p></div>}
+    </Card>
+    <Button variant="ghost" size="sm" icon={<Users/>} href={`/members${q}`}>Manage members & access</Button>
   </>;
 }
 
 function AgentRow({ agent, onAsk }: { agent: RoomAgent; onAsk: (id: string) => void }) {
   const recent = agent.lastSeenAt && Date.now() - Date.parse(agent.lastSeenAt) < 15 * 60 * 1000;
-  const status = !agent.canReply ? 'Read only' : agent.lastSeenAt ? `Last MCP contact ${timeAgo(agent.lastSeenAt)}` : 'Awaiting setup';
-  return <li className="rail-agent">
-    <span className="avatar small agent" aria-hidden="true"><Bot/></span>
-    <span className="rail-agent-text"><span className="rail-name">{agent.name}</span><small><span className={`presence ${recent ? 'on' : ''}`} aria-hidden="true"/>{status}</small><small className="subtle">{agent.ownerName} · {agent.provider}</small></span>
+  const status: Status = !agent.canReply ? 'idle' : recent ? 'done' : agent.lastSeenAt ? 'idle' : 'waiting';
+  const label = !agent.canReply ? 'Read only' : agent.lastSeenAt ? `Last MCP contact ${timeAgo(agent.lastSeenAt)}` : 'Awaiting setup';
+  return <li className="list-row rail-agent">
+    <Avatar name={agent.name} small/>
+    <span className="row-main"><span>{agent.name} <AgentBadge/></span><small className="subtle">{agent.ownerName} · {agent.provider}</small><StatusPill status={status} label={label}/></span>
     {agent.canReply && <Button size="sm" variant="ghost" onClick={() => onAsk(agent.agentId)} aria-label={`Ask ${agent.name}`}>Ask</Button>}
   </li>;
 }
@@ -210,16 +208,13 @@ function AgentActivity({ spaceId }: { spaceId: string }) {
   }, [spaceId]);
   if (!runs.length) return null;
   const q = `space=${encodeURIComponent(spaceId)}`;
-  return <section className="rail-section">
-    <h2>Agent activity<Link href={`/agents?${q}`} className="rail-more">View all</Link></h2>
-    <ul className="rail-list runs">
+  return <Card title="Agent activity" padded={false} actions={<Button size="sm" variant="ghost" href={`/agents?${q}`}>View all</Button>}>
+    <ul className="list">
       {runs.map(run => { const s = RUN_STATUS[run.status] || { status: 'idle' as Status, label: run.status };
-        return <li key={run.threadId}><Link href={`/agents?${q}&run=${encodeURIComponent(run.threadId)}`} className="run-row">
-          <span className="run-title">{run.kind === 'analyst' ? 'Change analysis' : `Adapter${run.role ? ` · ${run.role}` : ''}`}</span>
+        return <li key={run.threadId}><Link href={`/agents?${q}&run=${encodeURIComponent(run.threadId)}`} className="list-row run-row">
+          <span className="row-main"><span>{run.kind === 'analyst' ? 'Change analysis' : `Adapter${run.role ? ` · ${run.role}` : ''}`}</span>{run.goal && <small className="subtle">{run.goal}</small>}<time dateTime={run.updatedAt}>{timeAgo(run.updatedAt)}</time></span>
           <StatusPill status={s.status} label={s.label}/>
-          {run.goal && <span className="run-goal">{run.goal}</span>}
-          <time dateTime={run.updatedAt}>{timeAgo(run.updatedAt)}</time>
         </Link></li>; })}
     </ul>
-  </section>;
+  </Card>;
 }
