@@ -14,7 +14,7 @@ A real Deep Agents analyst reads OpenAPI/changelog fixtures, infers what changed
 and publishes an approved packet; three adapter agents (one definition, three
 credentials) retrieve it and propose approved patches to their consumers.
 Hosted Tiger Cloud persistence/analytics and automatic native Codex chat replies
-using an existing ChatGPT login are verified. Claude receiver code is implemented;
+using an existing ChatGPT login are verified locally and through the public relay. Claude receiver code is implemented;
 its real account flow and the three-person rehearsal remain unverified. The free shared demo is
 live at [civitas-relay.onrender.com](https://civitas-relay.onrender.com): public
 readiness, two-account sign-in/group access and real MCP messaging over HTTPS are

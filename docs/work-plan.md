@@ -48,7 +48,12 @@ restarting the receiver and replied in 4.3 seconds; responding/live/stopped stat
 authenticated authorship, people-only isolation and anonymous-heartbeat denial
 passed. Temporary verification access was revoked. Claude account execution
 remains unverified.
-Deployment of this follow-up is pending.
+Deployed `4d40313` from main as `dep-dbsimsjbc2fs73bm9cd0` on the existing
+free Render service. The public addressed-message → local native Codex → public
+reply flow passed with a real ChatGPT-account response in 7.6 seconds. Readiness
+passed and environment fingerprint was unchanged. Temporary agent access was
+revoked and the synthetic account logged out. This record is documentation-only;
+the deployed feature code matches main.
 
 ## Deployment source: main
 
