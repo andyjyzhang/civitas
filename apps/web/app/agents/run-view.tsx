@@ -10,7 +10,7 @@ import { AgentBadge, Button, CopyId, StatusPill } from '../components/ui';
 import { DetailRows, DetailsMenu } from '../components/overlays';
 import { call, duration, fullTime, relTime, runStatus, useNow } from './client';
 import { DiffView } from './diff';
-import { AnalystReview, PatchReview } from './review';
+import { AnalystReview, PatchReview, PatchDownload } from './review';
 
 type Timings = Record<string, { at?: string; end?: string }>;
 type Impact = { subscribers: number; topic: string } | null;
@@ -76,6 +76,7 @@ export default function RunView({ threadId, onChange, onBack }: { threadId: stri
         <p className="ag-meta"><span title={fullTime(run.createdAt)}>Started {relTime(run.createdAt, now)}</span>{live && <span className="ag-live"><span className="live-dot" aria-hidden="true"/>Live</span>}</p>
       </div>
       <div className="page-actions">
+        {run.kind === 'adapter' && !run.approval && run.files[`/patches/${run.role}.diff`]?.trim() && <PatchDownload threadId={run.threadId}/>}
         {canControl && run.status === 'running' && <Button variant="danger" size="sm" icon={<Square/>} disabled={stopping} onClick={() => void stop()}>{stopping ? 'Stopping…' : 'Stop'}</Button>}
         <DetailsMenu label="Run details">
           <DetailRows rows={[
@@ -95,6 +96,7 @@ export default function RunView({ threadId, onChange, onBack }: { threadId: stri
       : <PatchReview threadId={run.threadId} service={service} summary={typeof action?.args.summary === 'string' ? action.args.summary : undefined}
           diff={run.files[meta.patchPath || `/patches/${run.role}.diff`]} notes={run.files[meta.notesPath || `/notes/${run.role}.md`]} canControl={canControl} onDecided={decided}/>)}
     {!run.approval && run.result && <ResultRow run={run}/>}
+    {run.kind === 'adapter' && run.status === 'applied' && <p className="subtle">Applied to a server demo copy. Download and review the patch to use it in your own matching project.</p>}
 
     {run.todos.length > 0 && <section className="ag-section" aria-label="Plan">
       <div className="ag-section-head"><h3>Plan</h3><span className="subtle">{done}/{run.todos.length}</span><span className="ag-progress" aria-hidden="true"><span style={{ width: `${(done / run.todos.length) * 100}%` }}/></span></div>

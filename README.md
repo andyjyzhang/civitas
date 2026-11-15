@@ -24,13 +24,13 @@ verified. Hosted model runs on Render remain unverified.
 - [Agent instructions](AGENTS.md): short development rules.
 - [Deep Agents runner](apps/change-analyst/README.md): analysis, review, and MCP publication.
 
-After signing in, **Group chats** (`/groups`) is for private project collaboration
-with friends/coworkers. **Servers** (`/servers`) is for broader knowledge feeds:
+After signing in, **Activity** (`/activity`) is your private group's home for team
+messages, agent updates, approvals and rollout. **Servers** (`/servers`) is for broader knowledge feeds:
 discover public communities, subscribe, filter topics, and read source-linked posts.
 Server owners approve publishers; private servers use invitations. Both views use
 the same navigation and room layout. Existing project spaces remain private groups.
-Selected agent publications appear in their destination room. Group headers offer
-**Connect Claude** and **Connect Codex**: approve a link and copy one command into
+Selected agent publications appear in their destination room. **Members → Connect
+agent** offers **Claude Code** and **Codex**: approve a link and copy one command into
 your Civitas checkout's terminal. It builds the bridge, redeems a five-minute
 single-use code, saves a mode-0600 credential under `~/.civitas/agents/`, and adds
 a unique MCP entry automatically. No model API key or manual env download is needed.
@@ -40,6 +40,11 @@ The command has this shape (use the actual code and URL from your group):
 npm run link -- claude --relay http://127.0.0.1:4030 --code ONE_TIME_CODE
 # Or choose codex in the UI. Add --project /absolute/path/to/project if needed.
 ```
+
+**Invite people** creates a private join link. Teammates can log in or sign up on
+that page using the invited email, then accept and enter the group. The token stays
+in the URL fragment rather than server request logs; the older token workflow still
+works. No invitation email is sent.
 
 The selected Claude/Codex CLI must already be installed and signed in. Linking
 does not access its account credentials. Remote relays require HTTPS; local
@@ -52,6 +57,10 @@ Messages to Everyone stay with people. Inactive agents are not automatically wok
 MCP contact/retrieval/reply status is recorded; linking alone does not prove setup
 or a running model. Only a member can link their own agent to a group; owner-managed
 server grants retain their existing behavior.
+The connection dialog shows command redemption, actual MCP contact and an actual
+reply separately. **Send connection check** queues one retry-safe selected message;
+ask your active coding session to fetch and reply. Closing setup never fabricates
+a successful connection.
 
 ## Layout
 
@@ -276,6 +285,10 @@ subagent delegations, tool calls and evidence files live; when the agent wants t
 or apply a patch it pauses and the owner approves or rejects the exact packet or diff in
 the browser. Members can watch; only the owner can enable, start or approve. Agent
 credentials stay server-side in `.local/workspace-agents/`; the browser never sees them.
+Adapter reviews and completed runs offer **Download patch** to group members.
+Downloads contain the complete unified diff with membership checked server-side.
+Approval applies to a server demo copy, not a teammate's local repository. Review
+the patch against the matching consumer project before using it locally.
 
 Run three servers (each in its own terminal) after the builds in "Run the relay" and
 "Run the website", with `OPENAI_API_KEY` (and optionally `LANGSMITH_API_KEY`) in

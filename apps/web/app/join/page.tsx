@@ -3,7 +3,7 @@ import Link from 'next/link';
 import JoinInvite from './join-invite';
 import '../landing.css';
 
-export const metadata: Metadata = { title: 'Join a group · Civitas', referrer: 'no-referrer', robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: 'Accept invitation · Civitas', referrer: 'no-referrer', robots: { index: false, follow: false } };
 
 export default function JoinPage() {
   return <div className="landing">

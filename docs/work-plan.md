@@ -5,6 +5,29 @@ automation. The user explicitly requested a shared deployment; its minimal host
 setup is recorded below. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Final hackathon product batch
+
+Scope: verifiable native-agent connection status/check message, shareable private
+invitation links with sign-in/signup on the join page, and authorized patch downloads
+with explicit demo-copy scope. No new source integrations, background execution,
+subscription editor, persistence overhaul or test framework in this final batch.
+Implemented all three, including server-invitation routing and honest connection/
+demo-copy labels. Added a required analyst tags field and consistency reminder
+after a real model run omitted required unresolved tags.
+
+Verified against Tiger with real HTTP/MCP: invitation acceptance rejects the wrong
+account and is retry-safe; connection status follows pending → linked → contacted
+→ replied → revoked with caller isolation and no fabricated activity. A real
+gpt-4.1-mini analyst published a reviewed packet to three subscribed identities; a
+real triage adapter produced a byte-for-byte downloadable patch. Member download
+passed; anonymous/outsider access was denied. Approval applied only to a demo copy,
+acknowledged the delivery, and rendered P1 urgent/P2 needs review. Verification
+approvals were performed through the API by this agent. Three analyst attempts
+(one rejected, one format-check failure, one approved) plus the adapter cost about
+$0.12 in the local ledger. Host, website and analyst builds passed. Browser visual
+review was unavailable; these model runs used local compute with Tiger, not Render.
+Deployment of this batch is pending below; native multi-person rehearsal remains.
+
 ## Deployment source: main
 
 The hosting changes were merged into `main` at `1422119`. The existing Render

@@ -22,7 +22,7 @@ const NUDGE = '[Civitas runner reminder]';
 export const ModelPublishArgsSchema = z.object({
   title: z.string().min(1).max(200).describe('Short title; label the scenario synthetic.'),
   content: z.string().min(1).max(60000).describe('Markdown packet body for receiving agents.'),
-  tags: z.array(z.string().min(1).max(100)).max(20).optional(),
+  tags: z.array(z.string().min(1).max(100)).max(20).describe('Required. For every unresolved new value include unresolved: followed by that exact value; also include short topical tags. Keep these tags when fixing a rejected candidate.'),
   // Concrete shape (not recursive JSON) so the tool schema stays simple for the model.
   change: z.object({
     kind: z.string().min(1).max(100),
@@ -54,6 +54,7 @@ Packet requirements:
 - Evidence: cite /repo/ file paths and /evidence/contract.md and /evidence/impact.md.
 - tags: for EACH unresolved value add one tag of the exact form "unresolved:" + the value exactly as written in the spec (for a hypothetical unresolved value X7 the tag is "unresolved:X7"); then add a few short topical tags.
 - change: kind "field-replacement", breaking true, previous and current describing the replaced field and enum.
+Before publishing, check that every section agrees with the evidence and with the other sections. Historical changelog entries are not automatically new changes in the current revision.
 Do not claim any consumer adaptation was executed.`;
 }
 

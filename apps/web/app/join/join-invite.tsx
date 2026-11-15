@@ -26,9 +26,9 @@ export default function JoinInvite() {
   async function accept() {
     setBusy(true); setError('');
     try {
-      const space = await operate<{ spaceId: string }>('acceptInvite', { token });
+      const space = await operate<{ spaceId: string; kind: 'group' | 'server' }>('acceptInvite', { token });
       window.history.replaceState(null, '', '/join');
-      window.location.assign(`/activity?space=${encodeURIComponent(space.spaceId)}`);
+      window.location.assign(`${space.kind === 'server' ? '/servers' : '/activity'}?space=${encodeURIComponent(space.spaceId)}`);
     } catch (e) { setError(errorText(e)); setBusy(false); }
   }
   async function switchAccount() {
@@ -40,7 +40,7 @@ export default function JoinInvite() {
   if (account === undefined) return <p role="status">Loading invitation…</p>;
   if (!/^[A-Za-z0-9_-]{43}$/.test(token)) return <div className="landing-login-form"><h1>Open your invitation link</h1><p>Ask the group owner for the full link. The invitation is missing or invalid.</p><Button href="/">Back to Civitas</Button></div>;
   return <div>
-    <p className="subtle">You’ve been invited to a Civitas group. Use the email address the invitation was sent to.</p>
+    <p className="subtle">You’ve been invited to Civitas. Use the email address the invitation was sent to.</p>
     {error && <p className="alert" role="alert">{error}</p>}
     {account ? <div className="landing-login-form">
       <h1>Join your teammates</h1>

@@ -13,7 +13,7 @@ import { useShell } from '../components/app-shell';
 import { AgentAvatar, Avatar, Badge, Button, EmptyState, StatusPill, type Status } from '../components/ui';
 import { dayLabel, errorText, InviteDialog, operate, useRoom } from '../components/rooms';
 import { agentActions, call, fullTime, relTime, runStatus, shortLabel, useAgentsOverview, useNow, type AgentsOverview } from '../agents/client';
-import { AnalystReview, NewAnalysisDialog, PatchReview, ReportDrawer, packetTitle, summaryBullets } from '../agents/review';
+import { AnalystReview, NewAnalysisDialog, PatchReview, PatchDownload, ReportDrawer, packetTitle, summaryBullets } from '../agents/review';
 import '../styles/agents.css';
 import '../styles/activity.css';
 
@@ -278,9 +278,9 @@ function RunItem({ kind, run, ctx }: { kind: 'analysis' | 'analysis-decision' | 
   }
 
   const props = { ...base, id: anchor(run.threadId), avatar: <Avatar name={memberName(ctx, run.decidedBy)}/>, who: memberName(ctx, run.decidedBy),
-    children: <div className="fe-actions"><Button variant="ghost" size="sm" icon={<FileText/>} href={runLink(ctx, run)}>View diff</Button></div> };
+    children: <div className="fe-actions"><Button variant="ghost" size="sm" icon={<FileText/>} href={runLink(ctx, run)}>View diff</Button>{run.status === 'applied' && <PatchDownload threadId={run.threadId}/>}</div> };
   if (run.decision === 'rejected') return <Row {...props} text={`rejected the patch for ${service}`}/>;
-  if (run.status === 'applied') return <Row {...props} className="fe-done" text={<>applied the patch · <strong>{service} updated</strong></>} pill={<StatusPill status="done" label="Updated"/>}/>;
+  if (run.status === 'applied') return <Row {...props} className="fe-done" text={<>applied the patch · <strong>{service} demo copy updated</strong></>} pill={<StatusPill status="done" label="Applied to demo copy"/>}/>;
   if (run.status === 'running') return <Row {...props} text={`approved the patch for ${service}`} pill={<StatusPill status="working" label="Applying"/>}/>;
   if (run.status === 'failed') return <Row {...props} text={`approved the patch for ${service}, but applying it failed`} pill={<StatusPill status="failed" label="Failed"/>}/>;
   return <Row {...props} text={`approved the patch for ${service}`}/>;
@@ -290,7 +290,7 @@ function RunItem({ kind, run, ctx }: { kind: 'analysis' | 'analysis-decision' | 
 const STAGE: Record<Stage, { status: Status; label: string }> = {
   pending: { status: 'idle', label: 'Not started' }, delivered: { status: 'idle', label: 'Not started' }, retrieved: { status: 'idle', label: 'Not started' },
   adapting: { status: 'working', label: 'Updating' }, patch_ready: { status: 'waiting', label: 'Needs your review' },
-  applied: { status: 'done', label: 'Updated' }, acknowledged: { status: 'done', label: 'Updated' }, dismissed: { status: 'idle', label: 'Dismissed' },
+  applied: { status: 'done', label: 'Demo copy updated' }, acknowledged: { status: 'done', label: 'Acknowledged' }, dismissed: { status: 'idle', label: 'Dismissed' },
   rejected: { status: 'failed', label: 'Patch rejected' }, failed: { status: 'failed', label: 'Failed' },
 };
 const STARTABLE = new Set<Stage>(['pending', 'delivered', 'retrieved', 'rejected', 'failed']);
@@ -314,7 +314,7 @@ function SharedItem({ event, run, ctx }: { event: FeedEvent; run?: RunSummary; c
   const inflight = (role?: string) => ctx.runs.some(r => r.kind === 'adapter' && r.role === role && (r.status === 'running' || r.status === 'waiting'));
   const enabled = (role?: string) => !!ctx.overview?.workspace.find(w => w.role === role)?.present;
   const startable = ctx.owner && ctx.serverUp && latest ? receivers.filter(r => r.role && STARTABLE.has(r.stage) && !inflight(r.role) && enabled(r.role)) : [];
-  const updated = receivers.filter(r => r.stage === 'applied' || r.stage === 'acknowledged').length;
+  const updated = receivers.filter(r => r.stage === 'applied').length;
   const label = (r: Receiver) => r.stage === 'failed' && r.run?.stopped ? { status: 'idle' as Status, label: 'Stopped' } : r.stage === 'patch_ready' && !ctx.owner ? { status: 'waiting' as Status, label: 'Waiting for owner' } : STAGE[r.stage];
   const bullets = summaryBullets(event.content, event.tags);
   return <Row id={run ? `${anchor(run.threadId)}-shared` : undefined} avatar={run?.decidedBy ? <Avatar name={who}/> : <AgentAvatar/>} who={who} at={event.publishedAt} now={ctx.now}
@@ -324,6 +324,7 @@ function SharedItem({ event, run, ctx }: { event: FeedEvent; run?: RunSummary; c
       <ul className="rv-bullets">{bullets.slice(0, 3).map(b => <li key={b}>{b}</li>)}</ul>
       <div className="rv-foot"><Button variant="ghost" size="sm" icon={<FileText/>} onClick={() => setOpen(true)}>View full report</Button></div>
       <section className="rollout" aria-label="Rollout">
+        <p className="subtle">Hosted patches update demo copies. Download a patch to use it in your project.</p>
         <header><h3>Rollout</h3><span className="subtle">{n ? `${updated} of ${n} updated` : 'No services'}</span>
           {startable.length > 1 && <Button size="sm" variant="secondary" className="rollout-all" disabled={!!ctx.busy} onClick={() => ctx.onAdapt(startable.map(r => r.role!))}>{ctx.busy.startsWith('adapt:') ? 'Starting…' : 'Update all services'}</Button>}
         </header>

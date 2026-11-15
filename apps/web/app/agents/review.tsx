@@ -5,7 +5,7 @@
 // New analysis dialog. Everything shown came from a model: rendered as plain text only.
 // Approve / reject are owner-only and enforced again by POST /api/agents/runs/:id.
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { Check, FileText, Sparkles, X } from 'lucide-react';
+import { Check, Download, FileText, Sparkles, X } from 'lucide-react';
 import { Badge, Button } from '../components/ui';
 import { Drawer } from '../components/overlays';
 import { agentActions } from './client';
@@ -43,6 +43,23 @@ export function summaryBullets(content: string, tags: string[] = []) {
   return [...new Set(out)].slice(0, 4).map(b => cap(b));
 }
 export const packetTitle = (title: string) => title.trim() || 'Update';
+
+export function PatchDownload({ threadId }: { threadId: string }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  async function download() {
+    setBusy(true); setError('');
+    try {
+      const response = await fetch(`/api/agents/runs/${encodeURIComponent(threadId)}/patch`, { cache: 'no-store' });
+      if (!response.ok) { const body = await response.json().catch(() => ({})); throw new Error(body.error || 'Could not download this patch.'); }
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement('a'); link.href = url; link.download = `civitas-${threadId}.patch`; link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Download failed.'); }
+    finally { setBusy(false); }
+  }
+  return <><Button variant="ghost" size="sm" icon={<Download/>} disabled={busy} onClick={() => void download()}>{busy ? 'Downloading…' : 'Download patch'}</Button>{error && <span className="alert" role="alert">{error}</span>}</>;
+}
 
 /** The first few changed lines of a unified diff, plus totals. */
 export function diffPreview(text: string | undefined, max = 6) {
@@ -108,8 +125,9 @@ export function PatchReview({ threadId, service, summary, diff, notes, canContro
       {preview.lines.map((l, i) => <div key={i} className={l.kind}><span aria-hidden="true">{l.kind === 'add' ? '+' : '−'}</span>{l.text || ' '}</div>)}
     </div> : <p className="subtle">No diff was attached.</p>}
     {preview.lines.length > 0 && <p className="rv-stat"><span className="add">+{preview.added}</span> <span className="del">−{preview.removed}</span> in {preview.files} file{preview.files === 1 ? '' : 's'}</p>}
-    {canControl ? <Decision threadId={threadId} approveLabel="Apply patch" onDecided={onDecided} extra={full}/>
-      : <div className="rv-foot"><span className="subtle">Waiting for the group owner to review.</span>{full}</div>}
+    <p className="subtle">Approval applies this patch to a server demo copy. Download it to review and use in your own project; your local repository is not changed.</p>
+    {canControl ? <Decision threadId={threadId} approveLabel="Apply to demo copy" onDecided={onDecided} extra={<>{full}{diff?.trim() && <PatchDownload threadId={threadId}/>}</>}/>
+      : <div className="rv-foot"><span className="subtle">Waiting for the group owner to review.</span>{full}{diff?.trim() && <PatchDownload threadId={threadId}/>}</div>}
     {open && <Drawer title={`Patch for ${service}`} onClose={() => setOpen(false)}>
       {summary && <p className="prose-text">{summary}</p>}
       <DiffView text={diff}/>
