@@ -8,13 +8,14 @@ pushed `main`; `git ls-remote` confirmed that exact remote commit. Full
 `npm run build:host` passed (relay, MCP bridge/client/contracts, website and
 TypeScript). The unrelated untracked root MP4 was preserved and not committed.
 
-**Deployment pending:** Render integration discovery returned not installed, and
-the browser inventory reported its access host unavailable. No Render API credential
-was available in the current process/project env files. Suggested the Render
-integration for installation/connection. No deploy was triggered or claimed;
-`render.yaml` retains the existing free service, `main` branch, unchanged runtime
-configuration and manual deployment. Next: connect Render, deploy `main` on the
-existing service, verify deployment status/readiness and public `/demo` interactions.
+**Deployed November 15:** the existing ignored local Render API credential was
+available and used to deploy `295167e` from `main` to the existing free service
+(`dep-dbss7n0ae00c738u9n50`). Render reports live with the expected commit.
+Public `/readyz`, `/`, `/demo`, `/demo/replay`, `/demo/film` and `/demo/pitch.md`
+all returned 200; `/demo` contains the new scripted walkthrough and sample-question
+control. The environment fingerprint was unchanged. No model calls or new browser
+interaction checks were performed during this deployment. This update records the
+deployment only; it does not change the deployed feature code.
 
 ## Presenter-paced hard-coded demo and pitch (November 15)
 
