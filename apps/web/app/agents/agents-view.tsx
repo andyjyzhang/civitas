@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AccountOverview } from '@civitas/contracts';
 import type { RoleStatus, RunDetail, RunStatus, RunSummary, TimelineItem } from '../../lib/agents';
-import WorkspaceNav from '../components/workspace-nav';
+import { useShell } from '../components/app-shell';
+import { PageHeader } from '../components/ui';
 
 // Everything shown here is model output or remote context: it is rendered as plain text
 // (React escapes it). Never switch any of it to HTML injection.
@@ -29,8 +30,7 @@ async function call<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export default function AgentsView() {
-  const [spaces, setSpaces] = useState<Space[]>([]);
-  const [spaceId, setSpaceId] = useState('');
+  const { spaceId, groups: spaces } = useShell();
   const [overview, setOverview] = useState<Overview | null>(null);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -41,14 +41,7 @@ export default function AgentsView() {
   const [goal, setGoal] = useState(DEFAULT_GOAL);
   const owner = overview?.space.role === 'owner';
 
-  useEffect(() => {
-    call<AccountOverview>('/api/account').then(data => {
-      const groups = data.spaces.filter(s => s.kind === 'group'); setSpaces(groups);
-      const wanted = new URLSearchParams(window.location.search).get('space');
-      setSpaceId(groups.find(s => s.spaceId === wanted)?.spaceId || groups[0]?.spaceId || '');
-      const run = new URLSearchParams(window.location.search).get('run'); if (run) setSelected(run);
-    }).catch(e => setError(e.message));
-  }, []);
+  useEffect(() => { const run = new URLSearchParams(window.location.search).get('run'); if (run) setSelected(run); }, []);
   const load = useCallback(async () => {
     if (!spaceId) return;
     try { const data = await call<Overview>('/api/agents?space=' + encodeURIComponent(spaceId)); setOverview(data); setSourceId(p => p || data.sources[0]?.id || ''); setError(''); }
@@ -85,17 +78,13 @@ export default function AgentsView() {
   const published = overview?.runs.some(r => r.kind === 'analyst' && r.status === 'published') ?? false;
   const server = overview?.agentServer;
 
-  return <div className="shell agents-shell"><WorkspaceNav active="agents"/><main className="agents-main">
-    <header className="topbar"><span>Agents <span className="slash">/</span> {overview?.space.name || 'Workspace'}</span>
-      <div className="agents-topbar-actions">{spaces.length > 0 && <label><span className="sr-only">Group</span><select value={spaceId} onChange={e => { setSelected(''); setOverview(null); setSourceId(''); setSpaceId(e.target.value); }}>{spaces.map(s => <option key={s.spaceId} value={s.spaceId}>{s.name} · {s.role}</option>)}</select></label>}
-        {spaceId && <a className="text-button" href={`/groups?space=${encodeURIComponent(spaceId)}`}>Back to group</a>}</div></header>
+  return <div className="shell agents-shell"><div className="agents-main">
     <div className="agents-page">
-      <div className="agents-heading"><div><h1>Workspace agents.</h1><p>Deep Agents analyze a source change, publish reviewed context to this group, and adapt each consumer. Nothing is published or applied without the owner’s approval.</p></div>
-        {server && <span className={`agent-server ${server.up ? 'up' : 'down'}`}><span className="status-dot"/>{server.up ? 'Agent server online' : 'Agent server offline'}</span>}</div>
+      <PageHeader title="Agents" description="Analyze a change, publish reviewed context, adapt each consumer — nothing ships without owner approval." actions={server && <span className={`agent-server ${server.up ? 'up' : 'down'}`}><span className="status-dot"/>{server.up ? 'Agent server online' : 'Agent server offline'}</span>}/>
       {error && <div className="alert" role="alert">{error}</div>}
       {notice && <div className="notice" role="status"><span>{notice}</span><button aria-label="Dismiss" onClick={() => setNotice('')}>×</button></div>}
       {server && !server.up && <div className="alert" role="status">Agent server not running — start it with <code>npm run agents</code>. Expected at {server.url}.</div>}
-      {!spaces.length && !error ? <p className="muted">{overview === null ? 'Loading…' : 'Create a group chat first.'}</p> : !overview ? <p className="muted">Loading agents…</p> : <div className="agents-layout">
+      {!spaces.length && !error ? <p className="muted">Create a group first.</p> : !overview ? <p className="muted">Loading agents…</p> : <div className="agents-layout">
         <div className="agents-controls">
           <section className="card agents-card"><h2>1 · Workspace agents</h2>
             <p className="muted">One analyst (read + publish) and one adapter per consumer (read only, subscribed to its topic). Credentials are saved privately on this computer for the local agent server; the browser never sees them.</p>
@@ -127,7 +116,7 @@ export default function AgentsView() {
         <section className="agents-run" aria-label="Run">{selected ? <RunView key={selected} threadId={selected} onChange={load}/> : <div className="room-empty"><span aria-hidden="true">⌘</span><h2>No run selected.</h2><p>Start an analysis or open a past run to watch the plan, subagent delegations, evidence files and approvals live.</p></div>}</section>
       </div>}
     </div>
-  </main></div>;
+  </div></div>;
 }
 
 function StatusPill({ status }: { status: RunStatus }) { return <span className={`run-pill ${status}`}>{STATUS_LABEL[status]}</span>; }
