@@ -89,10 +89,4 @@
 
 /* ---------- Helpers (candidates for globals.css / ui.tsx) ---------- */
 /* Positions a .menu under its trigger (right-aligned). */
-.menu-anchor { position: relative; display: inline-flex; }
-.menu-anchor .menu { top: calc(100% + 4px); right: 0; }
 /* Two-line text column inside a .list-row that takes the free space. */
-.row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
-.row-main > strong { font-weight: 500; }
-.row-main > small, .row-main > span:first-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.row-main time { font-size: var(--text-xs); }
