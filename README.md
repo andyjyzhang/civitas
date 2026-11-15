@@ -184,13 +184,15 @@ initial trust. Credentials and private verification receipts remain outside git.
 
 ## Run the website
 
-For a presentation without sign-in or backend setup, open `/demo`. This hard-coded,
-presenter-paced walkthrough covers team chat, selected context, analysis, sharing
-approval and three individual sample patch reviews. It makes no API requests or
-file changes. Reset starts it again; presenter notes and the
-[three-minute pitch script](apps/web/public/demo/pitch.md) provide matching narration
-and click cues. The animated workflow replay/live controls remain at `/demo/replay`,
-and the two-minute automatic tour remains at `/demo/film`.
+For the presentation, sign in and open `/demo?space=YOUR_GROUP_ID`. It renders the
+actual Activity page: the same sidebar, composer, real group data, agent replies
+and approval controls. There is no separate chapter UI or prewritten question.
+The [pitch and walkthrough](apps/web/public/demo/pitch.md) covers Andy and Ryan’s
+agents, the exact messages to type, and the clicks to show. Agent names default
+to the actual signed-in owner’s name when linking. Both owners must keep their
+local receivers running; analyst/adapter steps need the configured model runner.
+The separate workflow replay remains at `/demo/replay` and the illustrated
+automatic tour at `/demo/film`.
 
 Keep the relay running, then in another terminal:
 
@@ -491,7 +493,9 @@ No release pipeline, cloud deployment or GitHub publication is included.
 
 ## Watch demo
 
-Open `/demo` (or **Watch demo** on the landing/empty Agents page). The player runs
+For the live presentation, use `/demo` or `/activity` after signing in.
+For the separate playback player, open `/demo/replay` (or **View product tour**
+on the landing/empty Agents page). The player runs
 for 90 seconds, with speed/seek controls, Space to pause and arrow keys to move.
 Turn off **Auto-play replay approvals** to present the decisions yourself.
 The current bundle is honestly labeled **Illustrative walkthrough**: a real
@@ -522,7 +526,7 @@ A **two-minute tour** at `/demo/film` opens with the project overview,
 collaboration and chat, then condenses the change-analysis workflow. It uses the
 website's actual UI components, CSS and Geist fonts. `npm run demo:film` creates
 `.local/demo/civitas-film.html`; all scripted conversation/workflow content is
-labeled illustrative. The longer `/demo` retains live mode and recording controls.
+labeled illustrative. The `/demo/replay` player retains live mode and recording controls.
 The completed local MP4 is `.local/demo/civitas-overview-chat-demo.mp4`
 (original 60-second cut, 1080p, 24 fps, captioned and silent).
 

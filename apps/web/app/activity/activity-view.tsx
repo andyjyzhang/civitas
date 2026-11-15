@@ -95,7 +95,7 @@ export default function ActivityView() {
   const ready = !!room && (!!overview || !!agentsError);
   const noAgentWork = ready && !runs.length && !feed?.events.length;
   const empty = noAgentWork && !room!.posts.length;
-  const sampleButton = <Button variant="primary" size={empty ? 'md' : 'sm'} icon={<Sparkles/>} disabled={!serverUp || !!busy} onClick={() => void sample()}>{busy === 'sample' ? 'Starting…' : 'Run sample analysis'}</Button>;
+  const sampleButton = <Button variant="primary" size={empty ? 'md' : 'sm'} icon={<Sparkles/>} disabled={!serverUp || !!busy} onClick={() => void sample()}>{busy === 'sample' ? 'Starting…' : 'Analyze API change'}</Button>;
   const ctx: Ctx = { overview, details, members: room?.members ?? [], owner, now, spaceId, serverUp, runs, busy, onChanged: refreshAll, onAdapt: startAdapters, newestByTopic: newestEvents(feed?.events ?? []) };
 
   return <div className="activity">
@@ -108,7 +108,7 @@ export default function ActivityView() {
       empty={empty ? <EmptyState icon={<Sparkles/>} title="Nothing here yet"
         description={owner ? 'Watch an API change flow to your services: an agent analyzes it, you approve, each service gets a patch.' : 'Messages and agent updates in this group will appear here.'}
         action={owner && <div className="page-actions">{sampleButton}<Button variant="secondary" icon={<UserPlus/>} onClick={() => setDialog('invite')}>Invite teammates</Button></div>}/>
-        : noAgentWork && owner ? <div className="starter"><AgentAvatar/><p><strong>Try the agents.</strong> <span className="muted">Analyze a sample API change and roll it out to three services.</span></p>{sampleButton}</div> : null}
+        : noAgentWork && owner ? <div className="starter"><AgentAvatar/><p><strong>Try the agents.</strong> <span className="muted">Compare API contracts and prepare updates for three services.</span></p>{sampleButton}</div> : null}
       offline={owner && !!overview && !serverUp}/>
     {room && <Composer room={room} spaceId={spaceId} recipient={recipient} setRecipient={setRecipient} onSent={reloadRoom} hidden={workspaceAgents}/>}
     {dialog === 'analysis' && overview && <NewAnalysisDialog spaceId={spaceId} sources={overview.sources} onClose={() => setDialog('')} onStarted={() => { setDialog(''); refreshAll(); }}/>}

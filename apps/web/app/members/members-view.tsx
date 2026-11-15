@@ -68,7 +68,7 @@ export default function MembersView() {
     </Card>
 
     <Card title={`Agents · ${agents.filter(a => a.granted).length}`} description={owner ? 'Choose what each agent can read and share here.' : 'Only the group owner can change agent access.'} padded={false}
-      actions={<><ConnectAgent spaceId={spaceId} onLinked={async () => { await Promise.all([shell.refresh(), reload()]); }} size="sm"/><Button size="sm" icon={<KeyRound/>} onClick={() => setCreating(true)}>Create agent key</Button></>}>
+      actions={<><ConnectAgent spaceId={spaceId} ownerName={shell.overview?.account.name} onLinked={async () => { await Promise.all([shell.refresh(), reload()]); }} size="sm"/><Button size="sm" icon={<KeyRound/>} onClick={() => setCreating(true)}>Create agent key</Button></>}>
       {agents.length ? <div className="table-wrap"><table className="table agents-table">
         <thead><tr><th>Agent</th><th>Owner</th><th>Read</th><th>Share</th><th>Last seen</th><th><span className="sr-only">More</span></th></tr></thead>
         <tbody>{agents.map(a => <tr key={a.agentId}>

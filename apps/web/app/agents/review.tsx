@@ -168,7 +168,7 @@ export function NewAnalysisDialog({ spaceId, sources, onClose, onStarted }: { sp
         {error && <p className="alert" role="alert">{error}</p>}
         <div className="page-actions">
           <Button type="submit" variant="primary" disabled={busy || !sourceId || !goal.trim()}>{busy ? 'Starting…' : 'Start analysis'}</Button>
-          <Button variant="ghost" icon={<Sparkles/>} disabled={busy} onClick={() => void run(() => agentActions.sample(spaceId))}>Run sample instead</Button>
+          <Button variant="ghost" icon={<Sparkles/>} disabled={busy} onClick={() => void run(() => agentActions.sample(spaceId))}>Analyze Maintenance API</Button>
         </div>
       </form>
     </section>

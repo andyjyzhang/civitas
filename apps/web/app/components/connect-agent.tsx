@@ -12,7 +12,7 @@ type Setup = { code: string; expiresAt: string; relayUrl: string };
 const quote = (value: string) => "'" + value.replace(/'/g, "'\\''") + "'";
 const NAMES: Record<Provider, string> = { claude: 'Claude Code', codex: 'Codex' };
 
-export default function ConnectAgent({ spaceId, onLinked, size = 'md' }: { spaceId: string; onLinked: () => Promise<unknown> | void; size?: 'sm' | 'md' }) {
+export default function ConnectAgent({ spaceId, onLinked, ownerName = '', size = 'md' }: { spaceId: string; onLinked: () => Promise<unknown> | void; ownerName?: string; size?: 'sm' | 'md' }) {
   const menu = useMenu();
   const [provider, setProvider] = useState<Provider | null>(null);
   const [setup, setSetup] = useState<Setup | null>(null);
@@ -68,7 +68,7 @@ export default function ConnectAgent({ spaceId, onLinked, size = 'md' }: { space
     </div>
     {provider && <Dialog title={`Connect ${name}`} description={`Connect and start automatic chat replies using your ${name} account. No model API key needed.`} onClose={close} closeDisabled={busy}>
       {!setup ? <form onSubmit={link}>
-        <label>Agent name<input name="name" defaultValue={`My ${name}`} maxLength={100} required autoFocus/></label>
+        <label>Agent name<input name="name" defaultValue={ownerName.trim() ? `${ownerName.trim().slice(0, 80)}’s ${name}` : `My ${name}`} maxLength={100} required autoFocus/></label>
         <p className="subtle">It can read messages addressed to it and reply. The command works once and expires in 5 minutes.</p>
         {error && <p className="alert" role="alert">{error}</p>}
         <Button type="submit" variant="primary" disabled={busy}>{busy ? 'Preparing…' : 'Generate command'}</Button>
