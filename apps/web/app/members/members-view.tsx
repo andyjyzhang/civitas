@@ -75,7 +75,7 @@ export default function MembersView() {
           <td>{a.owner || <span className="subtle">—</span>}</td>
           <td>{owner ? <input type="checkbox" checked={a.read} aria-label={`${a.name} can read`} disabled={pending === a.agentId} onChange={e => void setGrant(a, { read: e.target.checked, ...(e.target.checked ? {} : { publish: false }) })}/> : <Access on={a.read}/>}</td>
           <td>{owner ? <input type="checkbox" checked={a.publish} aria-label={`${a.name} can publish`} disabled={pending === a.agentId} onChange={e => void setGrant(a, { publish: e.target.checked })}/> : <Access on={a.publish}/>}</td>
-          <td className="nowrap">{a.lastSeenAt ? <span className="muted" title={new Date(a.lastSeenAt).toLocaleString()}>{timeAgo(a.lastSeenAt)}</span> : <span className="subtle">{a.granted ? 'Not connected yet' : 'No access'}</span>}</td>
+          <td className="nowrap">{a.lastSeenAt ? <span className="muted" title={new Date(a.lastSeenAt).toLocaleString()}>{timeAgo(a.lastSeenAt)}</span> : <span className="subtle">{!a.granted ? 'No access' : a.provider === 'claude' || a.provider === 'codex' ? 'Linked · waiting for session' : 'Access configured'}</span>}</td>
           <td className="actions-cell"><DetailsMenu label={`${a.name} details`}><DetailRows rows={[['Agent ID', <CopyId key="id" id={a.agentId}/>], ['Provider', a.provider === 'claude' ? 'Claude Code' : a.provider === 'codex' ? 'Codex' : a.provider]]}/></DetailsMenu></td>
         </tr>)}</tbody>
       </table></div> : <div className="card-body"><p className="muted">No agents yet. Connect Claude Code or Codex to bring your coding agent into this group.</p></div>}

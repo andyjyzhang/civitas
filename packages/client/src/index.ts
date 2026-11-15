@@ -4,7 +4,7 @@ import {
   SubscribeInputSchema as subscriptionInput, SubscriptionSchema as subscription,
   GetUpdatesInputSchema as updatesInput, UpdatesPageSchema as page,
   AckUpdateInputSchema, AckRecordSchema, ActivitySnapshotSchema, ApiErrorSchema as apiError,
-  AccountSessionSchema, AccountOverviewSchema, SpaceSchema, AgentCredentialSchema, InviteSchema, GrantSchema, RoomSchema, RoomPostSchema, ServerDirectorySchema, GroupMessagesSchema, AgentLinkSchema,
+  AccountSessionSchema, AccountOverviewSchema, SpaceSchema, AgentCredentialSchema, InviteSchema, GrantSchema, RoomSchema, RoomPostSchema, ServerDirectorySchema, GroupMessagesSchema, AgentLinkSchema, AgentLinkStatusSchema,
   type PublishContextInput, type SubscribeInput, type GetUpdatesInput, type AckUpdateInput,
 } from '@civitas/contracts';
 export type {
@@ -80,6 +80,7 @@ export function createAccountClient({ baseUrl, token }: { baseUrl: string; token
     createSpace(name: string, options: {kind?:'group'|'server';visibility?:'private'|'public'} = {}) { return request('/v1/spaces', SpaceSchema, { name, ...options }); },
     connectGroupAgent(spaceId:string,input:{provider:'claude'|'codex';name:string}) { return request(spacePath(spaceId)+'/connect-agent',AgentCredentialSchema,input); },
     createAgentLink(spaceId:string,input:{provider:'claude'|'codex';name:string}) { return request(spacePath(spaceId)+'/agent-links',AgentLinkSchema,input); },
+    agentLinkStatus(code:string) { return request('/v1/agent-links/status',AgentLinkStatusSchema,{code}); },
     room(spaceId:string) { return request(spacePath(spaceId)+'/room',RoomSchema); },
     directory() { return request('/v1/servers',ServerDirectorySchema); },
     joinServer(spaceId:string) { return request(spacePath(spaceId)+'/join',z.object({ok:z.literal(true)}),{}); },

@@ -238,7 +238,7 @@ export class Accounts {
       const account=this.account(state,credential);this.member(state,account.accountId,spaceId);
       if((state.get(key('space',spaceId))?.kind||'group')!=='group')throw new HttpError(400,'INVALID_INPUT','Link agents from a project group.');
       const now=Date.now();
-      for(const [id,link]of state)if(id.startsWith('agentlink:')&&Date.parse(link.expiresAt)<=now)state.delete(id);
+      for(const [id,link]of state)if(id.startsWith('agentlink:')&&Date.parse(link.expiresAt)<now-(link.used?86400000:0))state.delete(id);
       const expiresAt=new Date(now+5*60000).toISOString();
       state.set(key('agentlink',digest(code)),{accountId:account.accountId,spaceId,...input,expiresAt,used:false});
       return {code,expiresAt};
@@ -254,8 +254,21 @@ export class Accounts {
       const agent={agentId:`ag_${randomUUID()}`,accountId:link.accountId,name:link.name,provider,tokenHash:digest(raw)};
       state.set(key('agent',agent.agentId),agent);
       state.set(key('grant',`${link.spaceId}:${agent.agentId}`),{spaceId:link.spaceId,agentId:agent.agentId,read:true,publish:true});
-      link.used=true;
+      link.used=true;link.agentId=agent.agentId;
       return {agentId:agent.agentId,name:agent.name,token:raw,spaceId:link.spaceId,provider};
+    });
+  }
+  async agentLinkStatus(credential:string,code:string) {
+    return this.store.run(state=>{
+      const account=this.account(state,credential),link=state.get(key('agentlink',digest(code)));
+      if(!link||link.accountId!==account.accountId)throw new HttpError(404,'NOT_FOUND','Connection command not found. Generate a new command.');
+      this.member(state,account.accountId,link.spaceId);
+      const agent=link.agentId?state.get(key('agent',link.agentId)):undefined;
+      const grant=agent?state.get(key('grant',`${link.spaceId}:${agent.agentId}`)):undefined;
+      const replied=agent&&records(state,'roompost').some(p=>p.spaceId===link.spaceId&&p.authorId===agent.agentId&&p.replyTo);
+      const status=agent?(!grant?.read||!grant?.publish?'revoked':replied?'replied':agent.lastSeenAt?'contacted':'linked')
+        :Date.parse(link.expiresAt)<=Date.now()?'expired':'pending';
+      return {status,expiresAt:link.expiresAt,agentId:agent?.agentId,lastSeenAt:agent?.lastSeenAt||null};
     });
   }
   private groupAgent(state:State,spaceId:string,agentId:string,permission:'read'|'publish') {

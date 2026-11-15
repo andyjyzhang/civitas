@@ -125,15 +125,17 @@ export function InviteDialog({ spaceId, spaceName, onClose, onCreated }: { space
     catch (e) { setError(errorText(e, 'Could not create the invitation.')); }
     finally { setBusy(false); }
   }
-  return <Dialog title={`Invite to ${spaceName}`} description={invite ? 'Share this token privately. It is shown only once.' : 'They accept with an account that uses this email. No email is sent.'} onClose={onClose} closeDisabled={busy}>
+  const inviteUrl = invite ? `${window.location.origin}/join#token=${encodeURIComponent(invite.token)}` : '';
+  return <Dialog title={`Invite to ${spaceName}`} description={invite ? 'Share this link privately. Your teammate can sign in and join from it.' : 'They accept with an account that uses this email. No email is sent.'} onClose={onClose} closeDisabled={busy}>
     {!invite ? <form onSubmit={submit}>
       <label>Email<input name="email" type="email" required autoFocus placeholder="teammate@example.com" maxLength={254}/></label>
       {error && <p className="alert" role="alert">{error}</p>}
       <Button type="submit" variant="primary" disabled={busy}>{busy ? 'Creating…' : 'Create invitation'}</Button>
     </form> : <form onSubmit={e => { e.preventDefault(); onClose(); }}>
-      <label>Invitation token<input readOnly value={invite.token} className="mono" onFocus={e => e.currentTarget.select()} aria-describedby="invite-hint"/></label>
-      <p className="subtle" id="invite-hint">For {invite.email} · expires {clock(invite.expiresAt)}. They use Accept invitation in the group menu.</p>
-      <div className="page-actions"><CopyButton value={invite.token} label="Copy token" size="md"/><Button type="submit" variant="primary">Done</Button></div>
+      <label>Invitation link<input readOnly value={inviteUrl} onFocus={e => e.currentTarget.select()} aria-describedby="invite-hint"/></label>
+      <p className="subtle" id="invite-hint">For {invite.email} · expires {clock(invite.expiresAt)}. They must use this email to join.</p>
+      <div className="page-actions"><CopyButton value={inviteUrl} label="Copy invitation link" size="md"/><Button type="submit" variant="primary">Done</Button></div>
+      <details><summary>Use an invitation token instead</summary><p className="subtle">Accept invitation in the group menu still works.</p><CopyButton value={invite.token} label="Copy token"/></details>
     </form>}
   </Dialog>;
 }
