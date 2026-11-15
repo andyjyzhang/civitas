@@ -18,8 +18,13 @@ authorized group retrieval; both `/demo` and `/activity` return the Activity UI
 without chapter/preset-question controls. Pitch, replay and film routes return 200.
 The temporary verification session was logged out. Browser access was unavailable,
 so no new visual interaction check is claimed. Preview: `http://127.0.0.1:13730/demo`.
-This implementation has not been redeployed. Two-owner rehearsal and hosted model
-inference remain separate outstanding validation.
+Deployed `0701fe9` from main to the existing free Render service as
+`dep-dbssdit6e07s73aoit70`; Render reports live with the expected commit. Public
+readiness returned 200 with PostgreSQL. Real sign-in/shared-group retrieval,
+authenticated `/demo` and `/activity`, anonymous sign-in redirect, pitch and
+playback routes passed. Environment fingerprint was unchanged; the temporary
+verification session was logged out. This deployment record is documentation-only.
+Two-owner rehearsal and hosted model inference remain outstanding validation.
 
 ## Demo merge and Render deployment request (November 15)
 
