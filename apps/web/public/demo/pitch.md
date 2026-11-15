@@ -1,95 +1,118 @@
-# Civitas: simple deadline demo
+# Civitas: a real-world trial-policy change
 
 **Demo:** https://civitas-relay.onrender.com/demo
 
-**Only memorize two messages: “What time?” and “What changed?”**
+**Story:** a SaaS product changes its free trial from **30 days to 14 days for new
+customers**. Existing customers must keep their original trial end dates. Signup,
+the website and reminder emails all need to follow the same rule.
 
-The story: event signup used to close at **5 PM**. David’s agent learns it now
-closes at **4 PM**. Share that fact once, and the other agents know too.
-This is an offline product preview with prepared agents and replies. It needs
-no sign-in, receivers or model calls. Replies take about two seconds; wait for
-them before moving on. Keep the small Offline preview badge visible.
+The demo is an offline preview with prepared agents and replies. No sign-in,
+receivers or model calls are required. Replies pause about two seconds with the
+Replying indicator visible. Keep the small Offline preview badge visible.
+
+## The three prompts to remember
+
+- **What changed about trials?** → David’s Claude
+- **How should signup work?** → Ryan’s Codex
+- **What should we test?** → Andy’s Codex
 
 ## Quick click sheet
 
 | Action | Type | What appears |
 |---|---|---|
-| Activity → To: **Ryan’s Codex** | **What time?** | His reminder still says **5 PM**. |
-| To: **David’s Claude** | **What changed?** | Signup moved to **4 PM**. |
-| **New analysis** → **Approve and share** | Nothing | One shared deadline update. |
-| To: **Ryan’s Codex** | **What time?** | Now he knows **4 PM**. |
-| To: **Andy’s Codex** (optional) | **What time?** | The website should also say **4 PM**. |
+| Activity → To: **Ryan’s Codex** | **How should signup work?** | He still has the old **30-day** rule. |
+| To: **David’s Claude** | **What changed about trials?** | **14 days for new customers; existing end dates stay unchanged.** |
+| **New analysis** → **Approve and share** | Nothing | One source-linked policy update. |
+| To: **Ryan’s Codex** again | **How should signup work?** | **14 days for new signups**, without shortening existing trials. |
+| To: **Andy’s Codex** | **What should we test?** | New trials, existing trials, website copy and reminders. |
 
-## What to say and do — about 90 seconds
+Use the normal composer and Send button. Wait for each reply before moving on.
+
+## What to say and do — about two minutes
 
 ### 1. Show the team
 
-**Click Members**, then return to **Activity**.
+Click **Members**, point to the three agents, then return to **Activity**.
 
 **Say:**
-“These are David’s Claude, my Codex and Ryan’s Codex. Each belongs to a different
-person. The problem is simple: when one agent learns something, the others can
-keep working with old information. We’re showing that in this interactive preview.”
+“Teams already use coding agents, but each agent can have a different understanding
+of the product. A small policy change can turn into inconsistent code, copy and
+emails. Civitas gives independently owned agents a way to share selected context.
+We’re showing that in this interactive preview.”
 
-### 2. Show the old information
+### 2. Show the stale assumption
 
-Choose **Ryan’s Codex**. Type **What time?** and send. Wait for the reply.
-
-**Say:**
-“Ryan’s agent thinks event signup closes at five.”
-
-### 3. Show the discovery
-
-Choose **David’s Claude**. Type **What changed?** and send. Wait for the reply.
+Choose **Ryan’s Codex**, type **How should signup work?**, and send.
 
 **Say:**
-“But David’s agent has read the updated event brief. Signup now closes at four.
-Right now, only one agent has the new information.”
+“Ryan’s agent owns signup. It still thinks every new customer gets a thirty-day
+trial. That was correct yesterday.”
 
-### 4. Share once
+### 3. Discover the rule and its exception
 
-Click **New analysis**. Point to **Signup deadline: 5 PM → 4 PM**.
-Click **Approve and share**. You can open **View full report** to show the one-line
-source, but it is optional.
+Choose **David’s Claude**, type **What changed about trials?**, and send.
 
 **Say:**
-“We review the fact and share it once. Civitas gives the authorized agents the
-same source-linked update. We don’t copy entire private conversations.”
+“The product policy changed: new customers get fourteen days. But existing trials
+keep their original end dates. Missing that exception could cut a customer’s trial
+short. David’s agent knows this; Ryan’s agent doesn’t yet.”
 
-### 5. Ask the exact same question
+### 4. Review and share once
 
-Choose **Ryan’s Codex** again. Type **What time?** and send.
-
-**Say:**
-“Same agent. Same question. Now the answer is four. We didn’t paste the change
-into Ryan’s chat. His agent has the shared context.”
-
-Optionally choose **Andy’s Codex**, send **What time?**, and show that it also knows
-four. Both responses cite the same shared version.
-
-### 6. Close
+Click **New analysis**. Point to the two rules and the source in the prepared packet.
+Click **Approve and share**. **View full report** is optional.
 
 **Say:**
-“One discovery. The right agents know it. Less manual forwarding, fewer stale
-assumptions, and everyone working from the same information.
+“We review the exact update and share it once, with its source. The important
+part is not just the number fourteen. The exception travels with it: preserve
+existing customers’ trial end dates.”
+
+### 5. Ask the same agent the same question
+
+Choose **Ryan’s Codex** again, type **How should signup work?**, and send.
+
+**Say:**
+“Same agent, same question. Now it proposes fourteen days for new signups and
+preserves existing trials. We didn’t manually paste the policy into Ryan’s chat.”
+
+### 6. Reuse the context for another responsibility
+
+Choose **Andy’s Codex**, type **What should we test?**, and send.
+
+**Say:**
+“My agent uses the same update to propose checks: a new customer gets fourteen
+days; an existing trial keeps its original end date; the website and reminders
+agree. One discovery supports different work across the team.”
+
+### 7. Close
+
+**Say:**
+“Civitas helps independently owned agents work from the same evidence, while
+people decide what gets shared and applied.
 
 Your agent learns something. The right agents know it too.”
 
-## Optional: show proposed changes — another 30 seconds
+## Optional: show the proposed changes — another 30–45 seconds
 
-Scroll to the shared update and click **Update all services**, then **Inbox**.
-Each diff changes just **5 PM → 4 PM**. Open one **View full diff**, close it,
-then click **Apply to demo copy** on Website, Reminders and Calendar.
-Open **Agents** to show **3 of 3 updated**.
+Scroll to the shared packet → **Update all services** → **Inbox**.
+
+- **Signup flow:** the proposal uses the existing trial end date when present;
+  only a new trial defaults to fourteen days.
+- **Website:** the signup message changes from thirty days to fourteen.
+- **Trial reminders:** reminders use each customer’s saved end date rather than
+  assuming everyone has the same trial length.
+
+Click **View full diff** on one proposal, close it, then **Apply to demo copy** on
+each. Open **Agents** to show **3 of 3 updated**.
 
 **Say:**
-“The same fact can inform three changes: the website, the reminder and the
-calendar. Each proposal still needs review. In this preview, the approvals stay
-in the browser; no files or systems are changed.”
+“The same reviewed policy informs three proposed changes. Each still needs a
+person’s approval. In this preview, those approvals only change the browser state;
+no files or systems are changed.”
 
 ## Reset
 
 Click **Andy** at the bottom of the sidebar → **Reset preview**, or refresh.
-That clears replies, shared context, approvals and pending reply timers. Ryan and
-Andy return to the old 5 PM information; David still has the updated brief.
-The three prepared agents remain connected. People-only messages get no agent reply.
+This clears shared knowledge, replies, approvals and pending timers. Ryan starts
+with the old thirty-day rule again; David has the updated policy. The three
+prepared agents stay connected. People-only messages do not invoke agents.

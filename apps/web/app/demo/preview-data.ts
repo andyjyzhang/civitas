@@ -9,14 +9,14 @@ export const agents: Room['agents'] = [
 // Short, visibly paced preset replies; no model or service is involved.
 export const replyDelays: Record<string, number> = { preview_david: 2600, preview_andy: 1800, preview_ryan: 2200 };
 export const packet = {
-  title: 'Signup deadline: 5 PM → 4 PM',
-  content: '## Summary\n- Event signup now closes at 4 PM instead of 5 PM.\n- Use the same time on the website, in reminders and on the calendar.\n\n## Source\n- event-brief.md: "Signup closes at 4 PM."',
+  title: 'Free trials: 30 days → 14 days for new customers',
+  content: '## Summary\n- New customers get a 14-day free trial instead of 30 days.\n- Existing trials keep their original end dates. Do not shorten them.\n- Align signup, website copy and reminder emails with the same rule.\n\n## Source\n- trial-policy.md: "New accounts: 14 days. Existing trials retain their original end dates."',
   tags: [], change: { breaking: false },
 };
 export const services = [
-  { role: 'website', name: 'Website', owner: 'Andy’s Codex', summary: 'Show the new 4 PM signup deadline on the website.', diff: '--- a/website/signup.ts\n+++ b/website/signup.ts\n@@ -1 +1 @@\n-export const signupDeadline = "5 PM";\n+export const signupDeadline = "4 PM";' },
-  { role: 'reminders', name: 'Reminders', owner: 'Ryan’s Codex', summary: 'Use 4 PM in the signup reminder.', diff: '--- a/email/reminder.ts\n+++ b/email/reminder.ts\n@@ -1 +1 @@\n-export const reminder = "Signups close at 5 PM.";\n+export const reminder = "Signups close at 4 PM.";' },
-  { role: 'calendar', name: 'Calendar', owner: 'David’s Claude', summary: 'Keep the calendar deadline in sync at 4 PM.', diff: '--- a/calendar/event.ts\n+++ b/calendar/event.ts\n@@ -1 +1 @@\n-export const signupCloses = "5 PM";\n+export const signupCloses = "4 PM";' },
+  { role: 'signup', name: 'Signup flow', owner: 'Ryan’s Codex', summary: 'Create 14-day trials for new accounts while preserving any existing trial end date.', diff: '--- a/signup/trial.ts\n+++ b/signup/trial.ts\n@@ -1 +1 @@\n-const trialEndsAt = addDays(today, 30);\n+const trialEndsAt = existingTrial?.endsAt ?? addDays(today, 14);' },
+  { role: 'website', name: 'Website', owner: 'Andy’s Codex', summary: 'Advertise a 14-day free trial to new customers.', diff: '--- a/website/signup.ts\n+++ b/website/signup.ts\n@@ -1 +1 @@\n-export const trialLabel = "Start your 30-day free trial";\n+export const trialLabel = "Start your 14-day free trial";' },
+  { role: 'reminders', name: 'Trial reminders', owner: 'David’s Claude', summary: 'Use each customer’s saved trial end date, so existing trials are not shortened.', diff: '--- a/email/trial-reminder.ts\n+++ b/email/trial-reminder.ts\n@@ -1 +1 @@\n-const daysLeft = 30 - daysSinceSignup;\n+const daysLeft = daysUntil(trial.endsAt);' },
 ];
 export type PreviewState = { room: Room; phase: 'idle'|'review'|'shared'|'rejected'; patches: Record<string, 'ready'|'approved'|'rejected'>; now: number; packetIndex: number };
 export type PreviewAction =
@@ -27,26 +27,26 @@ export type PreviewAction =
   | { type: 'reset'; at: number };
 export function initialPreviewState(now = START): PreviewState {
   return { now, phase: 'idle', patches: {}, packetIndex: 2, room: {
-    space: { spaceId: 'preview_launch', name: 'Launch team', role: 'owner', kind: 'group', visibility: 'private' },
+    space: { spaceId: 'preview_product', name: 'Product team', role: 'owner', kind: 'group', visibility: 'private' },
     currentAccountId: 'preview_person_andy', canPublish: true, agents,
     members: ['Andy','David','Ryan'].map((name, i) => ({ accountId: `preview_person_${name.toLowerCase()}`, name, role: i ? 'member' : 'owner', canPublish: true })),
     posts: [
-      { postId: 'preview_intro', spaceId: 'preview_launch', authorId: 'preview_person_andy', authorName: 'Andy', origin: 'human', createdAt: new Date(now-60000).toISOString(), content: 'Let’s keep the event signup time consistent across the website, reminders and calendar.' },
-      { postId: 'preview_intro_ryan', spaceId: 'preview_launch', authorId: 'preview_person_ryan', authorName: 'Ryan', origin: 'human', createdAt: new Date(now-30000).toISOString(), content: 'The website and my reminders currently say signups close at 5 PM.' },
+      { postId: 'preview_intro', spaceId: 'preview_product', authorId: 'preview_person_andy', authorName: 'Andy', origin: 'human', createdAt: new Date(now-60000).toISOString(), content: 'We’re updating our free trial. Let’s keep signup, the website and reminder emails consistent.' },
+      { postId: 'preview_intro_ryan', spaceId: 'preview_product', authorId: 'preview_person_ryan', authorName: 'Ryan', origin: 'human', createdAt: new Date(now-30000).toISOString(), content: 'Signup currently creates a 30-day trial. Let me know if the policy changes.' },
     ],
   } };
 }
 export function presetReply(agentId: string, content: string, shared: boolean) {
   const name = agents.find(a => a.agentId === agentId)?.name || 'Agent';
-  if (/^(hi|hey|hello|are you (online|connected|there))\b/i.test(content.trim())) return `Hi Andy — ${name} here. Ask me “What time?” or “What changed?”`;
-  if (!/time|when|signup|sign.?up|deadline|event|clos|chang|new|update|website|reminder|calendar/i.test(content)) return 'We’re coordinating an event signup deadline. Try “What time?” or “What changed?”';
-  if (agentId === 'preview_david') return 'Signup now closes at 4 PM, not 5 PM. The event brief was updated. Share this change so the other agents know.\n\nSource: event-brief.md';
+  if (/^(hi|hey|hello|are you (online|connected|there))\b/i.test(content.trim())) return `Hi Andy — ${name} here. I’m ready to discuss the free-trial change.`;
+  if (!/trial|signup|sign.?up|test|policy|chang|new|update|website|reminder|customer/i.test(content)) return 'We’re coordinating a free-trial policy change. Ask “What changed about trials?”, “How should signup work?” or “What should we test?”';
+  if (agentId === 'preview_david') return 'New customers now get a 14-day trial instead of 30 days. Existing trials keep their original end dates — don’t shorten them. Signup, website copy and reminders need the same rule.\n\nSource: trial-policy.md';
   if (!shared) return agentId === 'preview_andy'
-    ? 'The website still says 5 PM. I haven’t received a newer signup deadline yet.'
-    : 'My reminder still says 5 PM. I haven’t received a newer signup deadline yet.';
+    ? 'The website currently advertises a 30-day free trial. I haven’t received a newer policy yet.'
+    : 'Signup currently creates a 30-day trial for new customers. I haven’t received a newer policy yet.';
   return agentId === 'preview_andy'
-    ? '4 PM. I received the shared update, so the website should say “Signups close at 4 PM.”\n\nSource: shared deadline update · version 1'
-    : '4 PM. I received the shared update, so the reminder should say “Signups close at 4 PM.”\n\nSource: shared deadline update · version 1';
+    ? 'Test two cases: a new customer gets 14 days, and an existing trial keeps its original end date. Also check that the website advertises 14 days and reminders use the saved end date.\n\nSource: shared trial policy · version 1'
+    : 'New signups should get a 14-day trial. Keep existing customers’ saved trial end dates unchanged. The signup message should say “14-day free trial.”\n\nSource: shared trial policy · version 1';
 }
 
 export function previewReducer(state: PreviewState, action: PreviewAction): PreviewState {
