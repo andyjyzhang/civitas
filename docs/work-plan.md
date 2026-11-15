@@ -7,13 +7,17 @@ model calls, customer feedback or sponsor eligibility into completion claims.
 
 ## Deployment source: main
 
-The user requested that all redeployments use `main`. Merge the hosting changes
-into `main` and point the existing Render service and Blueprint at that branch.
-Keep deployments and Blueprint syncs manual and the existing service on Free.
-`render.yaml` explicitly selects `main`; the approved hosted-account IDs are now
-dashboard-managed so Blueprint syncs preserve them. The README's deploy link and
-update workflow use `main`. A private environment fingerprint was captured before
-the switch to verify that credentials and approved IDs are preserved.
+The hosting changes were merged into `main` at `1422119`. The existing Render
+service and its Blueprint both now point to `main`; deployments and Blueprint
+syncs stay manual and the service stays on Free. `render.yaml` explicitly selects
+`main`; dashboard-managed hosted-account IDs are preserved by Blueprint syncs.
+The README deploy link and update workflow use `main`, and the local checkout is
+on `main`. An environment fingerprint verified that credentials and approved IDs
+were unchanged by the switch.
+
+Triggered and verified deployment `dep-dbshol6c6qcc73979b3g` of `1422119` from
+`main`: Render reports live; the public homepage and `/readyz` pass, with PostgreSQL
+storage ready. This record is a documentation-only follow-up to that deployment.
 
 ## Shared free hosting (November 14)
 
