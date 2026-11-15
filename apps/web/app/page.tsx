@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { accountCookieName, session } from '../lib/relay';
 import './landing.css';
 import LandingLogin from './landing-login';
 import AsciiLogo from './ascii-logo';
@@ -22,7 +24,9 @@ function logoArt() {
   return rows.join('\n');
 }
 
-export default function Landing() {
+export default async function Landing() {
+  // Signed in: land on Activity (the shell picks the last group from local storage).
+  if (await session(accountCookieName)) redirect('/activity');
   return <div className="landing">
     <header className="landing-nav">
       <Link href="/" className="landing-wordmark">civitas</Link>

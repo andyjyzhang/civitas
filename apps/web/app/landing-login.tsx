@@ -19,7 +19,7 @@ export default function LandingLogin() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || (signup ? 'Could not create your account.' : 'Could not log in. Check your email and password.'));
-      window.location.assign('/groups');
+      window.location.assign('/activity');
     } catch (problem) {
       setError(problem instanceof Error ? problem.message : 'Could not reach the relay. Try again.');
       setBusy(false);
