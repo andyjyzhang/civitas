@@ -8,12 +8,16 @@ the old signup rule until the policy is reviewed/shared; David knows the new rul
 Andy proposes checks for new and existing customers. Signup, website and reminders
 have small, readable proposed diffs. Replies pause 1.8–2.6 seconds with the existing
 typing indicator. Pitch prompts are “What changed about trials?”, “How should signup
-work?” and “What should we test?”. The superseded deadline build was asked to cancel;
-Render confirmed that superseded deployment canceled. Production website build
+work?” and “What should we test?”. Render confirmed cancellation of the superseded
+deadline deployment. Production website build
 passed. The actual preview state flow returns the old 30-day answer before sharing,
 the new 14-day rule plus unchanged existing end dates after sharing, appropriate
-checks from Andy, three approvals and reset. No service requests were made. Final
-deployment pending; no new browser click/visual verification is claimed.
+checks from Andy, three approvals and reset. No service requests were made.
+Deployed `685e9d2` from main to the existing free service as
+`dep-dbst2o49v7es73bipujg`; Render reports live with the expected commit. Public
+preview, script and all linked styles return 200 without sign-in; readiness passes
+with PostgreSQL. Environment fingerprint is unchanged. This is a documentation-only
+record; no new browser click/visual verification or model execution is claimed.
 
 ## Offline interactive preview (November 15)
 
