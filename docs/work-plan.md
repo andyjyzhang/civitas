@@ -37,9 +37,16 @@ JSON schema. No model inference or real independent coding-session response is c
 Observed idle process RSS on macOS was about 166 MiB; this is not a Render/Linux
 peak-memory measurement.
 
-**Remaining:** Render is not connected and no hosting credentials/browser access
-are available. No cloud service or paid resource has been created. Connect Render,
-provide the existing database URI/CA and model key through hosting secrets, deploy,
+**Hosting handoff:** the user created Render Blueprint `exs-dbsh1mmi0phs73d47ehg`
+from this branch at `a6fe9f2`. Their dashboard text reports the sync/service creation
+as running; this does not establish a successful deployment. Render still reports
+uninstalled in this chat, no dashboard credentials/browser access are available,
+and GitHub has no commit-status reports for that deployment yet. The populated
+database URI, CA certificate and model key were assembled into ignored mode-0600
+`.local/render-required.env`, ready for Render's Environment → Add from .env.
+Its values round-trip through dotenv; no secrets were printed or committed.
+
+**Remaining:** verify/import the service's saved environment, finish deployment,
 approve intended host accounts, then verify public HTTPS, full model-run peak memory
 and the three-person native-agent flow. Render free has 512 MB and no persistent
 disk; model-run reliability there remains unverified. No public URL is claimed.
