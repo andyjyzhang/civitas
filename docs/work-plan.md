@@ -56,11 +56,12 @@ database URI, CA certificate and model key were assembled into ignored mode-0600
 Its values round-trip through dotenv; no secrets were printed or committed.
 After Render reported the startup configuration guard, the ignored import file was
 updated to explicitly set `RELAY_STORAGE=postgres` and enable Timescale analytics.
-The user still needs to save those values in the Render service environment.
+The user subsequently saved the required database settings; public verification
+is recorded below.
 
-**Remaining:** verify/import the service's saved environment, finish deployment,
-approve intended host accounts, then verify public HTTPS, full model-run peak memory
-and the three-person native-agent flow. Render free has 512 MB and no persistent
+**Remaining:** approve intended host accounts, verify the hosted model key and a
+full model run's peak memory, and rehearse the three-person native-agent flow.
+Render free has 512 MB and no persistent
 disk; model-run reliability there remains unverified.
 
 **Render startup follow-up:** user supplied `https://civitas-relay.onrender.com` and
@@ -72,7 +73,19 @@ the CA and succeeds with it. Add the full `.local/tiger-ca.crt` contents to Rend
 Migration and relay startup now report recognized TLS/auth/network causes using
 fixed hints without printing raw database errors, credentials or connection URLs.
 Relay build passed; real missing-CA failure and configured-CA migration rerun were
-verified. Successful cloud startup and model inference remain unverified.
+verified. The user added the certificate and restarted at `533f243`.
+
+**Public deployment verified:** `https://civitas-relay.onrender.com` and `/readyz`
+returned HTTP 200; readiness reports PostgreSQL and ephemeral agent files. Two
+existing synthetic Tiger accounts signed in over public HTTPS with Secure/HttpOnly
+cookies, saw their persisted shared group, and loaded the Activity page. The
+website confirmed its private agent server was up. A newly linked synthetic agent
+received the correct public relay URL; a real local MCP subprocess retrieved a
+selected message from Render and replied, and the second account saw that reply.
+Unauthenticated API access was denied. Verification sessions were logged out and
+the temporary agent's grants revoked. No model inference, real native coding-agent
+session or browser visual review was performed. Changes pushed after this record
+are documentation only; manual deploys remain enabled.
 
 ## Website redesign: Activity feed (Option C, November 15)
 

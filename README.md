@@ -14,8 +14,10 @@ A real Deep Agents analyst reads OpenAPI/changelog fixtures, infers what changed
 and publishes an approved packet; three adapter agents (one definition, three
 credentials) retrieve it and propose approved patches to their consumers.
 Hosted Tiger Cloud persistence/analytics are verified; independent coding-agent
-sessions (e.g. Claude Code) as receivers remain pending. A free Render demo setup
-is included below; public deployment is pending hosting-account access.
+sessions (e.g. Claude Code) as receivers remain pending. The free shared demo is
+live at [civitas-relay.onrender.com](https://civitas-relay.onrender.com): public
+readiness, two-account sign-in/group access and real MCP messaging over HTTPS are
+verified. Hosted model runs on Render remain unverified.
 
 - [Design](docs/product.md): product, stack, prize strategy, and demo.
 - [Work plan](docs/work-plan.md): current implementation, verified flows, and external blockers.
