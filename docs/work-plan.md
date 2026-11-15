@@ -59,8 +59,8 @@ updated to explicitly set `RELAY_STORAGE=postgres` and enable Timescale analytic
 The user subsequently saved the required database settings; public verification
 is recorded below.
 
-**Remaining:** approve intended host accounts, verify the hosted model key and a
-full model run's peak memory, and rehearse the three-person native-agent flow.
+**Remaining:** verify hosted model inference/credits and a full model run's peak
+memory, and rehearse the three-person native-agent flow.
 Render free has 512 MB and no persistent
 disk; model-run reliability there remains unverified.
 
@@ -86,6 +86,13 @@ Unauthenticated API access was denied. Verification sessions were logged out and
 the temporary agent's grants revoked. No model inference, real native coding-agent
 session or browser visual review was performed. Changes pushed after this record
 are documentation only; manual deploys remain enabled.
+
+**Render API access verified:** ignored `.local/render-auth.env` authenticates to
+the existing `civitas-relay` service. Read-only API checks confirm the free plan,
+correct deployment branch, `/readyz` health check and a live `533f243` deployment.
+All required database/CA/model/agent variables are populated; one account ID is
+approved for hosted agents. No secret values were printed or committed. Direct
+deployment/status management is now available; no redundant deploy was triggered.
 
 ## Website redesign: Activity feed (Option C, November 15)
 
