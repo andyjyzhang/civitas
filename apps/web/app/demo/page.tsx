@@ -1,2 +1,3 @@
-import Demo from './demo';
-export default function DemoPage() { return <Demo/>; }
+import Walkthrough from './walkthrough';
+
+export default function DemoPage() { return <Walkthrough/>; }

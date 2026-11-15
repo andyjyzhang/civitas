@@ -1,5 +1,33 @@
 # Build plan and verified status
 
+## Presenter-paced hard-coded demo and pitch (November 15)
+
+On `feat/watch-demo`, `/demo` now opens a self-contained sample group workspace:
+team chat → selected agent context → API analysis/evidence → exact packet review
+→ three service-specific patch approvals → result. Chapter navigation unlocks as
+the presenter advances; the result requires all three sample approvals. Reset and
+refresh clear local state. Inline presenter notes follow the current chapter.
+Sample people, replies and patches are explicitly labeled scripted; no model,
+relay, credential, sign-in, file mutation or persistent state is involved.
+
+Preserved the existing workflow player/live integration at `/demo/replay` and the
+automatic film at `/demo/film`; existing offline exports still use their original
+components. Added `apps/web/public/demo/pitch.md`, downloadable from the page:
+three-minute narration, exact click cues, recovery instructions and judge Q&A.
+It distinguishes implemented/previously verified backend capabilities from this
+illustration and retains the unverified hosted-model/Claude/multi-person limits.
+
+**Actually ran:** production `npm run build:web` (including TypeScript); Chromium
+landing → Watch demo → all six chapters at 1440px and 390px; each service diff and
+individual approval; result disabled until all three approvals; evidence back
+navigation; context disclosure; presenter notes; reset/restart; pitch HTTP 200;
+original replay and film loading. No page errors or API requests. Inspected desktop
+chat/patch screenshots and the mobile patch screen; no horizontal page overflow.
+The first browser pass found presenter notes remained open on reset; corrected
+reset to clear them, rebuilt, restarted the preview and reran the full flow.
+Preview: `http://127.0.0.1:3050/demo`. No new test suite, deployment or publication.
+Real service/model execution was not part of this scripted walkthrough validation.
+
 Build the real flow. No new test suites, lint/check pipelines, CI, release
 automation. The user explicitly requested a shared deployment; its minimal host
 setup is recorded below. Keep this file current; do not turn pending credentials,

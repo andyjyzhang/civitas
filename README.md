@@ -184,6 +184,14 @@ initial trust. Credentials and private verification receipts remain outside git.
 
 ## Run the website
 
+For a presentation without sign-in or backend setup, open `/demo`. This hard-coded,
+presenter-paced walkthrough covers team chat, selected context, analysis, sharing
+approval and three individual sample patch reviews. It makes no API requests or
+file changes. Reset starts it again; presenter notes and the
+[three-minute pitch script](apps/web/public/demo/pitch.md) provide matching narration
+and click cues. The animated workflow replay/live controls remain at `/demo/replay`,
+and the two-minute automatic tour remains at `/demo/film`.
+
 Keep the relay running, then in another terminal:
 
 ```sh
