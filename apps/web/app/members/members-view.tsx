@@ -11,7 +11,7 @@ import { DetailRows, DetailsMenu } from '../components/overlays';
 import { clock, CopyButton, Dialog, errorText, InviteDialog, operate, timeAgo, useRoom, type CreatedInvite } from '../components/rooms';
 
 type Credential = { agentId: string; name: string; token: string; relayUrl: string };
-type AgentRowData = { agentId: string; name: string; known: boolean; owner: string; provider: string; lastSeenAt: string | null; read: boolean; publish: boolean; granted: boolean; mine: boolean };
+type AgentRowData = { agentId: string; name: string; known: boolean; owner: string; provider: string; lastSeenAt: string | null; read: boolean; publish: boolean; granted: boolean; mine: boolean; receiverState: string };
 
 export default function MembersView() {
   const shell = useShell();
@@ -22,6 +22,7 @@ export default function MembersView() {
   const [invites, setInvites] = useState<CreatedInvite[]>([]);
   const [pending, setPending] = useState('');
   const [error, setError] = useState('');
+  const [automatic, setAutomatic] = useState<AgentRowData | null>(null);
   const owner = space?.role === 'owner';
 
   const agents = useMemo<AgentRowData[]>(() => {
@@ -35,7 +36,7 @@ export default function MembersView() {
       return {
         agentId, name: live?.name || mine?.name || 'Agent', known: Boolean(live || mine),
         owner: live?.ownerName || (mine ? overview.account.name : ''), provider: live?.provider || '',
-        lastSeenAt: live?.lastSeenAt ?? null, read: Boolean(grant?.read), publish: Boolean(grant?.publish), granted: Boolean(grant && (grant.read || grant.publish)), mine: Boolean(mine),
+        lastSeenAt: live?.lastSeenAt ?? null, read: Boolean(grant?.read), publish: Boolean(grant?.publish), granted: Boolean(grant && (grant.read || grant.publish)), mine: Boolean(mine), receiverState: live?.receiverState || 'offline',
       };
     }).sort((a, b) => Number(b.granted) - Number(a.granted) || a.name.localeCompare(b.name));
   }, [overview, room, spaceId]);
@@ -76,7 +77,7 @@ export default function MembersView() {
           <td>{owner ? <input type="checkbox" checked={a.read} aria-label={`${a.name} can read`} disabled={pending === a.agentId} onChange={e => void setGrant(a, { read: e.target.checked, ...(e.target.checked ? {} : { publish: false }) })}/> : <Access on={a.read}/>}</td>
           <td>{owner ? <input type="checkbox" checked={a.publish} aria-label={`${a.name} can publish`} disabled={pending === a.agentId} onChange={e => void setGrant(a, { publish: e.target.checked })}/> : <Access on={a.publish}/>}</td>
           <td className="nowrap">{a.lastSeenAt ? <span className="muted" title={new Date(a.lastSeenAt).toLocaleString()}>{timeAgo(a.lastSeenAt)}</span> : <span className="subtle">{!a.granted ? 'No access' : a.provider === 'claude' || a.provider === 'codex' ? 'Linked · waiting for session' : 'Access configured'}</span>}</td>
-          <td className="actions-cell"><DetailsMenu label={`${a.name} details`}><DetailRows rows={[['Agent ID', <CopyId key="id" id={a.agentId}/>], ['Provider', a.provider === 'claude' ? 'Claude Code' : a.provider === 'codex' ? 'Codex' : a.provider]]}/></DetailsMenu></td>
+          <td className="actions-cell">{a.mine && a.read && a.publish && ['claude','codex'].includes(a.provider) && <Button size="sm" variant="ghost" onClick={() => setAutomatic(a)}>{['listening','responding'].includes(a.receiverState) ? 'Receiver on' : 'Start replies'}</Button>}<DetailsMenu label={`${a.name} details`}><DetailRows rows={[['Agent ID', <CopyId key="id" id={a.agentId}/>], ['Provider', a.provider === 'claude' ? 'Claude Code' : a.provider === 'codex' ? 'Codex' : a.provider], ['Automatic replies', a.receiverState]]}/></DetailsMenu></td>
         </tr>)}</tbody>
       </table></div> : <div className="card-body"><p className="muted">No agents yet. Connect Claude Code or Codex to bring your coding agent into this group.</p></div>}
     </Card>
@@ -90,6 +91,12 @@ export default function MembersView() {
 
     {inviting && <InviteDialog spaceId={spaceId} spaceName={space?.name || 'group'} onClose={() => setInviting(false)} onCreated={i => setInvites(list => [i, ...list])}/>}
     {creating && <CreateAgentDialog spaceId={spaceId} owner={owner} onClose={() => { setCreating(false); void shell.refresh(); }}/>}
+    {automatic && <Dialog title={`Automatic replies · ${automatic.name}`} onClose={() => setAutomatic(null)}>
+      <p>Update your Civitas checkout from main, then run this on the computer where you connected this agent:</p>
+      <pre className="setup-command">{`npm run listen -- ${automatic.provider} --agent '${automatic.agentId}'`}</pre>
+      <CopyButton value={`npm run listen -- ${automatic.provider} --agent '${automatic.agentId}'`} label="Copy receiver command"/>
+      <p className="subtle">Keep the terminal open. Uses your signed-in CLI account and its usage allowance, without a hosted API key. Replies use addressed messages and published group knowledge. The responder cannot run commands or change files. Ctrl+C stops it.</p>
+    </Dialog>}
   </Page>;
 }
 

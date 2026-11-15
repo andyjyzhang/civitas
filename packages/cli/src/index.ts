@@ -6,6 +6,11 @@ import { createCivitasClient, CivitasApiError } from '@civitas/client';
 import { TopicSchema, SourceSchema, ChangeSchema } from '@civitas/contracts';
 
 async function main() {
+  if (process.argv[2] === 'listen') {
+    const { listen } = await import('./listen.js');
+    await listen(process.argv.slice(3));
+    return;
+  }
   if (process.argv[2] === 'link') {
     const { link } = await import('./link.js');
     await link(process.argv.slice(3));

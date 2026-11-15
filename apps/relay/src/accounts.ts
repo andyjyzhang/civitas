@@ -12,6 +12,7 @@ type RecordData = Record<string, any>;
 type State = Map<string, RecordData>;
 const key = (kind: string, id: string) => `${kind}:${id}`;
 const records = (state: State, kind: string) => [...state.entries()].filter(([id])=>id.startsWith(`${kind}:`)).map(([,data])=>data);
+const receiverState = (grant: RecordData | undefined) => grant?.receiverSeenAt && Date.now()-Date.parse(grant.receiverSeenAt)<15000 ? grant.receiverState || 'offline' : 'offline';
 
 export class IdentityStore {
   private memory: State = new Map();
@@ -190,7 +191,7 @@ export class Accounts {
       const account=this.account(state,credential),membership=this.member(state,account.accountId,spaceId),space=state.get(key('space',spaceId))!;
       const group=(space.kind||'group')==='group';
       const members=records(state,'member').filter(m=>m.spaceId===spaceId).map(m=>({accountId:m.accountId,name:state.get(key('account',m.accountId))!.name,role:m.role,canPublish:group||m.role==='owner'||m.canPublish===true}));
-      const agents=records(state,'grant').filter(g=>g.spaceId===spaceId&&g.read).map(g=>{const a=state.get(key('agent',g.agentId))!;return {agentId:a.agentId,name:a.name,provider:a.provider||'mcp',ownerName:state.get(key('account',a.accountId))!.name,lastSeenAt:a.lastSeenAt||null,canReply:g.publish,owned:a.accountId===account.accountId};});
+      const agents=records(state,'grant').filter(g=>g.spaceId===spaceId&&g.read).map(g=>{const a=state.get(key('agent',g.agentId))!;const live=receiverState(g);return {agentId:a.agentId,name:a.name,provider:a.provider||'mcp',ownerName:state.get(key('account',a.accountId))!.name,lastSeenAt:a.lastSeenAt||null,canReply:g.publish,owned:a.accountId===account.accountId,receiverState:live,respondingTo:live==='responding'?g.respondingTo:undefined,receiverError:live==='error'?g.receiverError:undefined};});
       return {agents,space:{spaceId,name:space.name,kind:space.kind||'group',visibility:space.visibility||'private',role:membership.role},currentAccountId:account.accountId,canPublish:group||membership.role==='owner'||membership.canPublish===true,members,posts:records(state,'roompost').filter(p=>p.spaceId===spaceId).slice(-100)};
     });
   }
@@ -268,13 +269,26 @@ export class Accounts {
       const replied=agent&&records(state,'roompost').some(p=>p.spaceId===link.spaceId&&p.authorId===agent.agentId&&p.replyTo);
       const status=agent?(!grant?.read||!grant?.publish?'revoked':replied?'replied':agent.lastSeenAt?'contacted':'linked')
         :Date.parse(link.expiresAt)<=Date.now()?'expired':'pending';
-      return {status,expiresAt:link.expiresAt,agentId:agent?.agentId,lastSeenAt:agent?.lastSeenAt||null};
+      return {status,expiresAt:link.expiresAt,agentId:agent?.agentId,lastSeenAt:agent?.lastSeenAt||null,receiverState:receiverState(grant)};
     });
   }
   private groupAgent(state:State,spaceId:string,agentId:string,permission:'read'|'publish') {
     const agent=state.get(key('agent',agentId));const grant=state.get(key('grant',`${spaceId}:${agentId}`));
     if(!agent||!grant?.[permission]||(state.get(key('space',spaceId))?.kind||'group')!=='group')throw new HttpError(404,'NOT_FOUND','Group agent access denied.');
     this.member(state,agent.accountId,spaceId);return agent;
+  }
+  async receiverHeartbeat(spaceId:string,agentId:string,input:{state:'listening'|'responding'|'error'|'stopped';messageId?:string;errorCode?:string}) {
+    return this.store.run(state=>{
+      const agent=this.groupAgent(state,spaceId,agentId,'publish');
+      if(input.state==='responding'&&!input.messageId)throw new HttpError(400,'INVALID_INPUT','A responding receiver must identify its message.');
+      if(input.messageId){const post=state.get(key('roompost',input.messageId));if(!post||post.spaceId!==spaceId||post.targetAgentId!==agentId)throw new HttpError(404,'NOT_FOUND','Receiver message access denied.');}
+      const grant=state.get(key('grant',`${spaceId}:${agentId}`))!;
+      grant.receiverState=input.state;grant.receiverSeenAt=new Date().toISOString();
+      grant.respondingTo=input.state==='responding'?input.messageId:undefined;
+      grant.receiverError=input.state==='error'?input.errorCode:undefined;
+      agent.lastSeenAt=grant.receiverSeenAt;
+      return {ok:true};
+    });
   }
   async groupMessages(spaceId:string,agentId:string) {
     return this.store.run(state=>{

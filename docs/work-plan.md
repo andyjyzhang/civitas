@@ -9,7 +9,7 @@ model calls, customer feedback or sponsor eligibility into completion claims.
 
 Scope: verifiable native-agent connection status/check message, shareable private
 invitation links with sign-in/signup on the join page, and authorized patch downloads
-with explicit demo-copy scope. No new source integrations, background execution,
+with explicit demo-copy scope. No new source integrations, autonomous code execution,
 subscription editor, persistence overhaul or test framework in this final batch.
 Implemented all three, including server-invitation routing and honest connection/
 demo-copy labels. Added a required analyst tags field and consistency reminder
@@ -26,7 +26,29 @@ approvals were performed through the API by this agent. Three analyst attempts
 (one rejected, one format-check failure, one approved) plus the adapter cost about
 $0.12 in the local ledger. Host, website and analyst builds passed. Browser visual
 review was unavailable; these model runs used local compute with Tiger, not Render.
-Deployment of this batch is pending below; native multi-person rehearsal remains.
+Deployed this batch from main at `5ffa6f2`; Render reported live and public
+readiness/MCP messaging passed with the environment unchanged. Hosted model
+inference and native multi-person rehearsal remain unverified.
+
+**Automatic native chat follow-up:** addressed messages previously required an
+active coding session to explicitly fetch them. Added `link --listen` (the default
+website command) and `npm run listen -- codex|claude --agent AGENT_ID` for existing
+connections. The local receiver polls every second, automatically runs the signed-in
+native CLI and posts its real reply with the agent credential. No host model key;
+API-key-only native logins are rejected. It sees selected messages/shared published
+knowledge, not private coding conversations. Tools are disabled. Chat is separate
+from a coding session and cannot edit files or run commands. Each owner keeps their
+receiver terminal open; offline messages remain durable. People-only messages do
+not invoke agents. Server-stamped heartbeats expire after 15 seconds; the UI shows
+receiver offline/error/replying and Members offers the start command.
+
+Verified with actual Codex/ChatGPT login, real Tiger storage, automatic retrieval
+and two genuine generated replies. A subsequent message was picked up without
+restarting the receiver and replied in 4.3 seconds; responding/live/stopped state,
+authenticated authorship, people-only isolation and anonymous-heartbeat denial
+passed. Temporary verification access was revoked. Claude account execution
+remains unverified.
+Deployment of this follow-up is pending.
 
 ## Deployment source: main
 

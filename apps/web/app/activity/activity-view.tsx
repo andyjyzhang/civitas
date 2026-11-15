@@ -2,7 +2,7 @@
 
 // Activity: the group's home. One chronological feed (oldest at the top, composer at the bottom)
 // that merges people's messages, agent replies and agent runs (analysis → approval → rollout →
-// patches). Polls the room (4s), agent runs (3s while active) and the shared-update feed (5s).
+// patches). Polls the room (1s), agent runs (3s while active) and the shared-update feed (5s).
 // Everything that came from a model, an agent or another person is rendered as plain text.
 // Approve / reject / start are owner-only in the UI and enforced again server-side.
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from 'react';
@@ -64,7 +64,7 @@ export default function ActivityView() {
   const shell = useShell();
   const { spaceId, space } = shell;
   const now = useNow(30_000);
-  const { room, error: roomError, reload: reloadRoom } = useRoom(spaceId, 'group');
+  const { room, error: roomError, reload: reloadRoom } = useRoom(spaceId, 'group', 1000);
   const { overview, error: agentsError, load: reloadAgents } = useAgentsOverview(spaceId);
   const { feed, load: reloadFeed } = useContextFeed(spaceId);
   const runs = useMemo(() => overview?.runs ?? [], [overview]);
@@ -182,7 +182,7 @@ function Feed({ items, room, ctx, onAsk, empty, offline }: { items: Item[]; room
         if (item.kind === 'post') {
           const p = prev?.kind === 'post' ? prev.post : undefined;
           const continued = !newDay && !!p && p.authorId === item.post.authorId && p.origin === item.post.origin && !item.post.targetAgentId && !p.targetAgentId && !item.post.replyTo && Date.parse(item.post.createdAt) - Date.parse(p.createdAt) < GROUP_GAP_MS;
-          node = <Message post={item.post} continued={continued} own={item.post.authorId === room?.currentAccountId} parent={item.post.replyTo ? byId.get(item.post.replyTo) : undefined} canReply={replyable.has(item.post.authorId)} onAsk={onAsk} now={ctx.now}/>;
+          node = <Message post={item.post} continued={continued} own={item.post.authorId === room?.currentAccountId} parent={item.post.replyTo ? byId.get(item.post.replyTo) : undefined} canReply={replyable.has(item.post.authorId)} receiver={room?.agents.find(a => a.agentId === item.post.targetAgentId)} onAsk={onAsk} now={ctx.now}/>;
         } else if (item.kind === 'shared') node = <SharedItem event={item.event} run={item.run} ctx={ctx}/>;
         else node = <RunItem kind={item.kind} run={item.run} ctx={ctx}/>;
         return <Fragment key={item.key}>{newDay && <div className="day-divider" role="separator"><span>{dayLabel(item.at)}</span></div>}{node}</Fragment>;
@@ -202,13 +202,13 @@ function Row({ id, avatar, who, text, pill, at, now, children, className }: { id
   </article>;
 }
 
-function Message({ post, continued, own, parent, canReply, onAsk, now }: { post: Post; continued: boolean; own: boolean; parent?: Post; canReply: boolean; onAsk: (id: string) => void; now: number }) {
+function Message({ post, continued, own, parent, canReply, receiver, onAsk, now }: { post: Post; continued: boolean; own: boolean; parent?: Post; canReply: boolean; receiver?: Room['agents'][number]; onAsk: (id: string) => void; now: number }) {
   const agent = post.origin === 'agent';
   return <article className={`fe msg ${continued ? 'continued' : ''}`}>
     <div className="fe-gutter">{continued ? null : agent ? <AgentAvatar/> : <Avatar name={post.authorName}/>}</div>
     <div className="fe-body">
       {!continued && <p className="fe-line"><span className="fe-text"><strong>{post.authorName}</strong>{own && <span className="subtle"> (you)</span>}{post.targetAgentName && <span className="muted"> → {post.targetAgentName}</span>}</span>
-        {post.targetAgentId && <Delivery post={post}/>}<time dateTime={post.createdAt} title={fullTime(post.createdAt)}>{relTime(post.createdAt, now)}</time></p>}
+        {post.targetAgentId && <Delivery post={post} receiver={receiver}/>}<time dateTime={post.createdAt} title={fullTime(post.createdAt)}>{relTime(post.createdAt, now)}</time></p>}
       {parent && <div className="msg-reply-to">Replying to <strong>{parent.authorName}:</strong> <span>{parent.content}</span></div>}
       <p className="msg-text">{post.content}</p>
       {agent && canReply && <button type="button" className="msg-action" onClick={() => onAsk(post.authorId)}>Reply to agent</button>}
@@ -216,10 +216,12 @@ function Message({ post, continued, own, parent, canReply, onAsk, now }: { post:
   </article>;
 }
 
-function Delivery({ post }: { post: Post }) {
+function Delivery({ post, receiver }: { post: Post; receiver?: Room['agents'][number] }) {
   if (post.repliedAt) return <StatusPill status="done" label="Replied"/>;
-  if (post.retrievedAt) return <span title="The agent fetched it; waiting for a reply"><StatusPill status="working" label="Retrieved"/></span>;
-  return <span title="Waits until an active agent session fetches it"><StatusPill status="idle" label="Queued"/></span>;
+  if (receiver?.receiverState === 'error') return <span title="Check the receiver terminal for login or usage-limit errors"><StatusPill status="failed" label="Reply failed"/></span>;
+  if (receiver?.receiverState === 'responding' && receiver.respondingTo === post.postId) return <StatusPill status="working" label="Replying…"/>;
+  if (receiver?.receiverState === 'listening' || receiver?.receiverState === 'responding') return <StatusPill status="working" label="Sending…"/>;
+  return <span title="The agent owner must start their local receiver for automatic replies"><StatusPill status="idle" label="Receiver offline"/></span>;
 }
 
 const roleName = (ctx: Ctx, role: string) => ctx.overview?.workspace.find(r => r.role === role)?.name ?? (role === 'analyst' ? 'Analyst agent' : `${role} adapter`);
@@ -383,11 +385,11 @@ function Composer({ room, spaceId, recipient, setRecipient, onSent, hidden }: { 
       <div className="composer-footer">
         {agents.length > 0 && <label className="composer-to">To
           <select value={recipient} onChange={e => { setRecipient(e.target.value); sendKey.current = null; }} aria-label="Send to">
-            <option value="">Everyone</option>
-            {agents.map(a => <option key={a.agentId} value={a.agentId}>{a.name} (agent)</option>)}
+            <option value="">People</option>
+            {agents.map(a => <option key={a.agentId} value={a.agentId}>{a.name} ({a.receiverState === 'listening' || a.receiverState === 'responding' ? 'online' : 'receiver offline'})</option>)}
           </select>
         </label>}
-        {target && <span className="composer-hint">Only this message is shared with {target.name}.</span>}
+        {target && <span className="composer-hint">{['listening','responding'].includes(target.receiverState) ? `${target.name} replies automatically.` : `Ask ${target.ownerName} to start this agent’s receiver from Members.`}</span>}
         <Button type="submit" variant="ghost" size="sm" iconOnly className="composer-send" icon={<Send/>} aria-label="Send" disabled={busy || !content.trim()}/>
       </div>
     </div>

@@ -13,8 +13,9 @@ links agents and prints MCP configuration. PostgreSQL persistence works locally.
 A real Deep Agents analyst reads OpenAPI/changelog fixtures, infers what changed,
 and publishes an approved packet; three adapter agents (one definition, three
 credentials) retrieve it and propose approved patches to their consumers.
-Hosted Tiger Cloud persistence/analytics are verified; independent coding-agent
-sessions (e.g. Claude Code) as receivers remain pending. The free shared demo is
+Hosted Tiger Cloud persistence/analytics and automatic native Codex chat replies
+using an existing ChatGPT login are verified. Claude receiver code is implemented;
+its real account flow and the three-person rehearsal remain unverified. The free shared demo is
 live at [civitas-relay.onrender.com](https://civitas-relay.onrender.com): public
 readiness, two-account sign-in/group access and real MCP messaging over HTTPS are
 verified. Hosted model runs on Render remain unverified.
@@ -37,7 +38,7 @@ a unique MCP entry automatically. No model API key or manual env download is nee
 The command has this shape (use the actual code and URL from your group):
 
 ```sh
-npm run link -- claude --relay http://127.0.0.1:4030 --code ONE_TIME_CODE
+npm run link -- claude --relay http://127.0.0.1:4030 --code ONE_TIME_CODE --listen
 # Or choose codex in the UI. Add --project /absolute/path/to/project if needed.
 ```
 
@@ -50,17 +51,32 @@ The selected Claude/Codex CLI must already be installed and signed in. Linking
 does not access its account credentials. Remote relays require HTTPS; local
 loopback HTTP is supported. To change where private files are stored, set
 `CIVITAS_CONFIG_DIR`. The package is not published; use the repository command.
-In the composer, choose an agent in
-**Send to** to queue only that message. An active coding session calls
-`get_group_messages`, then `reply_to_group_message`; the reply appears in the group.
-Messages to Everyone stay with people. Inactive agents are not automatically woken.
-MCP contact/retrieval/reply status is recorded; linking alone does not prove setup
-or a running model. Only a member can link their own agent to a group; owner-managed
+In the composer, choose an agent in **Send to** for an automatic chatbot reply.
+The link command starts a local receiver: keep that terminal open. It checks for
+addressed messages every second and invokes the owner's signed-in Claude/Codex CLI,
+using that account's usage allowance without the host's model API key. Generation
+still takes normal model response time. **People** sends to the human group feed;
+it does not invoke agents.
+
+For an agent connected before automatic replies were added, pull main and use
+**Members → Start replies** on the computer where it was linked:
+
+```sh
+npm run listen -- codex --agent AGENT_ID
+# Use claude for a Claude Code connection. Ctrl+C stops the receiver.
+```
+
+The responder receives selected messages, up to five recent published context
+updates and four recent addressed exchanges. It is a separate chat session, without
+the owner's private coding conversation. Its tools are disabled; chat replies do
+not execute commands or change files. Continue implementation work in the normal
+coding session through MCP. Multiple linked agents need their own receiver.
+
+The website shows receiver availability, reply generation, actual contact and
+actual replies. **Send connection check** verifies a real reply. Offline messages
+remain durable until the receiver starts; linking alone cannot wake an inactive
+coding application. Only a member can link their own agent to a group; owner-managed
 server grants retain their existing behavior.
-The connection dialog shows command redemption, actual MCP contact and an actual
-reply separately. **Send connection check** queues one retry-safe selected message;
-ask your active coding session to fetch and reply. Closing setup never fabricates
-a successful connection.
 
 ## Layout
 

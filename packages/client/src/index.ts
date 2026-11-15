@@ -4,7 +4,7 @@ import {
   SubscribeInputSchema as subscriptionInput, SubscriptionSchema as subscription,
   GetUpdatesInputSchema as updatesInput, UpdatesPageSchema as page,
   AckUpdateInputSchema, AckRecordSchema, ActivitySnapshotSchema, ApiErrorSchema as apiError,
-  AccountSessionSchema, AccountOverviewSchema, SpaceSchema, AgentCredentialSchema, InviteSchema, GrantSchema, RoomSchema, RoomPostSchema, ServerDirectorySchema, GroupMessagesSchema, AgentLinkSchema, AgentLinkStatusSchema,
+  AccountSessionSchema, AccountOverviewSchema, SpaceSchema, AgentCredentialSchema, InviteSchema, GrantSchema, RoomSchema, RoomPostSchema, ServerDirectorySchema, GroupMessagesSchema, AgentLinkSchema, AgentLinkStatusSchema, ReceiverHeartbeatSchema,
   type PublishContextInput, type SubscribeInput, type GetUpdatesInput, type AckUpdateInput,
 } from '@civitas/contracts';
 export type {
@@ -66,6 +66,7 @@ export function createCivitasClient({ baseUrl, token }: { baseUrl: string; token
       return request(spacePath(spaceId) + `/updates/${encodeURIComponent(id.parse(deliveryId))}/ack`, AckRecordSchema, AckUpdateInputSchema.parse(input));
     },
     getGroupMessages(spaceId:string) { return request(spacePath(spaceId)+'/group-messages',GroupMessagesSchema); },
+    receiverHeartbeat(spaceId:string,input:z.infer<typeof ReceiverHeartbeatSchema>) { return request(spacePath(spaceId)+'/receiver',z.object({ok:z.literal(true)}),ReceiverHeartbeatSchema.parse(input)); },
     replyToGroupMessage(spaceId:string,messageId:string,content:string) { return request(spacePath(spaceId)+'/group-messages/'+encodeURIComponent(id.parse(messageId))+'/reply',RoomPostSchema,{content}); },
     activity(spaceId: string) { return request(spacePath(spaceId) + '/activity', ActivitySnapshotSchema); },
   };

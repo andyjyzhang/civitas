@@ -27,6 +27,7 @@
     "receive:consumers": "tsx examples/api-change/receive.ts",
     "seed:agents": "node apps/relay/scripts/seed-agents.mjs",
     "link": "npm run build:bridge && node packages/cli/dist/index.js link",
+    "listen": "npm run build:bridge && node packages/cli/dist/index.js listen",
     "demo:agents": "bash scripts/demo-agents.sh",
     "agents": "langgraphjs dev --port 2024 --host 127.0.0.1 --no-browser --no-reload --config langgraph.json",
     "build:host": "npm run build:relay && npm run build:bridge && npm run build:web",

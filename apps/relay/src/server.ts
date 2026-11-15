@@ -1,5 +1,5 @@
 import Fastify, { type FastifyError } from 'fastify';
-import { PublishContextInputSchema, SubscribeInputSchema, GetUpdatesInputSchema, AckUpdateInputSchema, RegisterAccountInputSchema, LoginAccountInputSchema, NameInputSchema, InviteInputSchema, AcceptInviteInputSchema, GrantInputSchema, CreateSpaceInputSchema, RoomPostInputSchema, ConnectGroupAgentInputSchema, GroupMessageReplyInputSchema, RedeemAgentLinkInputSchema, AgentLinkStatusInputSchema } from '@civitas/contracts';
+import { PublishContextInputSchema, SubscribeInputSchema, GetUpdatesInputSchema, AckUpdateInputSchema, RegisterAccountInputSchema, LoginAccountInputSchema, NameInputSchema, InviteInputSchema, AcceptInviteInputSchema, GrantInputSchema, CreateSpaceInputSchema, RoomPostInputSchema, ConnectGroupAgentInputSchema, GroupMessageReplyInputSchema, RedeemAgentLinkInputSchema, AgentLinkStatusInputSchema, ReceiverHeartbeatSchema } from '@civitas/contracts';
 import { HttpError, MemoryStorage, type RelayStorage } from './storage.js';
 import { Accounts, IdentityStore } from './accounts.js';
 
@@ -90,6 +90,7 @@ export function createRelay(config: Config, storage: RelayStorage = new MemorySt
       await storage.touch(spaceId,access.agentId);
     });
     const actor = (request: object) => auth.get(request)!;
+    routes.post<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/receiver',async request=>accounts.receiverHeartbeat(request.params.spaceId,actor(request).agentId,parse(ReceiverHeartbeatSchema,request.body)));
     routes.get<{Params:{spaceId:string}}>('/v1/spaces/:spaceId/group-messages',async request=>accounts.groupMessages(request.params.spaceId,actor(request).agentId));
     routes.post<{Params:{spaceId:string;messageId:string}}>('/v1/spaces/:spaceId/group-messages/:messageId/reply',async request=>accounts.replyToGroupMessage(request.params.spaceId,actor(request).agentId,request.params.messageId,parse(GroupMessageReplyInputSchema,request.body).content));
     routes.get('/v1/spaces/:spaceId/activity', async request => ({

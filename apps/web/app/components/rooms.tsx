@@ -49,7 +49,7 @@ export function dayLabel(value: string) {
 }
 
 /** Polls a room every 4s while mounted. */
-export function useRoom(spaceId: string, kind: 'group' | 'server') {
+export function useRoom(spaceId: string, kind: 'group' | 'server', refreshMs = 4000) {
   const [room, setRoom] = useState<Room | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(Boolean(spaceId));
@@ -69,9 +69,9 @@ export function useRoom(spaceId: string, kind: 'group' | 'server') {
     setRoom(null); setError(''); setLoading(Boolean(spaceId));
     if (!spaceId) return;
     void reload();
-    const timer = setInterval(() => void reload(), 4000);
+    const timer = setInterval(() => void reload(), refreshMs);
     return () => { clearInterval(timer); number.current++; };
-  }, [spaceId, reload]);
+  }, [spaceId, reload, refreshMs]);
   return { room, error, loading, reload };
 }
 
