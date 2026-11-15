@@ -188,7 +188,7 @@ time { color: var(--text-subtle); font-size: var(--text-sm); flex-shrink: 0; }
 
 /* ---------- Cards, lists, tables ---------- */
 .card { border-radius: var(--radius); background: var(--surface); min-width: 0; }
-.card-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-4) var(--space-5) var(--space-2); }
+.card-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-4) var(--space-5) var(--space-2); }
 .card-header h2, .card-header h3 { font-size: var(--text-md); font-weight: 600; }
 .card-header p { margin-top: 2px; color: var(--text-muted); font-size: var(--text-sm); }
 .card-body { padding: var(--space-4) var(--space-5) var(--space-5); }
@@ -197,7 +197,7 @@ time { color: var(--text-subtle); font-size: var(--text-sm); flex-shrink: 0; }
 ul.list, ol.list { margin: 0; list-style: none; }
 .list-row { display: flex; align-items: center; gap: var(--space-3); padding: 10px var(--space-5); min-width: 0; }
 .list-row + .list-row { box-shadow: inset 0 1px 0 var(--border); }
-.table-wrap { width: 100%; overflow-x: auto; padding-bottom: var(--space-2); }
+.table-wrap { position: relative; width: 100%; overflow-x: auto; padding-bottom: var(--space-2); }
 .table { width: 100%; border-collapse: collapse; font-size: var(--text-md); }
 .table th { text-align: left; padding: 8px 20px; color: var(--text-subtle); font-size: var(--text-xs); font-weight: 500; white-space: nowrap; }
 .table td { padding: 10px 20px; border-top: 1px solid var(--border); vertical-align: middle; }

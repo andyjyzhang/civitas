@@ -11,7 +11,6 @@ import { FileText, MessageSquare, Plus, Send, Sparkles, UserPlus } from 'lucide-
 import type { Receiver, RunDetail, RunSummary, Stage } from '../../lib/agents';
 import { useShell } from '../components/app-shell';
 import { AgentAvatar, Avatar, Badge, Button, EmptyState, StatusPill, type Status } from '../components/ui';
-import { Drawer } from '../components/overlays';
 import { dayLabel, errorText, InviteDialog, operate, useRoom } from '../components/rooms';
 import { agentActions, call, fullTime, relTime, runStatus, shortLabel, useAgentsOverview, useNow, type AgentsOverview } from '../agents/client';
 import { AnalystReview, NewAnalysisDialog, PatchReview, ReportDrawer, packetTitle, summaryBullets } from '../agents/review';
@@ -69,6 +68,7 @@ export default function ActivityView() {
   const { overview, error: agentsError, load: reloadAgents } = useAgentsOverview(spaceId);
   const { feed, load: reloadFeed } = useContextFeed(spaceId);
   const runs = useMemo(() => overview?.runs ?? [], [overview]);
+  const workspaceAgents = useMemo(() => new Set(overview?.workspace.map(r => r.agentId).filter((id): id is string => !!id) ?? []), [overview]);
   const details = useWaitingDetails(runs);
   const [recipient, setRecipient] = useState('');
   const [dialog, setDialog] = useState<'' | 'analysis' | 'invite'>('');
@@ -93,7 +93,9 @@ export default function ActivityView() {
   const name = room?.space.name || space?.name || 'this group';
   const serverUp = overview?.agentServer.up ?? false;
   const ready = !!room && (!!overview || !!agentsError);
-  const empty = ready && !room!.posts.length && !runs.length && !feed?.events.length;
+  const noAgentWork = ready && !runs.length && !feed?.events.length;
+  const empty = noAgentWork && !room!.posts.length;
+  const sampleButton = <Button variant="primary" size={empty ? 'md' : 'sm'} icon={<Sparkles/>} disabled={!serverUp || !!busy} onClick={() => void sample()}>{busy === 'sample' ? 'Starting…' : 'Run sample analysis'}</Button>;
   const ctx: Ctx = { overview, details, members: room?.members ?? [], owner, now, spaceId, serverUp, runs, busy, onChanged: refreshAll, onAdapt: startAdapters, newestByTopic: newestEvents(feed?.events ?? []) };
 
   return <div className="activity">
@@ -105,12 +107,10 @@ export default function ActivityView() {
     <Feed items={items} room={room} ctx={ctx} onAsk={setRecipient}
       empty={empty ? <EmptyState icon={<Sparkles/>} title="Nothing here yet"
         description={owner ? 'Watch an API change flow to your services: an agent analyzes it, you approve, each service gets a patch.' : 'Messages and agent updates in this group will appear here.'}
-        action={owner && <div className="page-actions">
-          <Button variant="primary" icon={<Sparkles/>} disabled={!serverUp || !!busy} onClick={() => void sample()}>{busy === 'sample' ? 'Starting…' : 'Run sample analysis'}</Button>
-          <Button variant="secondary" icon={<UserPlus/>} onClick={() => setDialog('invite')}>Invite teammates</Button>
-        </div>}/> : null}
+        action={owner && <div className="page-actions">{sampleButton}<Button variant="secondary" icon={<UserPlus/>} onClick={() => setDialog('invite')}>Invite teammates</Button></div>}/>
+        : noAgentWork && owner ? <div className="starter"><AgentAvatar/><p><strong>Try the agents.</strong> <span className="muted">Analyze a sample API change and roll it out to three services.</span></p>{sampleButton}</div> : null}
       offline={owner && !!overview && !serverUp}/>
-    {room && <Composer room={room} spaceId={spaceId} recipient={recipient} setRecipient={setRecipient} onSent={reloadRoom}/>}
+    {room && <Composer room={room} spaceId={spaceId} recipient={recipient} setRecipient={setRecipient} onSent={reloadRoom} hidden={workspaceAgents}/>}
     {dialog === 'analysis' && overview && <NewAnalysisDialog spaceId={spaceId} sources={overview.sources} onClose={() => setDialog('')} onStarted={() => { setDialog(''); refreshAll(); }}/>}
     {dialog === 'invite' && <InviteDialog spaceId={spaceId} spaceName={name} onClose={() => setDialog('')}/>}
   </div>;
@@ -123,7 +123,10 @@ function newestEvents(events: FeedEvent[]) {
 }
 
 function buildItems(posts: Post[], runs: RunSummary[], events: FeedEvent[]): Item[] {
-  const items: Item[] = posts.map(post => ({ kind: 'post', at: post.createdAt, key: post.postId, post }));
+  // A shared update is also mirrored into the room as an agent post; the shared item replaces it.
+  const mirrored = new Set(events.map(e => `${e.topic}\n${e.title}`));
+  const items: Item[] = posts.filter(p => !(p.topic && p.title && mirrored.has(`${p.topic}\n${p.title}`)))
+    .map(post => ({ kind: 'post', at: post.createdAt, key: post.postId, post }));
   const shared = new Set(events.map(e => e.analystThreadId).filter(Boolean));
   for (const run of runs) {
     const decided = run.decidedAt ?? run.updatedAt;
@@ -151,6 +154,12 @@ function Feed({ items, room, ctx, onAsk, empty, offline }: { items: Item[]; room
   const focused = useRef('');
   const last = items.at(-1)?.key;
   useLayoutEffect(() => { const el = stream.current; if (el && nearBottom.current) el.scrollTop = el.scrollHeight; }, [last, items.length]);
+  useEffect(() => {
+    const el = stream.current; const col = el?.firstElementChild;
+    if (!el || !col || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => { if (nearBottom.current) el.scrollTop = el.scrollHeight; });
+    ro.observe(col); return () => ro.disconnect();
+  }, []);
   // ?item=<threadId> (from Inbox): scroll to that run once it is rendered.
   useEffect(() => {
     const id = new URLSearchParams(window.location.search).get('item');
@@ -263,12 +272,13 @@ function RunItem({ kind, run, ctx }: { kind: 'analysis' | 'analysis-decision' | 
           : <p className="subtle fe-pad">Loading the patch…</p>}
       </Row>;
     }
-    if (run.decision) return <Row {...props} text={`prepared a patch for ${service}`}><div className="fe-actions"><Button variant="ghost" size="sm" icon={<FileText/>} href={runLink(ctx, run)}>View diff</Button></div></Row>;
+    if (run.decision) return null; // the decision row below tells the rest
     if (run.status === 'failed') return <Row {...props} text={run.stopped ? `stopped working on ${service}` : `couldn’t prepare a patch for ${service}`} pill={<StatusPill status={run.stopped ? 'idle' : 'failed'} label={run.stopped ? 'Stopped' : 'Failed'}/>}/>;
     return <Row {...props} text={`finished without a patch for ${service}`}/>;
   }
 
-  const props = { ...base, avatar: <Avatar name={memberName(ctx, run.decidedBy)}/>, who: memberName(ctx, run.decidedBy) };
+  const props = { ...base, id: anchor(run.threadId), avatar: <Avatar name={memberName(ctx, run.decidedBy)}/>, who: memberName(ctx, run.decidedBy),
+    children: <div className="fe-actions"><Button variant="ghost" size="sm" icon={<FileText/>} href={runLink(ctx, run)}>View diff</Button></div> };
   if (run.decision === 'rejected') return <Row {...props} text={`rejected the patch for ${service}`}/>;
   if (run.status === 'applied') return <Row {...props} className="fe-done" text={<>applied the patch · <strong>{service} updated</strong></>} pill={<StatusPill status="done" label="Updated"/>}/>;
   if (run.status === 'running') return <Row {...props} text={`approved the patch for ${service}`} pill={<StatusPill status="working" label="Applying"/>}/>;
@@ -290,10 +300,21 @@ function SharedItem({ event, run, ctx }: { event: FeedEvent; run?: RunSummary; c
   const n = event.receivers.length;
   const who = run?.decidedBy ? memberName(ctx, run.decidedBy) : event.publisher.label;
   const latest = ctx.newestByTopic.has(event.eventId);
+  const live = (r: Receiver): Stage => {
+    const run = ctx.runs.find(x => x.kind === 'adapter' && x.role === r.role && x.createdAt >= event.publishedAt);
+    if (!run || !latest) return r.stage;
+    if (run.status === 'applied') return 'applied';
+    if (run.status === 'waiting') return 'patch_ready';
+    if (run.status === 'running') return 'adapting';
+    if (run.status === 'rejected') return 'rejected';
+    if (run.status === 'failed') return 'failed';
+    return r.stage;
+  };
+  const receivers = event.receivers.map(r => { const run = ctx.runs.find(x => x.kind === 'adapter' && x.role === r.role && x.createdAt >= event.publishedAt); return { ...r, stage: live(r), run: r.run ?? (run && latest ? { threadId: run.threadId, status: run.status, stopped: run.stopped } : undefined) }; });
   const inflight = (role?: string) => ctx.runs.some(r => r.kind === 'adapter' && r.role === role && (r.status === 'running' || r.status === 'waiting'));
   const enabled = (role?: string) => !!ctx.overview?.workspace.find(w => w.role === role)?.present;
-  const startable = ctx.owner && ctx.serverUp && latest ? event.receivers.filter(r => r.role && STARTABLE.has(r.stage) && !inflight(r.role) && enabled(r.role)) : [];
-  const updated = event.receivers.filter(r => r.stage === 'applied' || r.stage === 'acknowledged').length;
+  const startable = ctx.owner && ctx.serverUp && latest ? receivers.filter(r => r.role && STARTABLE.has(r.stage) && !inflight(r.role) && enabled(r.role)) : [];
+  const updated = receivers.filter(r => r.stage === 'applied' || r.stage === 'acknowledged').length;
   const label = (r: Receiver) => r.stage === 'failed' && r.run?.stopped ? { status: 'idle' as Status, label: 'Stopped' } : r.stage === 'patch_ready' && !ctx.owner ? { status: 'waiting' as Status, label: 'Waiting for owner' } : STAGE[r.stage];
   const bullets = summaryBullets(event.content, event.tags);
   return <Row id={run ? `${anchor(run.threadId)}-shared` : undefined} avatar={run?.decidedBy ? <Avatar name={who}/> : <AgentAvatar/>} who={who} at={event.publishedAt} now={ctx.now}
@@ -307,7 +328,7 @@ function SharedItem({ event, run, ctx }: { event: FeedEvent; run?: RunSummary; c
           {startable.length > 1 && <Button size="sm" variant="secondary" className="rollout-all" disabled={!!ctx.busy} onClick={() => ctx.onAdapt(startable.map(r => r.role!))}>{ctx.busy.startsWith('adapt:') ? 'Starting…' : 'Update all services'}</Button>}
         </header>
         {!n && <p className="subtle">No services were listening when this was shared.</p>}
-        <ul>{event.receivers.map(r => { const s = label(r); const canStart = startable.includes(r);
+        <ul>{receivers.map(r => { const s = label(r); const canStart = startable.includes(r);
           return <li key={r.key}>
             <span className="rollout-name">{r.label}</span>
             <StatusPill status={s.status} label={s.label}/>
@@ -323,13 +344,14 @@ function SharedItem({ event, run, ctx }: { event: FeedEvent; run?: RunSummary; c
 }
 
 // ---------- composer ----------
-function Composer({ room, spaceId, recipient, setRecipient, onSent }: { room: Room; spaceId: string; recipient: string; setRecipient: (id: string) => void; onSent: () => Promise<void> }) {
+function Composer({ room, spaceId, recipient, setRecipient, onSent, hidden }: { room: Room; spaceId: string; recipient: string; setRecipient: (id: string) => void; onSent: () => Promise<void>; hidden: Set<string> }) {
   const [content, setContent] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const sendKey = useRef<string | null>(null);
   const input = useRef<HTMLTextAreaElement>(null);
-  const agents = room.agents.filter(a => a.canReply);
+  // Workspace agents (analyst, adapters) run on the agent server and never read group messages.
+  const agents = room.agents.filter(a => a.canReply && !hidden.has(a.agentId));
   const target = agents.find(a => a.agentId === recipient);
   useEffect(() => { if (recipient) input.current?.focus(); }, [recipient]);
   useLayoutEffect(() => { const el = input.current; if (el) { el.style.height = 'auto'; el.style.height = `${Math.min(el.scrollHeight, 200)}px`; } }, [content]);

@@ -13,9 +13,9 @@ import { DiffView, parseDiff } from './diff';
 
 // ---------- plain-English summary from a Markdown packet ----------
 const BULLET = /^\s*(?:[-*+]|\d+[.)])\s+/;
-const clean = (s: string) => s.replace(/\*\*|__|`/g, '').replace(/\[(.*?)\]\([^)]*\)/g, '$1').replace(/^#+\s*/, '').replace(BULLET, '').replace(/\s+/g, ' ').trim();
+const clean = (s: string) => s.replace(/\s*\((?:[^()]*\/repo\/|citing|see )[^()]*\)?/gi, '').replace(/\*\*|__|`/g, '').replace(/\[(.*?)\]\([^)]*\)/g, '$1').replace(/^#+\s*/, '').replace(BULLET, '').replace(/\s+/g, ' ').trim();
 const sentences = (s: string) => s.split(/(?<=[.!?])\s+(?=[A-Z])/).map(x => x.trim()).filter(x => x.length > 12);
-const cap = (s: string, n = 170) => s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
+const cap = (s: string, n = 150) => s.length > n ? s.slice(0, s.lastIndexOf(' ', n - 1) > n * .6 ? s.lastIndexOf(' ', n - 1) : n - 1).replace(/[,;:.\s]+$/, '') + '…' : s;
 function sections(md: string) {
   const out: [string, string[]][] = []; let cur: string[] = [];
   out.push(['', cur]);

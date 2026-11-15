@@ -9,7 +9,10 @@
 .activity > .activity-col { flex-shrink: 0; padding-bottom: var(--space-2); }
 .activity-feed { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 .activity-feed > .activity-col { display: flex; flex-direction: column; padding-bottom: var(--space-4); min-height: 100%; justify-content: flex-end; }
-.activity-feed .empty-state { margin: var(--space-6) 0; }
+.activity-feed .empty-state { margin: auto 0; }
+.starter { display: flex; align-items: center; gap: var(--space-3); margin: var(--space-4) 0 auto; padding: var(--space-3) var(--space-4); border-radius: var(--radius); background: var(--surface); }
+.starter p { flex: 1; min-width: 0; }
+@media (max-width: 600px) { .starter { flex-wrap: wrap; } .starter p { flex-basis: calc(100% - 48px); } }
 .activity-loading { padding: var(--space-6) 0; }
 .activity-note { display: flex; align-items: center; gap: 8px; margin: var(--space-2) 0; color: var(--text-muted); font-size: var(--text-sm); }
 .activity-note .dot { background: var(--status-waiting); }
