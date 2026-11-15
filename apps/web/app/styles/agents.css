@@ -137,7 +137,7 @@ summary.ag-step-row:hover { background: var(--surface-hover); }
 .cx-content { flex-basis: 100%; }
 .cx-label { color: var(--text); font-weight: 500; }
 .cx-badges { display: inline-flex; flex-wrap: wrap; gap: var(--space-1); }
-.cx-receiver { flex-wrap: wrap; }
+.cx-receiver { flex-wrap: wrap; min-height: 53px; }
 .cx-receiver > strong { width: 140px; font-weight: 500; font-size: var(--text-md); }
 .cx-steps { display: flex; align-items: center; flex: 1; min-width: 0; list-style: none; margin: 0; padding: 0; gap: 0; }
 .cx-steps li { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; color: var(--text-subtle); font-size: var(--text-xs); white-space: nowrap; }

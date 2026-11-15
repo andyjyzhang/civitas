@@ -73,7 +73,7 @@ export default function ContextView() {
 }
 
 function ReceiverRow({ r, q }: { r: Receiver; q: string }) {
-  const s = STAGE[r.stage];
+  const s = r.stage === 'failed' && r.run?.stopped ? { ...STAGE.failed, label: 'Adapter stopped' } : STAGE[r.stage];
   return <div className="list-row cx-receiver">
     <strong>{r.label}{r.inferred && <span className="subtle" title="Matched by elimination: the relay snapshot does not name the receiving agent."> *</span>}</strong>
     <ol className="cx-steps" aria-label={`${r.label}: ${s.label ?? (s.at >= 0 ? STEPS[s.at] : 'Not delivered')}`}>

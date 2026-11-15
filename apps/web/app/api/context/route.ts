@@ -48,8 +48,11 @@ export async function GET(request: Request) {
       //    deliveries and receivers pair up one-to-one and all share the same state, assign it.
       const rest = deliveries.filter(d => !used.has(d.deliveryId));
       const open = receivers.filter(r => !r.deliveredAt);
-      if (rest.length && rest.length === open.length && rest.every(d => d.status === rest[0].status && !!d.retrievedAt === !!rest[0].retrievedAt)) {
-        open.forEach((r, i) => Object.assign(r, { deliveredAt: rest[i].deliveredAt, retrievedAt: rest[i].retrievedAt, acknowledgedAt: rest[i].acknowledgedAt, inferred: true, stage: stageOf(rest[i].status, rest[i].retrievedAt, r.run?.status) }));
+      //    A receiver with an adapter run has read its inbox, so pair retrieved deliveries with
+      //    run-holders and unretrieved ones with the rest, when each group pairs up one-to-one.
+      const groups: [Receiver[], typeof rest][] = [[open.filter(r => r.run), rest.filter(d => d.retrievedAt)], [open.filter(r => !r.run), rest.filter(d => !d.retrievedAt)]];
+      if (rest.length === open.length && groups.every(([rs, ds]) => rs.length === ds.length && ds.every(d => d.status === ds[0].status))) {
+        for (const [rs, ds] of groups) rs.forEach((r, i) => Object.assign(r, { deliveredAt: ds[i].deliveredAt, retrievedAt: ds[i].retrievedAt, acknowledgedAt: ds[i].acknowledgedAt, inferred: true, stage: stageOf(ds[i].status, ds[i].retrievedAt, r.run?.status) }));
       }
       const publisher = roleOf.get(event.publisherAgentId);
       return {

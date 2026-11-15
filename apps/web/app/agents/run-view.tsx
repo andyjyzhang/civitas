@@ -83,7 +83,7 @@ export default function RunView({ threadId, onChange, onBack }: { threadId: stri
     <section className="ag-section" aria-label="Timeline">
       <div className="ag-section-head"><h3>Timeline</h3><span className="subtle">{run.timeline.filter(i => i.kind !== 'say').length} steps</span></div>
       {run.timeline.length ? <ol className="ag-timeline">{run.timeline.map(item => <Step key={item.id} item={run.status === 'waiting' && item.status === 'running' ? { ...item, status: 'waiting' as TimelineItem['status'] } : item} timings={timings} sub={item.kind === 'task' ? subFor(item, run.timeline, subagents) : undefined}/>)}</ol>
-        : <p className="subtle">Waiting for the first step…</p>}
+        : <p className="subtle">{run.status === 'running' ? 'Waiting for the first step…' : 'No steps were recorded.'}</p>}
     </section>
 
     <Files run={run}/>

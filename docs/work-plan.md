@@ -290,6 +290,31 @@ client, CLI, analyst and desktop behavior stay in their existing lanes.
   HTTP runs are not browser interaction evidence.
 - No deployment, external publication, new test suite or automation was added.
 
+## UI lane C: Agents, Inbox, Context (November 15)
+
+Rebuilt on the shared primitives (globals.css spec + ui.tsx); page-specific layout only
+in `apps/web/app/styles/agents.css`.
+
+- `/agents`: workspace-agent status row, runs list + run detail (status pill, Stop,
+  plan progress, timeline with durations from checkpoint history and nested subagent
+  steps, file tabs, GitHub-style diffs), decision-first approval panel (impact from
+  topic subscriptions, checks from the interrupt's `civitas` block, required reject
+  reason; the graphs do not re-propose after a reject, so there is no "request
+  changes"). "New analysis" dialog and owner-only "Run sample analysis".
+- Routes: `POST /api/agents/sample`, `POST /api/agents/runs/:id/cancel` (owner,
+  same-origin), `GET /api/inbox[?count=1]` (owned groups), `GET /api/context?space=`
+  (members; analyst credential stays server-side). Adapter runs are refused
+  server-side until a published analyst run exists. Sidebar Inbox count polls.
+- Ran: memory relay + real agent server (gpt-4.1-mini) + `next start`; Playwright
+  signed up an owner and a member, ran the sample analysis, approved from the Inbox,
+  adapted triage and SDK (applied + acknowledged), stopped a dispatch adapter early,
+  checked member 403s on enable/sample/start/approve/cancel. Spend: $0.13 (4 runs).
+- Limits: nested subagent steps exist only for runs this web process streamed live
+  (in-memory cache). The relay activity snapshot does not name each delivery's
+  receiver; receivers without an adapter run are matched by elimination and marked
+  inferred. No LangSmith link (URL not derivable reliably). Old agent-key relay view
+  removed from `/context`; `/api/relay` and `/api/session` remain unused.
+
 ## Current assignment
 
 The November 14 request expands the earlier A/B scope to all remaining local demo
