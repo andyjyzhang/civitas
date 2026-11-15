@@ -1,6 +1,7 @@
 'use client';
 
-// Signed-in app shell: group switcher, primary nav, account menu, breadcrumb top bar.
+// Signed-in app shell: group switcher, primary nav (Activity, Inbox, Agents, Members), account
+// menu (Explore servers, Sign out). The top bar exists only on narrow screens (menu + title).
 // The selected group comes from `?space=` (last choice remembered in localStorage).
 // Pages read it with useShell(); page actions can go in the top bar via <ShellActions>.
 import Link from 'next/link';
@@ -8,10 +9,10 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createContext, Fragment, Suspense, useCallback, useContext, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { AccountOverview, Space } from '@civitas/contracts';
-import { Bot, Check, ChevronsUpDown, Compass, Inbox, Layers, LogOut, Menu, MessageSquare, Plus, Settings, Ticket, Users, X } from 'lucide-react';
+import { Activity, Bot, Check, ChevronsUpDown, Compass, Inbox, LogOut, Menu, Plus, Ticket, Users, X } from 'lucide-react';
 import { Button } from './ui';
 
-export type NavId = 'inbox' | 'chat' | 'agents' | 'context' | 'members' | 'servers';
+export type NavId = 'activity' | 'inbox' | 'agents' | 'members' | 'servers';
 type Dialog = 'create' | 'accept';
 export type ShellValue = {
   overview: AccountOverview | null;
@@ -50,11 +51,10 @@ async function accountRequest<T>(operation: string, input: unknown = {}): Promis
 }
 
 const NAV: { id: NavId; label: string; path: string; Icon: typeof Inbox }[] = [
+  { id: 'activity', label: 'Activity', path: '/activity', Icon: Activity },
   { id: 'inbox', label: 'Inbox', path: '/inbox', Icon: Inbox },
-  { id: 'chat', label: 'Chat', path: '/groups', Icon: MessageSquare },
   { id: 'agents', label: 'Agents', path: '/agents', Icon: Bot },
-  { id: 'context', label: 'Context', path: '/context', Icon: Layers },
-  { id: 'members', label: 'Members & access', path: '/members', Icon: Users },
+  { id: 'members', label: 'Members', path: '/members', Icon: Users },
 ];
 
 export type AppShellProps = {
@@ -125,7 +125,7 @@ function ShellInner({ active, title, scoped = true, inboxCount: inboxCountProp, 
   }, [spaceId, scoped, param]);
 
   const q = spaceId ? `?space=${encodeURIComponent(spaceId)}` : '';
-  const selectGroup = (id: string) => { writeStored(id); setStored(id); router.push(`${scoped ? pathname : '/groups'}?space=${encodeURIComponent(id)}`); };
+  const selectGroup = (id: string) => { writeStored(id); setStored(id); router.push(`${scoped ? pathname : '/activity'}?space=${encodeURIComponent(id)}`); };
   const value: ShellValue = { overview, groups, spaceId, space, refresh, openDialog: setDialog, actionsTarget };
 
   return <ShellContext.Provider value={value}>
@@ -136,17 +136,15 @@ function ShellInner({ active, title, scoped = true, inboxCount: inboxCountProp, 
           {NAV.map(({ id, label, path, Icon }) => <Link key={id} href={path + q} className="nav-link" aria-current={active === id ? 'page' : undefined}>
             <Icon aria-hidden="true"/>{label}{id === 'inbox' && !!inboxCount && <span className="count-badge" aria-label={`${inboxCount} unread`}>{inboxCount > 99 ? '99+' : inboxCount}</span>}
           </Link>)}
-          <hr className="divider"/>
-          <Link href="/servers" className="nav-link" aria-current={active === 'servers' ? 'page' : undefined}><Compass aria-hidden="true"/>Explore servers</Link>
         </nav>
-        <AccountMenu name={overview?.account.name} email={overview?.account.email} settingsHref={'/members' + q}/>
+        <AccountMenu name={overview?.account.name} email={overview?.account.email}/>
       </aside>
       <button type="button" className="sidebar-scrim" aria-label="Close navigation" tabIndex={-1} onClick={() => setNavOpen(false)}/>
       <div className="app-main">
         <header className="app-topbar">
           <div className="breadcrumb">
             <Button className="menu-toggle" variant="ghost" size="sm" iconOnly aria-label="Open navigation" aria-controls="app-sidebar" aria-expanded={navOpen} icon={<Menu/>} onClick={() => setNavOpen(true)}/>
-            {scoped && <><Link className="crumb-group" href={'/groups' + q}>{space?.name || (overview ? 'No group' : '…')}</Link><span className="sep" aria-hidden="true">/</span></>}
+            {scoped && <><Link className="crumb-group" href={'/activity' + q}>{space?.name || (overview ? 'No group' : '…')}</Link><span className="sep" aria-hidden="true">/</span></>}
             <span aria-current="page">{title}</span>
           </div>
           <div className="topbar-actions" ref={setActionsTarget}>{actions}</div>
@@ -197,7 +195,7 @@ function GroupSwitcher({ groups, space, loading, onSelect, onDialog }: { groups:
   </div>;
 }
 
-function AccountMenu({ name, email, settingsHref }: { name?: string; email?: string; settingsHref: string }) {
+function AccountMenu({ name, email }: { name?: string; email?: string }) {
   const { open, setOpen, root, button } = useMenu();
   const [busy, setBusy] = useState(false);
   async function signOut() {
@@ -208,7 +206,7 @@ function AccountMenu({ name, email, settingsHref }: { name?: string; email?: str
   return <div className="account-menu" ref={root}>
     {open && <div className="menu" role="menu" aria-label="Account">
       {email && <div className="menu-label" title={email}>{email}</div>}
-      <Link role="menuitem" className="menu-item" href={settingsHref} onClick={() => setOpen(false)}><Settings aria-hidden="true"/>Settings</Link>
+      <Link role="menuitem" className="menu-item" href="/servers" onClick={() => setOpen(false)}><Compass aria-hidden="true"/>Explore servers</Link>
       <hr className="divider"/>
       <button type="button" role="menuitem" className="menu-item" disabled={busy} onClick={() => void signOut()}><LogOut aria-hidden="true"/>{busy ? 'Signing out…' : 'Sign out'}</button>
     </div>}
@@ -230,10 +228,10 @@ function ShellDialog({ kind, onClose, onDone }: { kind: Dialog; onClose: () => v
     try {
       if (kind === 'create') {
         const created = await accountRequest<Space>('createSpace', { name: fields.get('name'), kind: 'group', visibility: 'private' });
-        await onDone('/groups', created.spaceId);
+        await onDone('/activity', created.spaceId);
       } else {
         const accepted = await accountRequest<Space>('acceptInvite', { token: fields.get('token') });
-        await onDone(accepted.kind === 'server' ? '/servers' : '/groups', accepted.spaceId);
+        await onDone(accepted.kind === 'server' ? '/servers' : '/activity', accepted.spaceId);
       }
     } catch (e) { setError(e instanceof Error ? e.message : 'Something went wrong.'); setBusy(false); }
   }

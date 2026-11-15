@@ -219,6 +219,8 @@ export type RunStatus = 'running' | 'waiting' | 'published' | 'applied' | 'rejec
 export type RunSummary = {
   threadId: string; kind: 'analyst' | 'adapter'; role?: string; sourceId?: string; runId?: string; goal?: string;
   createdAt: string; updatedAt: string; status: RunStatus; threadStatus: string; result?: string; decision?: string;
+  /** Account that approved/rejected, and when (from thread metadata). */
+  decidedBy?: string; decidedAt?: string;
   /** Display title, e.g. "Analysis · Maintenance API" or "Adapt · Triage UI". */
   title: string;
   /** What the run is asking the owner, when waiting ("Publish context: …" / "Apply patch to Triage UI"). */
@@ -358,6 +360,7 @@ export function summarize(thread: Thread, valuesOverride?: Record<string, unknow
     runId: typeof meta.runId === 'string' ? meta.runId : undefined, goal: firstHuman ? cut(textOf(firstHuman.content), 600) : undefined,
     createdAt: thread.created_at, updatedAt: thread.updated_at, status, threadStatus: thread.status,
     result: resultText ? cut(resultText, 2000) : undefined, decision: typeof meta.decision === 'string' ? meta.decision : undefined,
+    decidedBy: typeof meta.decidedBy === 'string' ? meta.decidedBy : undefined, decidedAt: typeof meta.decidedAt === 'string' ? meta.decidedAt : undefined,
     title: runTitle(kind, role, sourceId), ask, stopped: stopped || undefined,
     eventId: typeof event?.eventId === 'string' ? event.eventId : undefined, deliveryIds,
     todos: (Array.isArray(values.todos) ? values.todos : []).filter((t: unknown) => t && typeof t === 'object').map((t: { content?: unknown; status?: unknown }) => ({ content: cut(String(t.content ?? ''), 500), status: String(t.status ?? 'pending') })),
