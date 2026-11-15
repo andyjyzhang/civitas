@@ -1,4 +1,4 @@
-.landing { min-height: 100svh; background: #0c1013; color: #e5eae5; display: flex; flex-direction: column; }
+.landing { min-height: 100svh; background: #0c1013; color: #e5eae5; display: flex; flex-direction: column; font: 13px/1.6 var(--font-mono); }
 .landing-nav { display: flex; align-items: center; padding: 30px 40px; }
 .landing-wordmark { font-size: 23px; font-weight: 500; letter-spacing: -1px; }
 .landing-main { width: min(1100px, 100%); margin: 0 auto; flex: 1; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(240px, 1fr); justify-items: center; align-content: center; align-items: center; gap: 90px; padding: 30px 40px 110px; }

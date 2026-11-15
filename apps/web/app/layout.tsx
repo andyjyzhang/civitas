@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
 import './globals.css';
-import localFont from 'next/font/local';
-
-const manrope = localFont({ src: './fonts/Manrope.ttf', weight: '200 800', display: 'swap', variable: '--font-manrope' });
 
 export const metadata: Metadata = {
   title: 'Civitas — Independent agents. Shared context.',
@@ -10,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="en"><body className={manrope.variable}>{children}</body></html>;
+  return <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}><body>{children}</body></html>;
 }
