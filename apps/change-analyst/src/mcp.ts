@@ -3,18 +3,15 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 import { fileURLToPath } from 'node:url';
+import type { Credentials } from './workspace.js';
 
 const cliPath = fileURLToPath(new URL('../../../packages/cli/dist/index.js', import.meta.url));
 
-function bridgeEnv() {
-  const { CIVITAS_RELAY_URL, CIVITAS_AGENT_TOKEN } = process.env;
-  if (!CIVITAS_RELAY_URL || !CIVITAS_AGENT_TOKEN) throw new AnalystError('Load a private agent env file before using MCP.');
-  // Do not forward model credentials to the bridge process.
-  return { CIVITAS_RELAY_URL, CIVITAS_AGENT_TOKEN };
-}
+// Only the relay URL and this agent's token reach the bridge; model credentials are never forwarded.
+const bridgeEnv = (creds: Credentials) => ({ CIVITAS_RELAY_URL: creds.relayUrl, CIVITAS_AGENT_TOKEN: creds.token });
 
-export async function withBridge<T>(action: (client: Client) => Promise<T>): Promise<T> {
-  const transport = new StdioClientTransport({ command: process.execPath, args: [cliPath], env: bridgeEnv(), stderr: 'ignore' });
+export async function withBridge<T>(creds: Credentials, action: (client: Client) => Promise<T>): Promise<T> {
+  const transport = new StdioClientTransport({ command: process.execPath, args: [cliPath], env: bridgeEnv(creds), stderr: 'ignore' });
   const client = new Client({ name: 'civitas-change-analyst', version: '0.0.0' });
   try { await client.connect(transport); return await action(client); }
   finally { await client.close(); }
@@ -30,34 +27,31 @@ export async function callTool(client: Client, name: string, args: Record<string
 }
 
 /**
- * Loads the Civitas MCP publish_context tool through @langchain/mcp-adapters.
- * The raw tool is never given to the model; the runner wraps it and injects scope.
+ * Calls one Civitas MCP tool through @langchain/mcp-adapters over a short-lived stdio
+ * bridge. The raw MCP tools are never given to the model; callers wrap them and inject scope.
  */
-export async function loadMcpPublisher() {
+export async function callCivitas(creds: Credentials, name: string, args: Record<string, unknown>): Promise<unknown> {
   const client = new MultiServerMCPClient({
-    mcpServers: { civitas: { transport: 'stdio', command: process.execPath, args: [cliPath], env: bridgeEnv(), stderr: 'ignore' } },
+    mcpServers: { civitas: { transport: 'stdio', command: process.execPath, args: [cliPath], env: bridgeEnv(creds), stderr: 'ignore' } },
     throwOnLoadError: true,
     onConnectionError: 'throw',
   });
   try {
-    const raw = (await client.getTools()).find(item => item.name === 'publish_context');
-    if (!raw) throw new AnalystError('Civitas MCP bridge does not expose publish_context.');
-    const publish = async (args: Record<string, unknown>) => {
-      let output: unknown;
-      try { output = await raw.invoke(args); }
-      catch { throw new AnalystError('MCP publish_context failed; verify relay access and retry with review <run-id>.'); }
-      return parseToolJson(output);
-    };
-    return { publish, close: () => client.close() };
-  } catch (error) { await client.close(); throw error; }
+    const raw = (await client.getTools()).find(item => item.name === name);
+    if (!raw) throw new AnalystError(`Civitas MCP bridge does not expose ${name}.`);
+    let output: unknown;
+    try { output = await raw.invoke(args); }
+    catch { throw new AnalystError(`MCP ${name} failed; verify relay access and retry.`); }
+    return parseToolJson(output, name);
+  } finally { await client.close(); }
 }
 
-function parseToolJson(output: unknown): unknown {
+function parseToolJson(output: unknown, name: string): unknown {
   if (typeof output === 'string') return JSON.parse(output);
   if (Array.isArray(output)) {
     const text = (output.flat() as Array<{ type?: string; text?: string }>).find(block => block?.type === 'text')?.text;
     if (text) return JSON.parse(text);
   }
-  if (output && typeof output === 'object' && 'content' in output) return parseToolJson((output as { content: unknown }).content);
-  throw new AnalystError('MCP publish_context returned no JSON.');
+  if (output && typeof output === 'object' && 'content' in output) return parseToolJson((output as { content: unknown }).content, name);
+  throw new AnalystError(`MCP ${name} returned no JSON.`);
 }

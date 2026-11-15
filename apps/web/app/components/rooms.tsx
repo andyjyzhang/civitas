@@ -1,130 +1,139 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
-import type { AccountOverview, Room } from '@civitas/contracts';
-import WorkspaceNav from './workspace-nav';
-import ConnectAgent from './connect-agent';
+// Shared client helpers for the people-facing pages (chat, servers, members):
+// account API calls, room polling, time formatting, a dialog and a switch.
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { X } from 'lucide-react';
+import type { Room } from '@civitas/contracts';
+import { Button } from './ui';
+import '../styles/people.css';
 
-type Kind = 'group' | 'server';
-type Directory = { spaceId: string; name: string; joined: boolean }[];
-async function read<T>(query = ''): Promise<T> {
+export async function read<T>(query = ''): Promise<T> {
   const response = await fetch('/api/account' + query, { cache: 'no-store' });
   if (response.status === 401) { window.location.assign('/'); throw new Error('Please sign in.'); }
-  const data = await response.json();
+  const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || 'Could not load your workspace.');
-  return data;
+  return data as T;
 }
-async function operate(operation: string, input: unknown = {}) {
+
+export async function operate<T = Record<string, unknown>>(operation: string, input: unknown = {}): Promise<T> {
   const response = await fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ operation, input }) });
-  const data = await response.json();
+  const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || 'Could not complete this action.');
-  return data;
+  return data as T;
 }
-const clock = (value: string) => new Date(value).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-export default function Rooms({ kind }: { kind: Kind }) {
-  const group = kind === 'group';
-  const noun = group ? 'group chat' : 'server';
-  const [overview, setOverview] = useState<AccountOverview | null>(null);
-  const [selected, setSelected] = useState('');
+export const errorText = (e: unknown, fallback = 'Something went wrong.') => e instanceof Error ? e.message : fallback;
+
+/** "14:05" today, "Mar 3, 14:05" otherwise. */
+export function clock(value: string) {
+  const date = new Date(value);
+  const today = new Date().toDateString() === date.toDateString();
+  return date.toLocaleString([], today ? { hour: '2-digit', minute: '2-digit' } : { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+export function timeAgo(value: string) {
+  const seconds = Math.max(0, (Date.now() - Date.parse(value)) / 1000);
+  if (seconds < 60) return 'just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  return new Date(value).toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+export function dayLabel(value: string) {
+  const date = new Date(value), now = new Date();
+  if (date.toDateString() === now.toDateString()) return 'Today';
+  const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  return date.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+}
+
+/** Polls a room every 4s while mounted. */
+export function useRoom(spaceId: string, kind: 'group' | 'server') {
   const [room, setRoom] = useState<Room | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [dialog, setDialog] = useState<'create' | 'discover' | 'accept' | null>(null);
-  const [directory, setDirectory] = useState<Directory>([]);
-  const [invite, setInvite] = useState('');
-  const [topic, setTopic] = useState('');
-  const [search, setSearch] = useState('');
-  const [content, setContent] = useState('');
-  const [recipient, setRecipient] = useState('');
-  const sendKey = useRef<string | null>(null);
-  const stream = useRef<HTMLDivElement>(null);
-  const requestNumber = useRef(0);
-  const spaces = overview?.spaces.filter(space => space.kind === kind) || [];
-  const loadOverview = useCallback(async () => {
-    const result = await read<AccountOverview>();
-    setOverview(result);
-    setSelected(previous => {
-      const desired = previous || new URLSearchParams(window.location.search).get('space');
-      return result.spaces.find(s => s.kind === kind && s.spaceId === desired)?.spaceId || result.spaces.find(s => s.kind === kind)?.spaceId || '';
-    });
-    return result;
-  }, [kind]);
-  useEffect(() => { void loadOverview().catch(e => setError(e.message)).finally(() => setLoading(false)); }, [loadOverview]);
-  const loadRoom = useCallback(async () => {
-    if (!selected) return;
-    const number = ++requestNumber.current;
+  const [loading, setLoading] = useState(Boolean(spaceId));
+  const number = useRef(0);
+  const reload = useCallback(async () => {
+    if (!spaceId) return;
+    const current = ++number.current;
     try {
-      const result = await read<Room>('?room=' + encodeURIComponent(selected));
-      if (number !== requestNumber.current) return;
-      if (result.space.kind !== kind) throw new Error('This space belongs in the other workspace.');
+      const result = await read<Room>('?room=' + encodeURIComponent(spaceId));
+      if (current !== number.current) return;
+      if (result.space.kind !== kind) throw new Error(kind === 'group' ? 'This is a server, not a group.' : 'This is a group, not a server.');
       setRoom(result); setError('');
-    } catch (e) { if (number === requestNumber.current) { setRoom(null); setError(e instanceof Error ? e.message : 'Could not load this room.'); } }
-  }, [selected, kind]);
+    } catch (e) { if (current === number.current) { setRoom(null); setError(errorText(e, 'Could not load this space.')); } }
+    finally { if (current === number.current) setLoading(false); }
+  }, [spaceId, kind]);
   useEffect(() => {
-    setRoom(null); setInvite(''); setTopic(''); setContent(''); setSearch(''); setRecipient(''); sendKey.current=null;
-    if (!selected) return;
-    window.history.replaceState(null, '', `${group ? '/groups' : '/servers'}?space=${encodeURIComponent(selected)}`);
-    void loadRoom(); const timer = setInterval(() => void loadRoom(), 4000);
-    return () => { clearInterval(timer); requestNumber.current++; };
-  }, [selected, group, loadRoom]);
-  useEffect(() => { if (group && stream.current) stream.current.scrollTop = stream.current.scrollHeight; }, [group, room?.posts.length]);
-  async function action(work: () => Promise<void>) {
-    setBusy(true); setError('');
-    try { await work(); } catch (e) { setError(e instanceof Error ? e.message : 'Action failed.'); } finally { setBusy(false); }
-  }
-  function submit(event: FormEvent<HTMLFormElement>, work: (fields: FormData, form: HTMLFormElement) => Promise<void>) {
-    event.preventDefault(); if (busy) return;
-    const form = event.currentTarget; const fields = new FormData(form);
-    void action(() => work(fields, form));
-  }
-  async function discover() {
-    await action(async () => { setDirectory(await read<Directory>('?directory=1')); setDialog('discover'); });
-  }
-  useEffect(() => { if(recipient && room && !room.agents.some(a => a.agentId === recipient && a.canReply)) setRecipient(''); }, [room, recipient]);
-  const topics = [...new Set(room?.posts.map(p => p.topic).filter((v): v is string => Boolean(v)))];
-  const posts = (room?.posts || []).filter(p => (!topic || p.topic === topic) && `${p.title || ''} ${p.content} ${p.authorName}`.toLowerCase().includes(search.toLowerCase()));
-  const visiblePosts = group ? posts : [...posts].reverse();
+    setRoom(null); setError(''); setLoading(Boolean(spaceId));
+    if (!spaceId) return;
+    void reload();
+    const timer = setInterval(() => void reload(), 4000);
+    return () => { clearInterval(timer); number.current++; };
+  }, [spaceId, reload]);
+  return { room, error, loading, reload };
+}
 
-  return <div className="shell collaboration-shell">
-    <WorkspaceNav active={group ? 'groups' : 'servers'}/>
-    <main>
-      <header className="topbar"><span>{group ? 'Group chats' : 'Servers'} <span className="slash">/</span> {room?.space.name || 'Your workspace'}</span><div className="room-account">{overview?.account.name}<button className="text-button" onClick={() => void action(async () => { await operate('logout'); window.location.assign('/'); })}>Sign out</button></div></header>
-      <div className="rooms-layout">
-        <aside className="room-list-panel" aria-label={group ? 'Your group chats' : 'Your servers'}>
-          <div className="room-list-heading"><h1>{group ? 'Group chats' : 'Servers'}</h1><button className="room-add" aria-label={`Create ${noun}`} onClick={() => setDialog('create')}>＋</button></div>
-          <p className="room-description">{group ? 'Build with your people.' : 'Knowledge worth passing on.'}</p>
-          <div className="room-list">{spaces.map(space => <button className={`room-select ${selected === space.spaceId ? 'selected' : ''}`} key={space.spaceId} onClick={() => setSelected(space.spaceId)}><span className="room-symbol">{group ? '↔' : '◎'}</span><span>{space.name}<small>{group ? 'Private project' : space.visibility === 'public' ? 'Public community' : 'Private community'}</small></span></button>)}
-          {!loading && !spaces.length && <p className="muted">No {group ? 'group chats' : 'servers'} yet.</p>}</div>
-          <div className="room-list-actions"><button className="secondary full" onClick={() => setDialog('create')}>Create {noun}</button>{!group && <button className="text-button" disabled={busy} onClick={discover}>Discover public servers ↗</button>}<button className="text-button" onClick={() => setDialog('accept')}>Accept an invitation</button></div>
-        </aside>
-        <section className="room-workspace" aria-label={group ? 'Project conversation' : 'Knowledge feed'}>
-          {error && <div className="alert" role="alert">{error}</div>}
-          {!room ? <div className="room-empty"><span aria-hidden="true">{group ? '↔' : '◎'}</span><h2>{loading || selected && !error ? 'Opening your workspace…' : group ? 'Start something together.' : 'Find your next discovery.'}</h2><p>{group ? 'Create a private group for your friends or coworkers. Share decisions, ask questions, and keep project context together.' : 'Join a community to follow source-linked knowledge, research, and updates from approved publishers.'}</p><button className="primary" onClick={() => group ? setDialog('create') : void discover()}>{group ? 'Create a group chat' : 'Discover servers'}</button></div> : <>
-            <header className="room-header"><div><h2>{room.space.name}</h2><p>{group ? 'Private project conversation' : 'Knowledge feed'} · {room.members.length} {group ? 'members' : 'subscribers'}</p></div>{group && <ConnectAgent key={selected} spaceId={selected} onLinked={loadRoom}/>}<span className="room-badge">{group ? 'Invite only' : room.space.visibility === 'public' ? 'Public' : 'Private'}</span></header>
-            <div className="room-toolbar"><label className="room-search"><span className="sr-only">Search {group ? 'messages' : 'knowledge'}</span><input value={search} onChange={e => setSearch(e.target.value)} placeholder={group ? 'Search this conversation…' : 'Search knowledge…'}/></label>{!group && <label><span className="sr-only">Filter by topic</span><select value={topic} onChange={e => setTopic(e.target.value)}><option value="">All topics</option>{topics.map(t => <option key={t}>{t}</option>)}</select></label>}</div>
-            <div className={`room-stream ${group ? 'conversation' : 'knowledge-feed'}`} ref={stream} role="region" aria-label={group ? 'Messages' : 'Knowledge posts'} tabIndex={0}>
-              {!visiblePosts.length && <div className="room-stream-empty"><h3>{search || topic ? 'Nothing matches yet.' : group ? 'Your conversation starts here.' : 'No discoveries published yet.'}</h3><p>{search || topic ? 'Try another search or topic.' : group ? 'Share a project decision or ask your teammates a question.' : 'Approved publishers can share a source-linked discovery below.'}</p></div>}
-              {visiblePosts.map(post => <article className={`room-post ${post.authorId === room.currentAccountId ? 'own-post' : ''}`} key={post.postId}><div className="room-post-meta"><span className="avatar small">{post.authorName[0]?.toUpperCase()}</span><strong>{post.authorName}{post.origin === 'agent' ? ' · agent' : ''}{post.targetAgentName ? ` → ${post.targetAgentName}` : ''}</strong><time dateTime={post.createdAt}>{clock(post.createdAt)}</time></div>{post.topic && <span className="topic">{post.topic}</span>}{post.title && <h3>{post.title}</h3>}{post.replyTo && <small className="message-reply-label">Reply to {room.posts.find(p=>p.postId===post.replyTo)?.authorName || 'a group message'}</small>}<p>{post.content}</p>{post.targetAgentId && <small className="agent-message-status">{post.repliedAt ? 'Agent replied' : post.retrievedAt ? 'Retrieved by agent · awaiting reply' : 'Queued · waiting for an active agent session'}</small>}{post.source && <div className="room-source">↗ {post.source.uri} <span>@ {post.source.revision}</span></div>}</article>)}
-            </div>
-            <div className="room-composer">{room.canPublish ? <form key={selected} onSubmit={event => submit(event, async (fields, form) => {
-              sendKey.current ??= crypto.randomUUID();
-              await operate('post', { spaceId: selected, post: { content: fields.get('content'),idempotencyKey:sendKey.current,...(group && recipient ? {targetAgentId:recipient} : {}), ...(!group ? { title: fields.get('title'), topic: fields.get('topic'), source: { uri: fields.get('source'), revision: fields.get('revision') } } : {}) } });
-              sendKey.current=null; setContent(''); form.reset(); await loadRoom();
-            })}>{group && <label className="message-recipient">Send to<select value={recipient} onChange={e=>{setRecipient(e.target.value);sendKey.current=null;}}><option value="">Everyone · people only</option>{room.agents.filter(a=>a.canReply).map(agent=><option key={agent.agentId} value={agent.agentId}>{agent.name} · {agent.ownerName}</option>)}</select></label>}{!group && <><div className="form-grid"><label>Title<input name="title" maxLength={200} required placeholder="What did you learn?"/></label><label>Topic<input name="topic" required placeholder="research/agents" maxLength={128}/></label></div><div className="form-grid"><label>Source reference<input name="source" maxLength={2048} required placeholder="https://…"/></label><label>Source revision<input name="revision" maxLength={256} required placeholder="Version or date"/></label></div></>}<label><span className="sr-only">{group ? 'Message' : 'Knowledge content'}</span><textarea name="content" value={content} onChange={e => {setContent(e.target.value);sendKey.current=null;}} maxLength={8000} required rows={group ? 2 : 3} placeholder={group ? recipient ? `Ask ${room.agents.find(a=>a.agentId===recipient)?.name || 'your agent'}…` : `Message ${room.space.name}…` : 'Explain the finding and why it matters…'} onKeyDown={e => { if (group && e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); } }}/></label><div className="composer-footer"><small>{group ? recipient ? 'This selected message is shared with the agent. Open its coding session to fetch it.' : 'Only this group can read messages. Choose an agent above to ask it a question.' : 'Share selected knowledge. Publishing here does not copy private group history.'}</small><button className="primary" disabled={busy || !content.trim()}>{busy ? 'Sending…' : group ? recipient ? 'Send to agent' : 'Send message' : 'Publish knowledge'}</button></div></form> : <p className="muted">You’re subscribed to this server. The owner can grant publishing access.</p>}</div>
-          </>}
-        </section>
-        <aside className="room-details" aria-label="Members and access">
-          {room ? <><h2>{group ? 'Your collaborators' : 'Community'}</h2><p className="muted">{group ? 'People working on this project.' : 'Knowledge from approved publishers.'}</p>{room.members.map(member => <div className="room-member" key={member.accountId}><span className="avatar small">{member.name[0]?.toUpperCase()}</span><div><strong>{member.name}{member.accountId === room.currentAccountId ? ' · you' : ''}</strong><small>{member.role === 'owner' ? 'Owner' : group ? 'Collaborator' : member.canPublish ? 'Publisher' : 'Subscriber'}</small>{!group && room.space.role === 'owner' && member.role !== 'owner' && <button className="text-button" disabled={busy} onClick={() => void action(async () => { await operate('setPublisher', { spaceId: selected, accountId: member.accountId, canPublish: !member.canPublish }); await loadRoom(); })}>{member.canPublish ? 'Remove publishing access' : 'Allow publishing'}</button>}</div></div>)}{group && <section className="group-agents"><h3>Group agents</h3>{room.agents.length ? room.agents.map(a=><div className="room-member" key={a.agentId}><span className="avatar small">↗</span><div><strong>{a.name}</strong><small>{a.ownerName} · {a.provider}</small><small>{!a.canReply ? 'Read only' : a.lastSeenAt ? `Last MCP contact ${clock(a.lastSeenAt)}` : 'Awaiting MCP setup / first contact'}</small>{a.canReply && <button className="text-button" onClick={()=>setRecipient(a.agentId)}>Ask this agent</button>}</div></div>) : <p className="muted">Connect Claude or Codex above to bring your coding agent into the group.</p>}</section>}{room.space.role === 'owner' && <form className="room-invite" onSubmit={event => submit(event, async fields => { const result = await operate('invite', { spaceId: selected, email: fields.get('email') }); setInvite(result.token); })}><h3>{group ? 'Invite a teammate' : 'Invite a subscriber'}</h3><label>Email<input name="email" type="email" required placeholder="friend@example.com"/></label><button className="secondary full" disabled={busy}>Create invitation</button></form>}{invite && <div className="room-invite-result"><p>Share this token privately. Your friend accepts it using the same email. No email is sent.</p><input aria-label="Invitation token" value={invite} readOnly/><button className="text-button" onClick={() => void navigator.clipboard.writeText(invite).catch(() => setError('Select and copy the invitation token manually.'))}>Copy invitation</button></div>}<div className="room-detail-links"><a href="/settings">Connect agents & manage access ↗</a><a href="/relay">Agent context activity ↗</a></div><small className="muted">Selected agent messages enter a private MCP inbox; other conversation stays with people. Inactive sessions are not woken automatically. Latest 100 posts.</small></> : <><h2>{group ? 'Project collaboration' : 'Knowledge sharing'}</h2><p className="muted">{group ? 'Invite the people you build with. Your conversations stay private.' : 'Follow public communities or accept a private server invitation.'}</p></>}
-        </aside>
-      </div>
-    </main>
-    {dialog && <div className="modal-backdrop"><section className="modal" role="dialog" aria-modal="true" aria-labelledby="room-dialog-title"><div className="section-heading"><h2 id="room-dialog-title">{dialog === 'create' ? `Create ${noun}` : dialog === 'discover' ? 'Discover servers' : 'Accept invitation'}</h2><button className="close" aria-label="Close dialog" onClick={() => setDialog(null)}>×</button></div>
-      {dialog === 'create' && <form onSubmit={event => submit(event, async fields => { const created = await operate('createSpace', { name: fields.get('name'), kind, visibility: group ? 'private' : fields.get('visibility') }); await loadOverview(); setSelected(created.spaceId); setDialog(null); })}><p className="muted">{group ? 'A private place for friends and coworkers to build together.' : 'A community feed for discoveries, research, and useful updates.'}</p><label>Name<input name="name" required maxLength={100} autoFocus placeholder={group ? 'Weekend builders' : 'Agent research'}/></label>{!group && <label>Visibility<select name="visibility"><option value="public">Public — discoverable to signed-in users</option><option value="private">Private — invitation only</option></select></label>}<button className="primary full" disabled={busy}>Create {noun}</button></form>}
-      {dialog === 'accept' && <form onSubmit={event => submit(event, async fields => { const accepted = await operate('acceptInvite', { token: fields.get('token') }); if (accepted.kind !== kind) { window.location.assign(`${accepted.kind === 'server' ? '/servers' : '/groups'}?space=${encodeURIComponent(accepted.spaceId)}`); return; } await loadOverview(); setSelected(accepted.spaceId); setDialog(null); })}><p className="muted">Use the invitation shared with your account’s email address.</p><label>Invitation token<input name="token" required autoComplete="off" autoFocus/></label><button className="primary full" disabled={busy}>Accept invitation</button></form>}
-      {dialog === 'discover' && <div className="server-directory">{directory.length ? directory.map(server => <article key={server.spaceId}><span className="room-symbol">◎</span><div><h3>{server.name}</h3><small>Public knowledge community</small></div><button className="secondary" disabled={busy} onClick={() => void action(async () => { if (!server.joined) await operate('joinServer', { spaceId: server.spaceId }); await loadOverview(); setSelected(server.spaceId); setDialog(null); })}>{server.joined ? 'Open' : 'Subscribe'}</button></article>) : <p className="muted">No public servers yet. Create one to start sharing knowledge.</p>}</div>}
-      {error && <p className="alert" role="alert">{error}</p>}
-    </section></div>}
+/** Closes on outside click / Escape. */
+export function useMenu() {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const down = (e: MouseEvent) => { if (!root.current?.contains(e.target as Node)) setOpen(false); };
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', down); document.addEventListener('keydown', key);
+    return () => { document.removeEventListener('mousedown', down); document.removeEventListener('keydown', key); };
+  }, [open]);
+  return { open, setOpen, root };
+}
+
+export function Dialog({ title, description, onClose, closeDisabled, children }: { title: string; description?: ReactNode; onClose: () => void; closeDisabled?: boolean; children: ReactNode }) {
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape' && !closeDisabled) onClose(); };
+    document.addEventListener('keydown', key); return () => document.removeEventListener('keydown', key);
+  }, [onClose, closeDisabled]);
+  return <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget && !closeDisabled) onClose(); }}>
+    <section className="modal" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="section-heading"><h2>{title}</h2><Button variant="ghost" size="sm" iconOnly aria-label="Close" icon={<X/>} disabled={closeDisabled} onClick={onClose}/></div>
+      {description && <p>{description}</p>}
+      {children}
+    </section>
   </div>;
+}
+
+/** Copy-to-clipboard button for secrets / commands shown once. */
+export function CopyButton({ value, label = 'Copy', size = 'sm' }: { value: string; label?: string; size?: 'sm' | 'md' }) {
+  const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle');
+  return <Button size={size} onClick={() => void navigator.clipboard?.writeText(value).then(() => setState('copied'), () => setState('failed'))}>
+    {state === 'copied' ? 'Copied' : state === 'failed' ? 'Select and copy manually' : label}
+  </Button>;
+}
+
+export type CreatedInvite = { inviteId: string; token: string; email: string; expiresAt: string };
+
+/** Owner-only: create an invitation token and show it once. */
+export function InviteDialog({ spaceId, spaceName, onClose, onCreated }: { spaceId: string; spaceName: string; onClose: () => void; onCreated?: (invite: CreatedInvite) => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [invite, setInvite] = useState<CreatedInvite | null>(null);
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); if (busy) return;
+    const fields = new FormData(event.currentTarget); setBusy(true); setError('');
+    try { const created = await operate<CreatedInvite>('invite', { spaceId, email: fields.get('email') }); setInvite(created); onCreated?.(created); }
+    catch (e) { setError(errorText(e, 'Could not create the invitation.')); }
+    finally { setBusy(false); }
+  }
+  return <Dialog title={`Invite to ${spaceName}`} description={invite ? 'Share this token privately. It is shown only once.' : 'They accept with an account that uses this email. No email is sent.'} onClose={onClose} closeDisabled={busy}>
+    {!invite ? <form onSubmit={submit}>
+      <label>Email<input name="email" type="email" required autoFocus placeholder="teammate@example.com" maxLength={254}/></label>
+      {error && <p className="alert" role="alert">{error}</p>}
+      <Button type="submit" variant="primary" disabled={busy}>{busy ? 'Creating…' : 'Create invitation'}</Button>
+    </form> : <form onSubmit={e => { e.preventDefault(); onClose(); }}>
+      <label>Invitation token<input readOnly value={invite.token} className="mono" onFocus={e => e.currentTarget.select()} aria-describedby="invite-hint"/></label>
+      <p className="subtle" id="invite-hint">For {invite.email} · expires {clock(invite.expiresAt)}. They use Accept invitation in the group menu.</p>
+      <div className="page-actions"><CopyButton value={invite.token} label="Copy token" size="md"/><Button type="submit" variant="primary">Done</Button></div>
+    </form>}
+  </Dialog>;
 }

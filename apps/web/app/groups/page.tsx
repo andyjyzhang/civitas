@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation';
 import { accountCookieName, session } from '../../lib/relay';
-import Rooms from '../components/rooms';
+import AppShell from '../components/app-shell';
+import GroupChat from './group-chat';
+
 export default async function Groups() {
   if (!await session(accountCookieName)) redirect('/');
-  return <Rooms kind="group"/>;
+  return <AppShell active="chat" title="Chat"><GroupChat/></AppShell>;
 }

@@ -4,6 +4,43 @@ Build the real flow. No new test suites, lint/check pipelines, CI, release
 or deployment automation. Keep this file current; do not turn pending credentials,
 model calls, customer feedback or sponsor eligibility into completion claims.
 
+## Agents view in the website (November 15)
+
+Deep Agents runs are now part of the product, not only the CLI. Two parallel lanes
+(agent server graphs; website) plus integration on `claude/affectionate-volta-cosqvw`.
+
+- **Agent server:** `npm run agents` serves graph factories `analyst` and `adapter`
+  (`langgraph.json`, LangGraph dev server, `--no-reload`). Config per run:
+  `{spaceId, sourceId|role, runId}`, validated before any file or model access; sources
+  and consumers come from `agents.config.json` (read-only allowlist). Civitas credentials
+  are read server-side from `.local/workspace-agents/<spaceId>/<role>.env`. Publish and
+  submit_patch run their checks, then call `interrupt()` (HITL `{actionRequests,
+  reviewConfigs}` shape); only an explicit approve publishes/applies. Approved patches
+  apply to `.local/workspace-runs/<space>/<run>/<role>/` and only then acknowledge.
+  BudgetGuard is attached to the model so subagent calls are priced.
+- **Website:** `/agents` page per group. Owner-only: enable workspace agents (creates
+  analyst + three adapters, grants, subscriptions; tokens written server-side, mode 0600),
+  start runs, approve/reject. Members view. Live SSE stream of plan (todos), subagent
+  delegations with nested tool calls, files (evidence, diff, notes), approval cards, and
+  run history with status. Model output rendered as text only.
+
+**What actually ran (real gpt-4.1-mini, memory relay, Playwright in Chromium):** sign up →
+create group → enable workspace agents → start analysis → live plan/subagents/evidence →
+approval card → approve → published; then Adapt with agent for triage, sdk, dispatch,
+each showing diff + notes → approve → applied. Server-side check: all three run records
+`applied=true, acknowledged=true, typecheck OK`; all three inboxes `acknowledged`; the
+patched triage copy renders "Urgent maintenance" for P1. Screenshots in `docs/demo/agents-*`.
+Lane checks: member/non-member/foreign-origin denials (403/404), agent-server-down message,
+reject path (nothing applied/acked), bounce-on-failed-check. Ledger total after all work
+≈ $1.16 of the $20 budget.
+
+**Limits:** agent server threads live in the LangGraph dev store (not durable); only the
+UI gates "Adapt with agent" on a published analysis; parallel subagent activity may nest
+under the wrong `task` in the timeline; `unresolved:*` tag checks are specific to the
+maintenance source; port 2024 was occupied in the cloud container so integration ran on
+2124 via `CIVITAS_AGENT_SERVER_URL`. Remaining: demo button, UI polish, durable thread
+store, Tiger-backed relay run of this flow.
+
 ## Real agent workflow: analyst → relay → three adapters (November 14)
 
 Branch `claude/affectionate-volta-cosqvw`. Two parallel lanes (analyst; adapter
@@ -252,6 +289,57 @@ client, CLI, analyst and desktop behavior stay in their existing lanes.
   interaction, keyboard behavior and responsive rendering remain unverified. These
   HTTP runs are not browser interaction evidence.
 - No deployment, external publication, new test suite or automation was added.
+
+## UI cleanup lane B: chat, members, servers, login (November 15)
+
+- `/groups` chat: grouped message stream (avatar, name, time, day dividers),
+  agent posts marked with AgentBadge, "→ agent" messages with Queued / Retrieved /
+  Replied status, composer with Send to + Enter to send. Rail of standard cards:
+  agent activity (from `GET /api/agents`, hidden when the agent server is down),
+  members, agents with last MCP contact, owner-only Invite dialog. One "Connect
+  agent" menu replaces the two buttons (same one-time link command flow). Fixed a
+  composer bug where text typed while a send was in flight was cleared.
+- `/members` replaces the old settings view: People, Agents (read/publish via
+  `setGrant`, owner only) and Invitations tables; create-agent-key dialog keeps
+  credential-once, `.env` download, open-relay-as-agent and MCP configure command.
+- `/servers`: your servers + public directory list, join, server feed with publish
+  dialog, subscriber publishing toggles (owner), invite.
+- `/` login form uses the shared tokens and Button; labeled inputs, inline errors.
+- Ran: `npm run build:web` passed; memory relay 4701 + web 3701 with Playwright
+  (1440 and 390): two signups, invite/accept, chat both ways, owner linked a Claude
+  agent through the UI link command (agent side simulated by calling the relay
+  redeem/group-messages/reply API directly, not a real Claude session), Queued →
+  Retrieved → Replied shown, grant toggle, member sees no owner controls, server
+  create/publish/join/publisher grant. No console errors; no horizontal scroll at 390.
+- Remaining: group publishing is not per-member (relay supports publisher roles only
+  for servers); invitations have no list API, so the table shows only invites made
+  in the current visit; shared primitives still lack a menu anchor, list-row text
+  column, nowrap table option and code block (see `app/styles/people.css`).
+
+## UI lane C: Agents, Inbox, Context (November 15)
+
+Rebuilt on the shared primitives (globals.css spec + ui.tsx); page-specific layout only
+in `apps/web/app/styles/agents.css`.
+
+- `/agents`: workspace-agent status row, runs list + run detail (status pill, Stop,
+  plan progress, timeline with durations from checkpoint history and nested subagent
+  steps, file tabs, GitHub-style diffs), decision-first approval panel (impact from
+  topic subscriptions, checks from the interrupt's `civitas` block, required reject
+  reason; the graphs do not re-propose after a reject, so there is no "request
+  changes"). "New analysis" dialog and owner-only "Run sample analysis".
+- Routes: `POST /api/agents/sample`, `POST /api/agents/runs/:id/cancel` (owner,
+  same-origin), `GET /api/inbox[?count=1]` (owned groups), `GET /api/context?space=`
+  (members; analyst credential stays server-side). Adapter runs are refused
+  server-side until a published analyst run exists. Sidebar Inbox count polls.
+- Ran: memory relay + real agent server (gpt-4.1-mini) + `next start`; Playwright
+  signed up an owner and a member, ran the sample analysis, approved from the Inbox,
+  adapted triage and SDK (applied + acknowledged), stopped a dispatch adapter early,
+  checked member 403s on enable/sample/start/approve/cancel. Spend: $0.13 (4 runs).
+- Limits: nested subagent steps exist only for runs this web process streamed live
+  (in-memory cache). The relay activity snapshot does not name each delivery's
+  receiver; receivers without an adapter run are matched by elimination and marked
+  inferred. No LangSmith link (URL not derivable reliably). Old agent-key relay view
+  removed from `/context`; `/api/relay` and `/api/session` remain unused.
 
 ## Current assignment
 
