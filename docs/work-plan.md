@@ -702,3 +702,57 @@ authenticated connections. Model-generated packet integration remains pending.
   publication retries. No automatic execution/wake-up of receiving coding models.
 - No customer feedback, successful live model analysis, independent coding-model
   adaptation, prize eligibility, or successful submission is fabricated.
+
+## Watch demo showcase (November 14)
+
+Branch `feat/watch-demo`. Added `/demo`, linked from the landing page and empty
+Agents states. The separate full-screen player has a 90-second six-stage timeline,
+plan/specialist/file activity, staggered service rollout, approval and patch review,
+before/after illustration, trace dialog, replay, speed control, seek, Space/arrow
+shortcuts, and automatic or presenter-operated replay approvals. Reduced motion and
+narrow screens are supported. Replay decisions never issue mutation requests.
+
+Live mode uses the existing owner-authorized sample/start/SSE/review routes and
+exact Agents approval cards for the analyst and all three adapters. It never
+approves automatically. Successful adapter starts are retained independently;
+leaving live mode keeps its component/capture mounted. The in-browser recorder
+exports selected plan, timeline, subagent, evidence, approval, diff and result
+snapshots into one v1 JSON; `/work` files and account/credential state are excluded.
+Load recording replaces the playback data locally. Model/cost/trace links are
+unknown unless present in the recording; only HTTPS `smith.langchain.com` links
+are clickable. The trace dialog includes original snapshots and timestamps.
+
+**Honesty/blocker:** this checkout has no real-run capture, agent-server history,
+`.local/model.env`, or configured OpenAI key. The bundled JSON is explicitly
+`kind: illustrative` with no fake frames, model, date, cost, measured duration or
+human-approval claim. The fallback animation is visibly labeled illustrative.
+A funded/configured model run with actual reviewed approvals is still needed to
+replace `apps/web/public/demo/recording.json`. A verified LangSmith URL is also
+pending. Earlier work-plan accounts of real runs are not a substitute for raw
+recording data. A replay result illustration is labeled as such.
+
+`npm run demo:export` builds `.local/demo/civitas-demo.html`, a single file that
+opens from disk with no API, relay, agent server, web server or external assets.
+The current offline artifact and backup video show the illustrative fallback.
+No new test suite, CI, deployment or external publication was added.
+
+**Actually ran:** production `npm run build:web`; export; Chromium browser flow
+from landing → Watch demo → stages → replay approvals → trace → keyboard/manual
+approval pause; 390px viewport without horizontal page overflow; offline file
+playback; offline live handoff; signed-out live prompt and return to replay.
+Replay made no API calls and no browser page errors occurred. Initial build
+blocked on missing installed dependencies and stale `.next/dev` type output;
+installed the declared dependencies and moved the stale generated cache to `/tmp`,
+then production build passed. Real live model/patch execution remains unverified
+here because the provider key and agent server are unavailable.
+
+**Backup artifact:** `.local/demo/civitas-demo-illustrative.mp4` was captured from
+450 actual Chromium-rendered replay frames using the browser's virtual clock and
+encoded with ffmpeg (H.264, 1440×1000, 5 fps, exactly 90.000 seconds verified by
+ffprobe). It is explicitly illustrative, matching the current replay; it is not a
+video of a real model run. Playwright's built-in recorder returned a path without
+producing a file, so the frame capture/encoding replaced that failed attempt.
+Synthetic recording-import browser fixtures also exercised recorded metadata,
+failed service outcomes, automated-approval labeling, malformed JSON rejection
+and unsafe trace URL suppression. These fixtures are verification data, not run
+evidence. The final export and production build pass.

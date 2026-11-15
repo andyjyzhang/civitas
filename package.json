@@ -31,11 +31,13 @@
     "demo:agents": "bash scripts/demo-agents.sh",
     "agents": "langgraphjs dev --port 2024 --host 127.0.0.1 --no-browser --no-reload --config langgraph.json",
     "build:host": "npm run build:relay && npm run build:bridge && npm run build:web",
-    "start:host": "node scripts/host.mjs"
+    "start:host": "node scripts/host.mjs",
+    "demo:export": "node scripts/export-demo.mjs"
   },
   "devDependencies": {
     "@langchain/langgraph-cli": "^1.7.2",
     "@types/node": "^22.0.0",
+    "esbuild": "^0.28.2",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   }

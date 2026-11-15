@@ -480,3 +480,32 @@ git archive --format=tar.gz --output=.local/civitas-local-source.tar.gz HEAD
 Extract it, then follow the install/setup/build instructions above. This is a source
 bundle requiring Node/npm, not a signed desktop installer or published npm package.
 No release pipeline, cloud deployment or GitHub publication is included.
+
+## Watch demo
+
+Open `/demo` (or **Watch demo** on the landing/empty Agents page). The player runs
+for 90 seconds, with speed/seek controls, Space to pause and arrow keys to move.
+Turn off **Auto-play replay approvals** to present the decisions yourself.
+The current bundle is honestly labeled **Illustrative walkthrough**: a real
+recording is still needed in this checkout. No run date, spend or human approval
+is invented.
+
+**Run live instead** uses the existing signed-in group owner controls and real
+approval cards. Start analysis, review/share its packet, then start the three
+service adapters and review each diff. The relay, agent server and privately
+configured model key must be running as described above. Export selected run JSON
+when it finishes; load it in the player, or replace
+`apps/web/public/demo/recording.json` and rebuild to bundle it. Review the selected
+source/evidence and diff contents before sharing. Model, cost and LangSmith link
+are shown only when captured; the live browser capture currently leaves them null.
+
+For a portable offline copy, run `npm run demo:export` and open
+`.local/demo/civitas-demo.html`. It contains the entire bundled replay in one file
+and needs no server or network. After replacing the recording, export again.
+**See the full trace** retains the captured snapshots and original timestamps,
+including approval contents and diffs. These demo assets are local; nothing is
+published by the export command.
+
+The locally generated backup is `.local/demo/civitas-demo-illustrative.mp4`
+(H.264, 90 seconds). It shows the labeled illustrative walkthrough, not a recorded
+model run. Regenerate the backup after capturing and bundling the real run.
