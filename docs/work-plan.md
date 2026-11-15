@@ -1,5 +1,21 @@
 # Build plan and verified status
 
+## Demo merge and Render deployment request (November 15)
+
+User authorized merging and deploying the presentation work. Updated local `main`
+from `origin/main`, merged `feat/watch-demo` without conflicts at `a92fb37`, and
+pushed `main`; `git ls-remote` confirmed that exact remote commit. Full
+`npm run build:host` passed (relay, MCP bridge/client/contracts, website and
+TypeScript). The unrelated untracked root MP4 was preserved and not committed.
+
+**Deployment pending:** Render integration discovery returned not installed, and
+the browser inventory reported its access host unavailable. No Render API credential
+was available in the current process/project env files. Suggested the Render
+integration for installation/connection. No deploy was triggered or claimed;
+`render.yaml` retains the existing free service, `main` branch, unchanged runtime
+configuration and manual deployment. Next: connect Render, deploy `main` on the
+existing service, verify deployment status/readiness and public `/demo` interactions.
+
 ## Presenter-paced hard-coded demo and pitch (November 15)
 
 On `feat/watch-demo`, `/demo` now opens a self-contained sample group workspace:
