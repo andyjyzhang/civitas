@@ -1,5 +1,17 @@
 # Build plan and verified status
 
+## Simpler deadline story and reply pacing (November 15)
+
+Replaced the offline Maintenance API scenario with an event signup deadline moving
+from 5 PM to 4 PM. Ryan initially has the old time; David knows the updated brief;
+after reviewing/sharing the packet, the same “What time?” question returns 4 PM.
+Website, Reminders and Calendar each have a one-line 5 PM → 4 PM proposal. Replies
+pause 1.8–2.6 seconds using the existing typing state; reset still cancels timers.
+The pitch is a short walkthrough with only “What time?” and “What changed?” to
+remember, plus optional patch review. Verified the actual before/share/after state
+flow, all three approvals, reset and production website build. No model/API calls.
+Deployment pending. Browser interaction was not rechecked; no layout changes.
+
 ## Offline interactive preview (November 15)
 
 User clarified that `/demo` must be fully local, with David’s Claude, Andy’s Codex

@@ -6,15 +6,17 @@ export const agents: Room['agents'] = [
   { agentId: 'preview_andy', name: 'Andy’s Codex', provider: 'codex', ownerName: 'Andy', owned: true, canReply: true, lastSeenAt: null, receiverState: 'listening' },
   { agentId: 'preview_ryan', name: 'Ryan’s Codex', provider: 'codex', ownerName: 'Ryan', owned: false, canReply: true, lastSeenAt: null, receiverState: 'listening' },
 ];
+// Short, visibly paced preset replies; no model or service is involved.
+export const replyDelays: Record<string, number> = { preview_david: 2600, preview_andy: 1800, preview_ryan: 2200 };
 export const packet = {
-  title: 'Maintenance API v2: preserve priority semantics',
-  content: '## Summary\n- Replace priority with priority_code in API consumers.\n- P1 means urgent, confirmed by CHANGELOG.md.\n\n## Unresolved\n- P2 and P3 have no documented mapping; route them to manual review.\n\n## Deprecation\n- /work-orders sunsets on March 31, 2027.\n\n## Sources\n- openapi-v1.yaml\n- openapi-v2.yaml\n- CHANGELOG.md',
-  tags: ['unresolved:P2', 'unresolved:P3'], change: { breaking: true },
+  title: 'Signup deadline: 5 PM → 4 PM',
+  content: '## Summary\n- Event signup now closes at 4 PM instead of 5 PM.\n- Use the same time on the website, in reminders and on the calendar.\n\n## Source\n- event-brief.md: "Signup closes at 4 PM."',
+  tags: [], change: { breaking: false },
 };
 export const services = [
-  { role: 'sdk', name: 'SDK', owner: 'Andy’s Codex', summary: 'Update the response type to use priority_code without inventing meanings for P2 or P3.', diff: '--- a/sdk/maintenance.ts\n+++ b/sdk/maintenance.ts\n@@ -1 +1 @@\n-priority: "urgent" | "normal";\n+priority_code: "P1" | "P2" | "P3";' },
-  { role: 'triage', name: 'Triage UI', owner: 'Ryan’s Codex', summary: 'Keep P1 urgent and show undocumented priority codes as needing review.', diff: '--- a/triage/priority.ts\n+++ b/triage/priority.ts\n@@ -1 +1 @@\n-return order.priority === "urgent" ? "Urgent" : "Low priority";\n+return order.priority_code === "P1" ? "Urgent maintenance" : "Needs review";' },
-  { role: 'dispatch', name: 'Dispatch', owner: 'David’s Claude', summary: 'Route P1 urgently; keep other codes in manual review until their meanings are established.', diff: '--- a/dispatch/routing.ts\n+++ b/dispatch/routing.ts\n@@ -1 +1 @@\n-return order.priority === "urgent" ? "urgent" : "routine";\n+return order.priority_code === "P1" ? "urgent" : "manual-review";' },
+  { role: 'website', name: 'Website', owner: 'Andy’s Codex', summary: 'Show the new 4 PM signup deadline on the website.', diff: '--- a/website/signup.ts\n+++ b/website/signup.ts\n@@ -1 +1 @@\n-export const signupDeadline = "5 PM";\n+export const signupDeadline = "4 PM";' },
+  { role: 'reminders', name: 'Reminders', owner: 'Ryan’s Codex', summary: 'Use 4 PM in the signup reminder.', diff: '--- a/email/reminder.ts\n+++ b/email/reminder.ts\n@@ -1 +1 @@\n-export const reminder = "Signups close at 5 PM.";\n+export const reminder = "Signups close at 4 PM.";' },
+  { role: 'calendar', name: 'Calendar', owner: 'David’s Claude', summary: 'Keep the calendar deadline in sync at 4 PM.', diff: '--- a/calendar/event.ts\n+++ b/calendar/event.ts\n@@ -1 +1 @@\n-export const signupCloses = "5 PM";\n+export const signupCloses = "4 PM";' },
 ];
 export type PreviewState = { room: Room; phase: 'idle'|'review'|'shared'|'rejected'; patches: Record<string, 'ready'|'approved'|'rejected'>; now: number; packetIndex: number };
 export type PreviewAction =
@@ -25,27 +27,28 @@ export type PreviewAction =
   | { type: 'reset'; at: number };
 export function initialPreviewState(now = START): PreviewState {
   return { now, phase: 'idle', patches: {}, packetIndex: 2, room: {
-    space: { spaceId: 'preview_maintenance', name: 'Maintenance team', role: 'owner', kind: 'group', visibility: 'private' },
+    space: { spaceId: 'preview_launch', name: 'Launch team', role: 'owner', kind: 'group', visibility: 'private' },
     currentAccountId: 'preview_person_andy', canPublish: true, agents,
     members: ['Andy','David','Ryan'].map((name, i) => ({ accountId: `preview_person_${name.toLowerCase()}`, name, role: i ? 'member' : 'owner', canPublish: true })),
     posts: [
-      { postId: 'preview_intro', spaceId: 'preview_maintenance', authorId: 'preview_person_andy', authorName: 'Andy', origin: 'human', createdAt: new Date(now-60000).toISOString(), content: 'Maintenance API v2 affects our SDK, triage UI and dispatch. Let’s coordinate the migration here.' },
-      { postId: 'preview_intro_ryan', spaceId: 'preview_maintenance', authorId: 'preview_person_ryan', authorName: 'Ryan', origin: 'human', createdAt: new Date(now-30000).toISOString(), content: 'I’ll handle triage. We need to preserve what “urgent” means, not just rename a field.' },
+      { postId: 'preview_intro', spaceId: 'preview_launch', authorId: 'preview_person_andy', authorName: 'Andy', origin: 'human', createdAt: new Date(now-60000).toISOString(), content: 'Let’s keep the event signup time consistent across the website, reminders and calendar.' },
+      { postId: 'preview_intro_ryan', spaceId: 'preview_launch', authorId: 'preview_person_ryan', authorName: 'Ryan', origin: 'human', createdAt: new Date(now-30000).toISOString(), content: 'The website and my reminders currently say signups close at 5 PM.' },
     ],
   } };
 }
 export function presetReply(agentId: string, content: string, shared: boolean) {
   const name = agents.find(a => a.agentId === agentId)?.name || 'Agent';
-  if (/^(hi|hey|hello|are you (online|connected|there))\b/i.test(content.trim())) return `Hi Andy — ${name} here. I’m ready to discuss the Maintenance API change with the team.`;
-  if (!/api|priority|triage|sdk|contract|change|update|p[123]|source|dispatch/i.test(content)) return 'I can walk through the Maintenance API v2 scenario: the contract change, SDK types, triage labels and dispatch routing. What would you like to review?';
-  const source = shared ? 'Using the shared Maintenance API v2 update (version 1): ' : 'From the prepared Maintenance API sources: ';
-  const reply = agentId === 'preview_david'
-    ? 'v2 replaces priority with priority_code. The changelog confirms P1 means urgent, but P2 and P3 have no documented mapping. The legacy /work-orders endpoint sunsets on March 31, 2027. Share one reviewed update so all three consumers preserve these facts.'
-    : agentId === 'preview_andy'
-      ? 'The SDK should replace the priority field with priority_code and accept P1, P2 and P3. Only P1 has a documented meaning: urgent. Keep P2 and P3 unresolved instead of mapping them to normal or low priority.'
-      : 'Triage should read priority_code instead of priority. Display P1 as “Urgent maintenance.” P2 and P3 should display “Needs review” because their meanings are undocumented. Do not silently classify them as low priority.';
-  return source + reply + '\n\nSources: openapi-v1.yaml, openapi-v2.yaml and CHANGELOG.md.';
+  if (/^(hi|hey|hello|are you (online|connected|there))\b/i.test(content.trim())) return `Hi Andy — ${name} here. Ask me “What time?” or “What changed?”`;
+  if (!/time|when|signup|sign.?up|deadline|event|clos|chang|new|update|website|reminder|calendar/i.test(content)) return 'We’re coordinating an event signup deadline. Try “What time?” or “What changed?”';
+  if (agentId === 'preview_david') return 'Signup now closes at 4 PM, not 5 PM. The event brief was updated. Share this change so the other agents know.\n\nSource: event-brief.md';
+  if (!shared) return agentId === 'preview_andy'
+    ? 'The website still says 5 PM. I haven’t received a newer signup deadline yet.'
+    : 'My reminder still says 5 PM. I haven’t received a newer signup deadline yet.';
+  return agentId === 'preview_andy'
+    ? '4 PM. I received the shared update, so the website should say “Signups close at 4 PM.”\n\nSource: shared deadline update · version 1'
+    : '4 PM. I received the shared update, so the reminder should say “Signups close at 4 PM.”\n\nSource: shared deadline update · version 1';
 }
+
 export function previewReducer(state: PreviewState, action: PreviewAction): PreviewState {
   if (action.type === 'reset') return initialPreviewState(action.at);
   if (action.type === 'send') {

@@ -7,7 +7,7 @@ import { Activity, Bot, Check, ChevronsUpDown, Inbox, Menu, Plus, RotateCcw, Use
 import { Composer, Message } from '../activity/activity-view';
 import { AnalystReview, PatchReview } from '../agents/review';
 import { AgentAvatar, Avatar, Badge, Button, Card, EmptyState, Page, PageHeader, StatusPill } from '../components/ui';
-import { agents, initialPreviewState, packet, previewReducer, services, visibleRoom, type PreviewAction, type PreviewState } from './preview-data';
+import { agents, initialPreviewState, packet, previewReducer, replyDelays, services, visibleRoom, type PreviewAction, type PreviewState } from './preview-data';
 import '../styles/people.css';
 import './preview.css';
 
@@ -41,7 +41,7 @@ export default function Preview() {
     const id='preview_message_'+crypto.randomUUID();
     dispatch({type:'send',id,content,recipient:target,at:Date.now()});
     if (!agents.some(a=>a.agentId===target)) return;
-    const timer=setTimeout(()=>{timers.current.delete(timer);dispatch({type:'reply',messageId:id,at:Date.now()});},450);
+    const timer=setTimeout(()=>{timers.current.delete(timer);dispatch({type:'reply',messageId:id,at:Date.now()});},replyDelays[target] ?? 2000);
     timers.current.add(timer);
   }
   const analysis = () => { dispatch({type:'analyze'}); select('activity'); };
@@ -52,8 +52,8 @@ export default function Preview() {
 
   return <div className="app preview-shell" data-nav-open={navOpen}>
     <aside className="app-sidebar" id="preview-sidebar" aria-label="Sidebar">
-      <div className="switcher"><button className="switcher-button" aria-expanded={groupOpen} aria-haspopup="menu" onClick={()=>setGroupOpen(v=>!v)}><span className="group-mark">M</span><span>{room.space.name}</span><ChevronsUpDown/></button>
-        {groupOpen && <div className="menu" role="menu"><div className="menu-label">Groups</div><button className="menu-item" role="menuitemradio" aria-checked onClick={()=>setGroupOpen(false)}><span className="group-mark">M</span><span>{room.space.name}</span><Check className="check"/></button></div>}
+      <div className="switcher"><button className="switcher-button" aria-expanded={groupOpen} aria-haspopup="menu" onClick={()=>setGroupOpen(v=>!v)}><span className="group-mark">L</span><span>{room.space.name}</span><ChevronsUpDown/></button>
+        {groupOpen && <div className="menu" role="menu"><div className="menu-label">Groups</div><button className="menu-item" role="menuitemradio" aria-checked onClick={()=>setGroupOpen(false)}><span className="group-mark">L</span><span>{room.space.name}</span><Check className="check"/></button></div>}
       </div>
       <nav className="nav" aria-label="Main">{navigation.map(({id,label,Icon})=><button type="button" key={id} className="nav-link" aria-current={tab===id?'page':undefined} onClick={()=>select(id)}><Icon aria-hidden="true"/>{label}{id==='inbox'&&pending>0&&<span className="count-badge">{pending}</span>}</button>)}</nav>
       <div className="account-menu">
@@ -78,14 +78,14 @@ export default function Preview() {
           <Card title="Agents · 3" description="People’s connected coding agents." padded={false}><div className="table-wrap"><table className="table agents-table"><thead><tr><th>Agent</th><th>Owner</th><th>Read</th><th>Share</th><th>Status</th></tr></thead><tbody>{room.agents.map(a=><tr key={a.agentId}><td className="nowrap"><AgentAvatar small/>{a.name}</td><td>{a.ownerName}</td><td><input type="checkbox" checked disabled aria-label={`${a.name} can read`}/></td><td><input type="checkbox" checked disabled aria-label={`${a.name} can share`}/></td><td><StatusPill status="done" label="Connected"/></td></tr>)}</tbody></table></div></Card>
         </Page>}
         {tab==='agents'&&<Page wide><PageHeader title="Agents" description="Follow each run step by step: plan, evidence, patches and approvals." actions={<>{previewLabel}{analysisButton}</>}/>
-          <div className="ag-split"><div className="ag-side"><Card title="Runs" padded={false}><div className="list"><div className="list-row"><AgentAvatar small/><div><strong>David’s Claude</strong><p className="subtle">Maintenance API v2</p></div><StatusPill status={state.phase==='review'?'waiting':state.phase==='shared'?'done':'idle'} label={state.phase==='review'?'Needs your review':state.phase==='shared'?'Shared':'Not started'}/></div></div></Card><Card title="Services" padded={false}><div className="list">{services.map(s=><div className="list-row" key={s.role}><div className="row-main"><strong>{s.name}</strong><p className="subtle">{s.owner}</p></div><StatusPill status={state.patches[s.role]==='approved'?'done':state.patches[s.role]==='ready'?'waiting':'idle'} label={state.patches[s.role]==='approved'?'Updated':state.patches[s.role]==='ready'?'Needs review':'Not started'}/></div>)}</div></Card></div>
-            <section className="preview-run"><Card title="Maintenance API v2"><ol className="preview-plan"><li>Read v1 and v2 contracts</li><li>Compare contract changes and consumer impact</li><li>Cite sources and preserve unknown priority mappings</li><li>Prepare one source-linked update for review</li></ol><details><summary>Evidence</summary><p className="prose-text">openapi-v1.yaml → openapi-v2.yaml: priority becomes priority_code. CHANGELOG.md: P1 means urgent; P2 and P3 remain unresolved.</p></details></Card><PacketCard state={state} dispatch={dispatch} onReview={()=>select('inbox')}/></section>
+          <div className="ag-split"><div className="ag-side"><Card title="Runs" padded={false}><div className="list"><div className="list-row"><AgentAvatar small/><div><strong>David’s Claude</strong><p className="subtle">Signup deadline</p></div><StatusPill status={state.phase==='review'?'waiting':state.phase==='shared'?'done':'idle'} label={state.phase==='review'?'Needs your review':state.phase==='shared'?'Shared':'Not started'}/></div></div></Card><Card title="Services" padded={false}><div className="list">{services.map(s=><div className="list-row" key={s.role}><div className="row-main"><strong>{s.name}</strong><p className="subtle">{s.owner}</p></div><StatusPill status={state.patches[s.role]==='approved'?'done':state.patches[s.role]==='ready'?'waiting':'idle'} label={state.patches[s.role]==='approved'?'Updated':state.patches[s.role]==='ready'?'Needs review':'Not started'}/></div>)}</div></Card></div>
+            <section className="preview-run"><Card title="Signup deadline"><ol className="preview-plan"><li>Read the updated event brief</li><li>Notice the deadline moved from 5 PM to 4 PM</li><li>Identify the website, reminders and calendar</li><li>Prepare one clear update for review</li></ol><details><summary>Evidence</summary><p className="prose-text">event-brief.md: “Signup closes at 4 PM.” The previous deadline was 5 PM.</p></details></Card><PacketCard state={state} dispatch={dispatch} onReview={()=>select('inbox')}/></section>
           </div>
         </Page>}
         {tab==='inbox'&&<Page><PageHeader title="Inbox" description="Review updates and proposed changes." actions={previewLabel}/>
           {state.phase==='review'&&<PacketCard state={state} dispatch={dispatch} onReview={()=>{}}/>}
           {services.filter(s=>state.patches[s.role]==='ready').map(s=><Card key={s.role} title={`${s.owner} · ${s.name}`}><PatchReview threadId={`preview_${s.role}`} service={s.name} summary={s.summary} diff={s.diff} canControl onDecided={()=>{}} onDecision={async decision=>dispatch({type:'patch',role:s.role,decision})} download={null} scopeNote="Approval changes this browser preview only; no files are modified."/></Card>)}
-          {!pending&&<EmptyState icon={<Inbox/>} title="You’re all caught up" description={Object.values(state.patches).filter(p=>p==='approved').length===3?'All three proposed patches are approved. P1 stays urgent; unknown priority codes need review.':'Updates and patch approvals will appear here.'} action={<Button onClick={()=>select('activity')}>Back to Activity</Button>}/>}
+          {!pending&&<EmptyState icon={<Inbox/>} title="You’re all caught up" description={Object.values(state.patches).filter(p=>p==='approved').length===3?'All three proposed changes are approved. The website, reminders and calendar now agree on 4 PM.':'Updates and patch approvals will appear here.'} action={<Button onClick={()=>select('activity')}>Back to Activity</Button>}/>}
         </Page>}
       </main>
     </div>
@@ -93,12 +93,12 @@ export default function Preview() {
 }
 
 function PacketCard({state,dispatch,onReview}:{state:PreviewState;dispatch:Dispatch<PreviewAction>;onReview:()=>void}) {
-  if (state.phase==='idle') return <EmptyState icon={<Bot/>} title="No runs yet" description="Compare the Maintenance API contracts and prepare one update." action={<Button variant="primary" onClick={()=>dispatch({type:'analyze'})}>Analyze API change</Button>}/>;
+  if (state.phase==='idle') return <EmptyState icon={<Bot/>} title="No runs yet" description="Review the new signup deadline and share it with the team." action={<Button variant="primary" onClick={()=>dispatch({type:'analyze'})}>Review deadline change</Button>}/>;
   if (state.phase==='rejected') return <div className="rv-card"><StatusPill status="failed" label="Update rejected"/><Button onClick={()=>dispatch({type:'analyze'})}>Analyze again</Button></div>;
   if (state.phase==='review') return <AnalystReview threadId="preview_analyst" args={packet} canControl services={3} onDecided={()=>{}} onDecision={async decision=>dispatch({type:decision==='approve'?'share':'reject'})}/>;
   const updated=Object.values(state.patches).filter(p=>p==='approved').length;
-  return <div className="rv-card"><div className="rv-title"><strong>{packet.title}</strong><Badge tone="failed">Breaking</Badge><Badge>Version 1</Badge></div><ul className="rv-bullets"><li>priority → priority_code</li><li>P1 means urgent</li><li>P2 and P3 remain unresolved → manual review</li></ul>
-    <details><summary>Sources</summary><p className="prose-text">openapi-v1.yaml · openapi-v2.yaml · CHANGELOG.md</p></details>
+  return <div className="rv-card"><div className="rv-title"><strong>{packet.title}</strong><Badge>Version 1</Badge></div><ul className="rv-bullets"><li>Signup closes at 4 PM, not 5 PM.</li><li>Keep the website, reminders and calendar in sync.</li></ul>
+    <details><summary>Sources</summary><p className="prose-text">event-brief.md · “Signup closes at 4 PM.”</p></details>
     <section className="rollout"><header><h3>Rollout</h3><span className="subtle">{updated} of 3 updated</span>{updated<3&&<Button className="rollout-all" size="sm" variant="secondary" onClick={()=>dispatch({type:'patches'})}>Update all services</Button>}</header><ul>{services.map(s=>{const status=state.patches[s.role];return <li key={s.role}><span className="rollout-name">{s.name}</span><StatusPill status={status==='approved'?'done':status==='ready'?'waiting':status==='rejected'?'failed':'idle'} label={status==='approved'?'Updated':status==='ready'?'Needs your review':status==='rejected'?'Rejected':'Not started'}/><span className="rollout-act">{status==='ready'&&<Button size="sm" variant="ghost" onClick={onReview}>Review</Button>}</span></li>;})}</ul></section>
   </div>;
 }

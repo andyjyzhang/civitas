@@ -187,7 +187,9 @@ initial trust. Credentials and private verification receipts remain outside git.
 For the presentation, open `/demo` without signing in. This offline preview uses
 Civitas’s actual message, composer, report/diff and review components with local
 state. David’s Claude, Andy’s Codex and Ryan’s Codex are already listed as connected.
-Choose a recipient, type a message and press Send for a preset scenario response.
+The scenario is simple: event signup moves from 5 PM to 4 PM. Ask Ryan “What time?”,
+ask David “What changed?”, share the update, then ask Ryan “What time?” again.
+Preset replies take 1.8–2.6 seconds while the normal Replying indicator is visible.
 People-only posts do not invoke agents. Review/share the prepared packet, prepare
 three patches and approve them in Inbox. No account, receiver, model key, API call
 or database write is involved. The small Offline preview badge identifies this
