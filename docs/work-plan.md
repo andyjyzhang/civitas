@@ -16,8 +16,8 @@ scripts or prize strategy. Full `npm run build:host` passed. A temporary in-memo
 relay and production website verified real registration, invitation acceptance,
 selected-agent inbox retrieval and authenticated reply, signed-in product pages,
 404s for every removed presentation route/asset, and the hosted-model approval
-guard (403). No model calls or live database writes were made. PR merge pending;
-no deployment was requested.
+guard (403). No model calls or live database writes were made. Review and merge are tracked in
+[PR #15](https://github.com/andyjyzhang/civitas/pull/15). No deployment was requested.
 
 ## Implemented
 
