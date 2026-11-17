@@ -14,7 +14,7 @@ import RunView from './run-view';
 import '../styles/agents.css';
 
 export default function AgentsView() {
-  const { spaceId, groups } = useShell();
+  const { spaceId, groups, openDialog } = useShell();
   const now = useNow();
   const { overview, error: loadError, load } = useAgentsOverview(spaceId);
   const [error, setError] = useState('');
@@ -47,7 +47,7 @@ export default function AgentsView() {
   const adapt = (role: string) => act(async () => { const r = await agentActions.startAdapter(spaceId, role); setSelected(r.threadId); await load(); });
   const sample = () => act(async () => { const r = await agentActions.sample(spaceId); setSelected(r.threadId); await load(); });
 
-  if (!groups.length) return <Page><PageHeader title="Agents"/><EmptyState icon={<Bot/>} title="Create a group first" description="Agents work inside a group." action={<Button href="/demo" variant="secondary">View product tour</Button>}/></Page>;
+  if (!groups.length) return <Page><PageHeader title="Agents"/><EmptyState icon={<Bot/>} title="Create a group first" description="Agents work inside a group." action={<Button variant="primary" onClick={() => openDialog('create')}>Create group</Button>}/></Page>;
 
   const server = overview?.agentServer;
   const enabled = overview?.workspace.every(r => r.present && r.tokenValid !== false) ?? false;
@@ -107,7 +107,7 @@ export default function AgentsView() {
           {selected ? <RunView key={selected} threadId={selected} onChange={load} onBack={() => setSelected('')}/>
             : overview.runs.length ? <EmptyState icon={<Bot/>} title="Select a run" description="See its plan, steps, files and approvals."/>
             : <EmptyState icon={<FlaskConical/>} title="No runs yet" description={owner ? 'The analyst reads the Maintenance API contracts and proposes one source-linked update for your approval.' : 'The group owner starts analyses. Runs appear here as they happen.'}
-                action={<><Button href={`/demo?space=${encodeURIComponent(spaceId)}`} variant="secondary">View product tour</Button>{owner && <Button variant="primary" icon={<Sparkles/>} disabled={busy || !canStart} onClick={() => void sample()}>{busy ? 'Starting…' : 'Analyze API change'}</Button>}</>}/>}
+                action={<>{owner && <Button variant="primary" icon={<Sparkles/>} disabled={busy || !canStart} onClick={() => void sample()}>{busy ? 'Starting…' : 'Analyze API change'}</Button>}</>}/>}
         </section>
       </div>
     </>}

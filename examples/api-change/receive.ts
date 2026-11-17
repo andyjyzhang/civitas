@@ -55,10 +55,10 @@ async function main() {
     const request = decodeMaintenanceRequest(fixture.response, 'maintenance-v2');
     const outcome = consumer === 'sdk' ? request : consumer === 'triage' ? triageItem(request) : dispatchDecision(request);
     const receipt = { synthetic: true, consumer, deliveryId, selectedEvent: event, outcome, execution: 'Local preimplemented adapter; incoming context was not executed and did not generate code.', receivedAt: new Date().toISOString() };
-    const directory = fileURLToPath(new URL('../../.local/consumer-demo/', import.meta.url));
+    const directory = fileURLToPath(new URL('../../.local/consumer-receipts/', import.meta.url));
     await mkdir(directory, { recursive: true, mode: 0o700 });
     await writeFile(`${directory}${consumer}.json`, JSON.stringify(receipt, null, 2), { mode: 0o600 });
-    console.log(JSON.stringify({ consumer, eventId: event.eventId, source: event.source, outcome, receipt: `.local/consumer-demo/${consumer}.json` }, null, 2));
+    console.log(JSON.stringify({ consumer, eventId: event.eventId, source: event.source, outcome, receipt: `.local/consumer-receipts/${consumer}.json` }, null, 2));
   } finally { await client.close(); }
 }
 main().catch(() => { console.error('Consumer command failed. Verify arguments, selected event, private agent env, bridge build, and relay. Nothing from incoming context was executed.'); process.exitCode = 1; });

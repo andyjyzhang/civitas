@@ -1,4 +1,4 @@
-// SYNTHETIC DEMO CONSUMER. Written against maintenance API v1 only.
+// SYNTHETIC EXAMPLE CONSUMER. Written against maintenance API v1 only.
 // Work order lookup through the legacy endpoint.
 
 export interface WorkOrder { id: string; status: 'open' | 'on_hold' | 'closed' }

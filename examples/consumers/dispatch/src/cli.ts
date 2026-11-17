@@ -1,4 +1,4 @@
-// SYNTHETIC DEMO CONSUMER. Usage: npx tsx src/cli.ts <payload.json>
+// SYNTHETIC EXAMPLE CONSUMER. Usage: npx tsx src/cli.ts <payload.json>
 // Uses an offline stub for the work order lookup and prints the URL it requested.
 import { readFileSync } from 'node:fs';
 import { decide, type DispatchRequest } from './decide.js';

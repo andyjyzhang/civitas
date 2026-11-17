@@ -48,9 +48,8 @@ function useRun(threadId: string, onSettled: () => void) {
   return { run, ...extra, live, streamError, reconnect: connect, refetch: fetchDetail };
 }
 
-export default function RunView({ threadId, onChange, onBack, onSnapshot }: { threadId: string; onChange: () => void; onBack?: () => void; onSnapshot?: (run: RunDetail, subagents: Record<string, SubagentTrace>) => void }) {
+export default function RunView({ threadId, onChange, onBack }: { threadId: string; onChange: () => void; onBack?: () => void }) {
   const { run, canControl, subagents, impact, live, streamError, reconnect, refetch } = useRun(threadId, onChange);
-  useEffect(() => { if (run) onSnapshot?.(run, subagents); }, [run, subagents, onSnapshot]);
   const now = useNow();
   const [stopping, setStopping] = useState(false);
   const [error, setError] = useState('');
@@ -97,7 +96,7 @@ export default function RunView({ threadId, onChange, onBack, onSnapshot }: { th
       : <PatchReview threadId={run.threadId} service={service} summary={typeof action?.args.summary === 'string' ? action.args.summary : undefined}
           diff={run.files[meta.patchPath || `/patches/${run.role}.diff`]} notes={run.files[meta.notesPath || `/notes/${run.role}.md`]} canControl={canControl} onDecided={decided}/>)}
     {!run.approval && run.result && <ResultRow run={run}/>}
-    {run.kind === 'adapter' && run.status === 'applied' && <p className="subtle">Applied to a server demo copy. Download and review the patch to use it in your own matching project.</p>}
+    {run.kind === 'adapter' && run.status === 'applied' && <p className="subtle">Applied to a server workspace copy. Download and review the patch to use it in your own matching project.</p>}
 
     {run.todos.length > 0 && <section className="ag-section" aria-label="Plan">
       <div className="ag-section-head"><h3>Plan</h3><span className="subtle">{done}/{run.todos.length}</span><span className="ag-progress" aria-hidden="true"><span style={{ width: `${(done / run.todos.length) * 100}%` }}/></span></div>

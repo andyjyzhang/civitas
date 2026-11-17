@@ -1,4 +1,4 @@
-// SYNTHETIC DEMO CONSUMER. Written against maintenance API v1 only.
+// SYNTHETIC EXAMPLE CONSUMER. Written against maintenance API v1 only.
 // Decodes maintenance request payloads for downstream services.
 
 export type Priority = 'urgent' | 'normal' | 'low';

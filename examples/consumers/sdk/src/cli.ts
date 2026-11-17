@@ -1,4 +1,4 @@
-// SYNTHETIC DEMO CONSUMER. Usage: npx tsx src/cli.ts <payload.json>
+// SYNTHETIC EXAMPLE CONSUMER. Usage: npx tsx src/cli.ts <payload.json>
 import { readFileSync } from 'node:fs';
 import { decodeRequest } from './request.js';
 

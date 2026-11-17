@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# One-command local agent demo: build, start a relay if none is running, seed four
+# One-command local agent workflow: build, start a relay if none is running, seed four
 # agents, run the analyst (you approve the publish), run the three adapters (you
 # approve each patch), then open the triage preview.
 #
-#   npm run demo:agents            # run ID defaults to demo-<time>
-#   npm run demo:agents -- my-run  # choose a run ID (each ID can be used once)
+#   npm run example:agents            # run ID defaults to run-<time>
+#   npm run example:agents -- my-run  # choose a run ID (each ID can be used once)
 #
 # Keys: export OPENAI_API_KEY (and optionally LANGSMITH_API_KEY), or put them in
 # .local/model.env as KEY=value lines. Never commit them.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-RUN_ID="${1:-demo-$(date +%H%M%S)}"
+RUN_ID="${1:-run-$(date +%H%M%S)}"
 if [ -f .local/model.env ]; then set -a; . ./.local/model.env; set +a; fi
 : "${OPENAI_API_KEY:?Set OPENAI_API_KEY in your shell or in .local/model.env}"
-if [ -n "${LANGSMITH_API_KEY:-}" ]; then export LANGSMITH_TRACING=true LANGSMITH_PROJECT="${LANGSMITH_PROJECT:-civitas-demo}"; fi
+if [ -n "${LANGSMITH_API_KEY:-}" ]; then export LANGSMITH_TRACING=true LANGSMITH_PROJECT="${LANGSMITH_PROJECT:-civitas-agents}"; fi
 # Agent identities come only from the seeded env files.
 unset CIVITAS_AGENT_TOKEN CIVITAS_RELAY_URL CIVITAS_DEMO_SPACE_ID
 
@@ -22,7 +22,7 @@ step() { printf '\n\033[1;32m==> %s\033[0m\n' "$1"; }
 
 step "Install and build"
 [ -d node_modules ] || npm install
-[ -f .env ] || npm run -s setup:demo
+[ -f .env ] || npm run -s setup:local
 npm run -s build:relay >/dev/null
 npm run -s build:bridge >/dev/null
 npm run -s build -w @civitas/change-analyst >/dev/null

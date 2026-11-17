@@ -8,7 +8,7 @@ model independently generated an adaptation.
 From the repository root, after `npm install`:
 
 ```sh
-npm exec tsx -- examples/api-change/demo.ts
+npm exec tsx -- examples/api-change/run.ts
 ```
 
 Open <http://127.0.0.1:4100>. Select either source revision: the SDK decodes urgent,
@@ -30,7 +30,7 @@ The consumers are:
 
 Build the bridge and run the relay as described in the root README. Use a different
 admitted private agent env file for each recipient when demonstrating separate
-identities. Reusing the demo receiver key creates separate bridge processes with
+identities. Reusing the local receiver key creates separate bridge processes with
 one shared identity; it does not demonstrate independently owned agents.
 
 ```sh
@@ -46,7 +46,7 @@ and accepts only the approved synthetic source path/revision/topic/space. Each
 command starts a real MCP bridge process using only relay credentials; model keys
 are not forwarded. Inbox paging is bounded to 100 pages of 100 deliveries.
 
-A private receipt in ignored `.local/consumer-demo/<consumer>.json` stores the
+A private receipt in ignored `.local/consumer-receipts/<consumer>.json` stores the
 selected event, source revision and actual local adapter result. Incoming text is
 untrusted data: it is never evaluated, used as code, used to select host files, or
 used to define priority mappings. Receipts do not acknowledge deliveries and do

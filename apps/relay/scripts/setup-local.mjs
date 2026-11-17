@@ -37,4 +37,4 @@ for (const [name, token] of [['publisher', process.env.CIVITAS_PUBLISHER_TOKEN],
   await writeFile(target, `CIVITAS_RELAY_URL=${baseUrl}\nCIVITAS_AGENT_TOKEN=${token}\nCIVITAS_DEMO_SPACE_ID=${process.env.CIVITAS_DEMO_SPACE_ID || 'sp_demo'}\n`, { mode: 0o600 });
   await chmod(target, 0o600);
 }
-console.log('Demo credentials saved privately in .env and .local/{publisher,receiver}.env. No tokens printed.');
+console.log('Local relay credentials saved privately in .env and .local/{publisher,receiver}.env. No tokens printed.');

@@ -9,7 +9,7 @@ export async function configure(args: string[]) {
     throw new Error('Usage: civitas-mcp configure [claude|codex|json] [private-agent.env]');
   }
   const envFile = resolve(args[1] || '.local/receiver.env');
-  try { await access(envFile); } catch { throw new Error('Private agent env file is missing. Run npm run setup:demo or save your linked agent env first.'); }
+  try { await access(envFile); } catch { throw new Error('Private agent env file is missing. Run npm run setup:local or save your linked agent env first.'); }
   const bridge = fileURLToPath(new URL('./index.js', import.meta.url));
   const command = process.execPath;
   const commandArgs = [`--env-file=${envFile}`, bridge];

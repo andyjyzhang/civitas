@@ -1,4 +1,4 @@
-// Single-instance hackathon host. Only the gateway is public; relay and LangGraph
+// Single-instance shared host. Only the gateway is public; relay and LangGraph
 // stay on loopback. Free Render files/session/run state can disappear on restart.
 import { spawn } from 'node:child_process';
 import { createServer, request as httpRequest } from 'node:http';
@@ -81,7 +81,7 @@ async function main() {
   const agentPort = port(env.CIVITAS_AGENT_PORT, 2024);
   if (new Set([gatewayPort, webPort, relayPort, agentPort]).size !== 4) throw new Error('Host ports must be distinct.');
   Object.assign(env, {
-    NODE_ENV: 'production', CIVITAS_HOSTED_DEMO: 'true',
+    NODE_ENV: 'production', CIVITAS_HOSTED_WORKSPACE: 'true',
     CIVITAS_REPO_ROOT: root, CIVITAS_PUBLIC_URL: publicUrl.origin,
     CIVITAS_PUBLIC_RELAY_URL: publicUrl.origin,
     CIVITAS_RELAY_URL: `http://127.0.0.1:${relayPort}`,
@@ -158,7 +158,7 @@ async function main() {
   server.headersTimeout = 15000;
   server.once('error', () => { console.error('Public gateway could not bind.'); shutdown(1); });
   server.listen(gatewayPort, '0.0.0.0', () => {
-    console.log(`Civitas shared demo: ${publicUrl.origin}. Tiger data persists; local agent files and browser sessions reset on restart.`);
+    console.log(`Civitas server: ${publicUrl.origin}. Tiger data persists; local agent files and browser sessions reset on restart.`);
   });
 }
 

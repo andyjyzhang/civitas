@@ -1,4 +1,4 @@
-// SYNTHETIC DEMO CONSUMER. Written against maintenance API v1 only.
+// SYNTHETIC EXAMPLE CONSUMER. Written against maintenance API v1 only.
 // Renders the triage card property managers see for a maintenance request.
 
 export interface TriageRequest {
