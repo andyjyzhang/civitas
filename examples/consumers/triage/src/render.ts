@@ -1,4 +1,4 @@
-// SYNTHETIC DEMO CONSUMER. Usage: npx tsx src/render.ts <payload.json>  (prints HTML)
+// SYNTHETIC EXAMPLE CONSUMER. Usage: npx tsx src/render.ts <payload.json>  (prints HTML)
 import { readFileSync } from 'node:fs';
 import { renderCard, type TriageRequest } from './card.js';
 

@@ -1,6 +1,6 @@
 # Agent instructions
 
-Civitas is a hackathon project. Build a working demo; keep code and process simple.
+Civitas connects independently owned agents. Build a working product; keep code and process simple.
 
 - Read [README](README.md). Consult [design](docs/product.md) or
   [work plan](docs/work-plan.md) only as needed for your task.

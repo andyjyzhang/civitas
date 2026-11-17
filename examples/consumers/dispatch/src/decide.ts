@@ -1,4 +1,4 @@
-// SYNTHETIC DEMO CONSUMER. Written against maintenance API v1 only.
+// SYNTHETIC EXAMPLE CONSUMER. Written against maintenance API v1 only.
 // Decides how a maintenance request is dispatched to vendors.
 import { fetchWorkOrder, type Fetcher } from './workOrders.js';
 

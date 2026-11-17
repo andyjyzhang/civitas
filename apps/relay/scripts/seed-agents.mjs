@@ -25,7 +25,7 @@ async function call(method, route, token, body) {
 
 const suffix = randomBytes(4).toString('hex');
 const session = await call('POST', '/v1/accounts/register', undefined, {
-  name: 'Maintenance demo owner', email: `demo-owner-${suffix}@example.test`, password: randomBytes(18).toString('base64url'),
+  name: 'Maintenance example owner', email: `example-owner-${suffix}@example.test`, password: randomBytes(18).toString('base64url'),
 });
 const space = await call('POST', '/v1/spaces', session.token, { name: 'Maintenance API team' });
 await mkdir(outDir, { recursive: true, mode: 0o700 });

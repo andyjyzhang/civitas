@@ -43,7 +43,7 @@ agent server run (graph "adapter")  or  node dist/index.js adapt <role> [runId]
 
 The model never sees `acknowledge_update`; the server-side tool acknowledges only after a
 successful approved apply. Retrieved context is treated as untrusted data in the system
-prompt and tool output. `examples/consumers/` is never modified, so the demo repeats.
+prompt and tool output. `examples/consumers/` is never modified, so the workflow is repeatable.
 
 Design note: the agent produces the diff through `make_patch` (computed with git from its
 `edit_file` changes) rather than typing raw diff text. An early run where gpt-4.1-mini
@@ -99,10 +99,10 @@ a published update on `project/maintenance-api`, and `npm run build:bridge`.
 
 ```sh
 npm run build -w @civitas/adapter-agent
-npm run adapt -w @civitas/adapter-agent -- triage demo1     # interactive approval (TTY)
-npm run adapt -w @civitas/adapter-agent -- sdk demo1
-npm run adapt -w @civitas/adapter-agent -- dispatch demo1
-npm run preview -w @civitas/adapter-agent -- demo1          # .local/adapter/demo1/triage-preview.html
+npm run adapt -w @civitas/adapter-agent -- triage run1     # interactive approval (TTY)
+npm run adapt -w @civitas/adapter-agent -- sdk run1
+npm run adapt -w @civitas/adapter-agent -- dispatch run1
+npm run preview -w @civitas/adapter-agent -- run1          # .local/adapter/run1/triage-preview.html
 ```
 
 Environment: `OPENAI_API_KEY`, `CIVITAS_MODEL` (default `gpt-4.1-mini`, must be priced

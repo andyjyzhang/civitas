@@ -21,4 +21,4 @@ npx tsx examples/consumers/dispatch/src/cli.ts examples/consumers/triage/samples
 ```
 
 The adapter agent never edits these folders. Approved patches are applied to copies
-under `.local/adapter/<runId>/<role>/`, so the originals stay v1-only and the demo is repeatable.
+under `.local/adapter/<runId>/<role>/`, so the originals stay v1-only and the workflow is repeatable.

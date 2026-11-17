@@ -105,7 +105,7 @@ export class PostgresStorage implements RelayStorage {
     const client = await this.pool.connect();
     try {
       await client.query('BEGIN');
-      // A small demo prioritizes deterministic ordering over per-space throughput.
+      // A small installation prioritizes deterministic ordering over per-space throughput.
       // All space mutations and snapshots use this DB lock across relay processes.
       await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [`civitas:space:${space}`]);
       const result = await work(client);

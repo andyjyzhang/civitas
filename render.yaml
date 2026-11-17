@@ -1,4 +1,4 @@
-# Free hackathon demo: Tiger stores accounts/context; local agent files are ephemeral.
+# Free shared hosting: Tiger stores accounts/context; local agent files are ephemeral.
 services:
   - type: web
     name: civitas-relay

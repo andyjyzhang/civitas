@@ -22,7 +22,7 @@ export function readConfig() {
   const publisherToken = process.env.CIVITAS_PUBLISHER_TOKEN;
   const receiverToken = process.env.CIVITAS_RECEIVER_TOKEN;
   if (!publisherToken || !receiverToken || publisherToken.length < 24 || receiverToken.length < 24) {
-    throw new Error('Configure two agent credentials with npm run setup:demo first.');
+    throw new Error('Configure two agent credentials with npm run setup:local first.');
   }
   if (publisherToken === receiverToken) throw new Error('Agent credentials must be different.');
   const host = process.env.RELAY_HOST || '127.0.0.1';

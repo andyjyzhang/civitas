@@ -137,7 +137,7 @@ From the repository root (Node 22+, npm 10+), relay in memory mode:
 
 ```sh
 npm install
-npm run setup:demo
+npm run setup:local
 npm run build:relay && npm run build:bridge
 npm run build -w @civitas/change-analyst
 npm run start:relay                      # another terminal

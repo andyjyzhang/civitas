@@ -31,7 +31,7 @@ a discovery from a private project to a server requires an explicit selected pos
 do not automatically mirror project conversations or agent context.
 
 The implementation now distinguishes `group` and `server` spaces. Existing spaces
-default to private groups. `/groups` supports private member conversations;
+default to private groups. `/activity` supports private member conversations;
 `/servers` supports source-linked topic feeds, discovery of explicitly public
 servers by signed-in users, subscriptions, and owner-approved publishers. Private
 servers require invitations. Both routes share one layout/navigation component.
@@ -39,9 +39,9 @@ Explicitly published agent events appear in their destination's feed. Group memb
 can link Claude/Codex by approving a short-lived code and running one generated
 repository command, then select an agent as a message
 recipient. Only the selected message enters that agent's durable group inbox;
-authenticated MCP replies appear in the conversation. Everyone messages stay with
-people. Native agents use their existing login and must be active to fetch/respond;
-the relay does not wake or host models. Keep `space` as an
+authenticated MCP replies appear in the conversation. People messages stay with
+people. Native agents use a local receiver and their existing CLI login to fetch and
+reply automatically; the relay does not wake inactive coding applications. Keep `space` as an
 internal routing/access term. The relay server is the backend supporting both.
 
 ## Product surfaces
@@ -56,8 +56,8 @@ internal routing/access term. The relay server is the backend supporting both.
 
 ## Stack and boundaries
 
-TypeScript/npm workspaces; Fastify relay; Next.js/Tailwind website; PostgreSQL on
-Tiger Cloud for the shared demo. Local Compose is vanilla PostgreSQL. Use regular
+TypeScript/npm workspaces; Fastify relay; Next.js website with shared CSS; PostgreSQL on
+Tiger Cloud for shared persistence. Local Compose is vanilla PostgreSQL. Use regular
 tables for identities, grants, versions, subscriptions, and durable deliveries.
 A Timescale activity hypertable powers space-scoped time-bucket and latency charts.
 Do not put core idempotency constraints in time-partitioned telemetry or add Atlas
@@ -82,76 +82,12 @@ key. Keep tools limited to approved inputs and reviewed publication; no arbitrar
 host shell or credential access. Its internal specialists do not count as independent
 cross-owner agents. Claude Code/Codex consume the packet separately.
 
-## Demo and prize focus
+## Current boundaries
 
-A synthetic property-maintenance API changes `priority: "urgent"` to
-`priority_code: "P1"`. Deep Agents investigates and publishes a reviewed update.
-Frontend, SDK, and testing agents retrieve it. Show reviewable code changes, a triage
-UI preserving urgent priority, source history, and real Tiger-backed delivery/retrieval
-timings. Aim for three receiving agents and at least two useful changes. No new
-automated testing infrastructure is required for the hackathon.
-
-Rank targets by fit and remaining work, not predicted winning odds:
-
-| Priority | Target | Required demo evidence / remaining work |
-| --- | --- | --- |
-| **1** | **Business and Enterprise — main category** | Strongest natural fit: one API change reaches teammates across tools/repos and prevents incompatible work; show scoped access and useful code changes. |
-| **2** | **LangChain — primary sponsor target** | Real Deep Agents planning, contract/impact specialists, evidence files, human review, and MCP publication. SDK installation alone is insufficient; complete and run the analyst. |
-| **3** | **Amazon — Practical AI Innovation** | Reuse the same grounded source-to-code demo to show a concrete coordination failure fixed. Confirm whether Amazon technology is required before adding services. |
-| **4** | **Tiger Data — selected database prize** | Local PostgreSQL and Timescale migrations/analytics are verified; connect actual Tiger Cloud and demonstrate hosted telemetry. Hosted verification is pending. |
-| **5 — conditional** | **Peri — Forward Deploy** | Talk to a real developer about a specific coordination failure, change a feature based on feedback, and have them try it. An anonymized contact description alone is insufficient. |
-| **6 — stretch** | **CoStar — Built World** | Demonstrate a meaningful property/building workflow benefit. The synthetic maintenance API is a possible vehicle; domain naming alone does not establish fit. |
-
-Put most remaining effort into the working cross-agent demo and real Deep Agents
-integration. Reuse one source → analysis → reviewed publication → independent-agent
-adaptation story across eligible entries. Pursue Amazon and Tiger Data with that
-same demo; pursue Peri and CoStar only when the required evidence exists. Sponsor
-rules and award compatibility still need organizer confirmation.
-
-Tiger Data fits the existing SQL model and event analytics better than introducing
-MongoDB for this MVP. This is our design choice, not a limitation of Atlas.
-
-### Main-track strategy
-
-The team supplied the main/optional prize descriptions. **Business and Enterprise**
-is our strongest main-track fit: infrastructure that improves real software teams'
-efficiency, with a dashboard and privacy controls. Keep LangChain as the primary
-sponsor target; the new main-track descriptions do not change the build priorities.
-
-The supplied **Best Overall Hack** rule judges creativity, utility, charity, and
-avidity, and says track winners cannot win Best Overall. Enter the appropriate
-category and prepare a strong overall demo; confirm with organizers how that
-exclusion applies to sponsor and optional awards. Do not assume awards can stack.
-
-Make the demo easy to judge: show the distinctive cross-owner context relay
-(creativity), an API change actually helping another developer finish work
-(utility), and the source-to-result story. Ask organizers what charity and avidity
-mean in their rubric before claiming evidence for those dimensions. Open-source
-access, privacy, and real user feedback can support the story where relevant.
-
-Healthcare, Sustainability, Entertainment, Education, and Science + Discovery are
-not current targets. Do not add unrelated features to enter them. Best Rookie Hack
-requires the team's first-hackathon eligibility to be confirmed; Best Hardware Hack
-requires actual hardware integration. A desktop application alone is not that demo.
-
-The team supplied “a person at an NYC startup” as an anonymized contact description.
-Role, incident, quotes, feedback, consent, and validation are not documented. Do not
-invent them or attribute the synthetic maintenance scenario to that contact. Have a
-short conversation, capture the actual workaround, change one feature, and show it
-back. Keep personal details private unless disclosure is authorized.
-
-The [event listing](https://hackprinceton-fall-26.devpost.com/) is the submission
-reference; the main-track rules above come from the team's supplied descriptions.
-The November 14 rules check confirms one main track plus sponsor tracks; the
-README records current submission requirements and a deadline conflict. Detailed
-LangChain/CoStar/Amazon/Peri requirements remain to be confirmed with mentors;
-do not assume AWS services are required.
-Prepare a two-minute demonstration and confirm submission rules before entering.
-Technical references: [Deep Agents](https://docs.langchain.com/oss/javascript/deepagents/overview),
-[Tiger Data](https://www.tigerdata.com/docs/learn/hypertables/understand-hypertables).
-
-## Cut line
-
-Working relay and actual Deep Agents use come before decorative graphs, desktop
-polish, public discovery, chat, semantic relevance, and GitHub release packaging.
-Keep the demo honest: label recordings, fixtures, seeded activity, and unfinished UI.
+Only allowlisted source and consumer paths are exposed to hosted agents. Real
+model runs require provider credentials and review; patches apply to isolated
+workspace copies. Generated run files, browser sessions and spend ledgers are
+currently process-local or ephemeral on free hosting. Email verification,
+password recovery, durable hosted run storage and broader source integrations
+remain future work. The website reports actual agent contact, delivery, retrieval,
+acknowledgement and work separately.

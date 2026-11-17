@@ -202,7 +202,7 @@ function Row({ id, avatar, who, text, pill, at, now, children, className }: { id
   </article>;
 }
 
-export function Message({ post, continued, own, parent, canReply, receiver, onAsk, now }: { post: Post; continued: boolean; own: boolean; parent?: Post; canReply: boolean; receiver?: Room['agents'][number]; onAsk: (id: string) => void; now: number }) {
+function Message({ post, continued, own, parent, canReply, receiver, onAsk, now }: { post: Post; continued: boolean; own: boolean; parent?: Post; canReply: boolean; receiver?: Room['agents'][number]; onAsk: (id: string) => void; now: number }) {
   const agent = post.origin === 'agent';
   return <article className={`fe msg ${continued ? 'continued' : ''}`}>
     <div className="fe-gutter">{continued ? null : agent ? <AgentAvatar/> : <Avatar name={post.authorName}/>}</div>
@@ -282,7 +282,7 @@ function RunItem({ kind, run, ctx }: { kind: 'analysis' | 'analysis-decision' | 
   const props = { ...base, id: anchor(run.threadId), avatar: <Avatar name={memberName(ctx, run.decidedBy)}/>, who: memberName(ctx, run.decidedBy),
     children: <div className="fe-actions"><Button variant="ghost" size="sm" icon={<FileText/>} href={runLink(ctx, run)}>View diff</Button>{run.status === 'applied' && <PatchDownload threadId={run.threadId}/>}</div> };
   if (run.decision === 'rejected') return <Row {...props} text={`rejected the patch for ${service}`}/>;
-  if (run.status === 'applied') return <Row {...props} className="fe-done" text={<>applied the patch · <strong>{service} demo copy updated</strong></>} pill={<StatusPill status="done" label="Applied to demo copy"/>}/>;
+  if (run.status === 'applied') return <Row {...props} className="fe-done" text={<>applied the patch · <strong>{service} workspace copy updated</strong></>} pill={<StatusPill status="done" label="Applied to workspace copy"/>}/>;
   if (run.status === 'running') return <Row {...props} text={`approved the patch for ${service}`} pill={<StatusPill status="working" label="Applying"/>}/>;
   if (run.status === 'failed') return <Row {...props} text={`approved the patch for ${service}, but applying it failed`} pill={<StatusPill status="failed" label="Failed"/>}/>;
   return <Row {...props} text={`approved the patch for ${service}`}/>;
@@ -292,7 +292,7 @@ function RunItem({ kind, run, ctx }: { kind: 'analysis' | 'analysis-decision' | 
 const STAGE: Record<Stage, { status: Status; label: string }> = {
   pending: { status: 'idle', label: 'Not started' }, delivered: { status: 'idle', label: 'Not started' }, retrieved: { status: 'idle', label: 'Not started' },
   adapting: { status: 'working', label: 'Updating' }, patch_ready: { status: 'waiting', label: 'Needs your review' },
-  applied: { status: 'done', label: 'Demo copy updated' }, acknowledged: { status: 'done', label: 'Acknowledged' }, dismissed: { status: 'idle', label: 'Dismissed' },
+  applied: { status: 'done', label: 'Workspace copy updated' }, acknowledged: { status: 'done', label: 'Acknowledged' }, dismissed: { status: 'idle', label: 'Dismissed' },
   rejected: { status: 'failed', label: 'Patch rejected' }, failed: { status: 'failed', label: 'Failed' },
 };
 const STARTABLE = new Set<Stage>(['pending', 'delivered', 'retrieved', 'rejected', 'failed']);
@@ -326,7 +326,7 @@ function SharedItem({ event, run, ctx }: { event: FeedEvent; run?: RunSummary; c
       <ul className="rv-bullets">{bullets.slice(0, 3).map(b => <li key={b}>{b}</li>)}</ul>
       <div className="rv-foot"><Button variant="ghost" size="sm" icon={<FileText/>} onClick={() => setOpen(true)}>View full report</Button></div>
       <section className="rollout" aria-label="Rollout">
-        <p className="subtle">Hosted patches update demo copies. Download a patch to use it in your project.</p>
+        <p className="subtle">Hosted patches update workspace copies. Download a patch to use it in your project.</p>
         <header><h3>Rollout</h3><span className="subtle">{n ? `${updated} of ${n} updated` : 'No services'}</span>
           {startable.length > 1 && <Button size="sm" variant="secondary" className="rollout-all" disabled={!!ctx.busy} onClick={() => ctx.onAdapt(startable.map(r => r.role!))}>{ctx.busy.startsWith('adapt:') ? 'Starting…' : 'Update all services'}</Button>}
         </header>
@@ -347,7 +347,7 @@ function SharedItem({ event, run, ctx }: { event: FeedEvent; run?: RunSummary; c
 }
 
 // ---------- composer ----------
-export function Composer({ room, spaceId, recipient, setRecipient, onSent, hidden, onPost }: { room: Room; spaceId: string; recipient: string; setRecipient: (id: string) => void; onSent: () => Promise<void>; hidden: Set<string>; onPost?: (content: string, recipient: string) => Promise<void> }) {
+function Composer({ room, spaceId, recipient, setRecipient, onSent, hidden }: { room: Room; spaceId: string; recipient: string; setRecipient: (id: string) => void; onSent: () => Promise<void>; hidden: Set<string> }) {
   const [content, setContent] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -366,8 +366,7 @@ export function Composer({ room, spaceId, recipient, setRecipient, onSent, hidde
     setBusy(true); setError('');
     sendKey.current ??= crypto.randomUUID();
     try {
-      if (onPost) await onPost(sent, recipient);
-      else await operate('post', { spaceId, post: { content: sent, idempotencyKey: sendKey.current, ...(recipient ? { targetAgentId: recipient } : {}) } });
+      await operate('post', { spaceId, post: { content: sent, idempotencyKey: sendKey.current, ...(recipient ? { targetAgentId: recipient } : {}) } });
       sendKey.current = null; setContent(current => current === sent ? '' : current); await onSent();
     } catch (e) { setError(errorText(e, 'Message not sent. Try again.')); }
     finally { setBusy(false); input.current?.focus(); }
